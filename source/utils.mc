@@ -32,3 +32,12 @@ function objectStorePut(key, value) {
 function log(tag, data) {
 	System.println(Lang.format("[$1$] $2$: $3$",  [formatTime(Time.now()), tag, data]));
 }
+
+function formatInterval(seconds) {
+	var hours = seconds / 3600.0;
+	if (hours >= 24) { 
+		return (hours / 24).format("%.1f") + "d";
+	} else {
+		return hours.format("%.1f") + "h";
+	}
+}

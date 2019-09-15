@@ -46,20 +46,17 @@ class WidgetView extends WatchUi.View {
     	dc.drawText(120, 120, Graphics.FONT_NUMBER_HOT, 
 					percent.format("%.0f") + "%", 
 					Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-		var predicted = mState.predict();
-		if (predicted == null ) {
+		var result = new Result(mState);
+		result.predictWindow();
+		var predicted;
+		if (result.windowSpeed == null) {
 			if (stats.charging) {
 				predicted = "charging...";
 			} else {
 				predicted = "measuring...";
 			}
 		} else {
-			predicted = predicted / 3600.0;
-			if (predicted >= 24) { 
-				predicted = (predicted / 24).format("%.1f") + "d";
-			} else {
-				predicted = predicted.format("%.1f") + "h";
-			}
+			predicted = formatInterval(result.windowPredict);
 		}
 		dc.drawText(120, 160, Graphics.FONT_SMALL, 
 					predicted, 

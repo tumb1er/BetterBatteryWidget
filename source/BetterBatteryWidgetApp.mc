@@ -33,8 +33,8 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     // This method runs each time the main application starts.
     function getInitialView() {
         mWidgetView = new BetterBatteryWidgetView(mBackgroundData);
-//        mWidgetView.deleteBackgroundEvent();
-        return [ mWidgetView ];
+        var inputDelegate = new WidgetViewInputDelegate();
+        return [ mWidgetView, inputDelegate ];
     }
 
     // This method runs each time the background process starts.

@@ -5,7 +5,7 @@ using Toybox.WatchUi;
 /**
 Shows debug data in text
 */
-class DebugView extends WatchUi.View {
+class InfoView extends WatchUi.View {
 	var mState;
 
     function initialize() {
@@ -34,4 +34,17 @@ class DebugView extends WatchUi.View {
     		y += 20;
     	}	
 	}
+}
+
+class InfoViewInputDelegate extends WatchUi.BehaviorDelegate {
+
+    function initialize() {
+        BehaviorDelegate.initialize();
+    }
+    
+    function onBack() {
+		log("InfoViewInputDelegate.onBack", null);
+        popView(WatchUi.SLIDE_IMMEDIATE);
+        return true;
+    }
 }

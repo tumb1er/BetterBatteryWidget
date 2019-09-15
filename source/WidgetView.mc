@@ -13,7 +13,7 @@ const rm=(ro+ri)/2, rw=(ro-ri+1)/2;
 const FIVE_MINUTES = new Time.Duration(5 * 60);
 	
 
-class BetterBatteryWidgetView extends WatchUi.View {
+class WidgetView extends WatchUi.View {
 	var mBitmap;
 	var mState;
 
@@ -186,4 +186,17 @@ class BetterBatteryWidgetView extends WatchUi.View {
         setBackgroundEvent();
     }
 
+}
+
+class WidgetViewInputDelegate extends WatchUi.BehaviorDelegate {
+
+    function initialize() {
+        BehaviorDelegate.initialize();
+    }
+    
+    function onTap(event) {
+		log("WidgetViewInputDelegate.onTap", event);
+		pushView(new InfoView(), new InfoViewInputDelegate(), WatchUi.SLIDE_IMMEDIATE);    
+    	return true;
+    }
 }

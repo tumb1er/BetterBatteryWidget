@@ -2,13 +2,14 @@ using Toybox.Application;
 using Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
+using Toybox.Time.Gregorian;
 
 (:background)
-function now() {
-	var myTime = System.getClockTime(); // ClockTime object
-	var ret = myTime.hour.format("%02d") + ":" +
-	    myTime.min.format("%02d") + ":" +
-	    myTime.sec.format("%02d");
+function formatTime(moment) {
+	var info = Time.Gregorian.info(moment, Time.FORMAT_MEDIUM);
+	var ret = info.hour.format("%02d") + ":" +
+	    info.min.format("%02d") + ":" +
+	    info.sec.format("%02d");
     return ret;
 }
 
@@ -29,5 +30,5 @@ function objectStorePut(key, value) {
 
 (:background)
 function log(tag, data) {
-	System.println(Lang.format("[$1$] $2$: $3$",  [now(), tag, data]));
+	System.println(Lang.format("[$1$] $2$: $3$",  [formatTime(Time.now()), tag, data]));
 }

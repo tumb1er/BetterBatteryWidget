@@ -146,18 +146,18 @@ class BetterBatteryWidgetView extends WatchUi.View {
     function onHide() {
     }
     
-    function setBackgroundEvent() {
-    	log("View.setBackgroundEvent", "scheduling");
-    	
-    	var lastTime = Background.getLastTemporalEventTime();
-        try {
-			if (lastTime != null) {
-			    var nextTime = lastTime.add(FIVE_MINUTES);
-			    Background.registerForTemporalEvent(nextTime);
-			} else {
-			    Background.registerForTemporalEvent(Time.now().add(FIVE_MINUTES));
-			}
-        } catch (e instanceof Background.InvalidBackgroundTimeException) {
+    function setBackgroundEvent() {    	
+    	var time = Background.getLastTemporalEventTime();
+    	log("View.setBackgroundEvent lastTime", time);
+		if (time != null) {
+		    time = time.add(FIVE_MINUTES);
+		} else {
+			time = Time.now().add(FIVE_MINUTES);
+		}
+       	log("View.setBackgroundEvent nextTime", formatTime(time));
+		try {
+	 	    Background.registerForTemporalEvent(time);
+	    } catch (e instanceof Background.InvalidBackgroundTimeException) {
 	        log("View.setBackgroundEvent error", e);
         }
     }

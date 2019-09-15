@@ -46,6 +46,7 @@ class State {
 		if (mData.size() > MAX_POINTS) {
 			mData = mData.slice(1, null);
 		}
+		save();
 		return ready;
 	}
 	

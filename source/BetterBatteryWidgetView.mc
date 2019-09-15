@@ -152,9 +152,14 @@ class BetterBatteryWidgetView extends WatchUi.View {
 		if (time != null) {
 		    time = time.add(FIVE_MINUTES);
 		} else {
-			time = Time.now().add(FIVE_MINUTES);
+			time = Background.getTemporalEventRegisteredTime();
+			log("View.setBackgroundEvent regTime", time);
+			if (time != null) {
+				return;
+			}
+			time = Time.now().add(FIVE_MINUTES);			
 		}
-       	log("View.setBackgroundEvent nextTime", formatTime(time));
+       	log("View.setBackgroundEvent scheduling", formatTime(time));
 		try {
 	 	    Background.registerForTemporalEvent(time);
 	    } catch (e instanceof Background.InvalidBackgroundTimeException) {
@@ -170,7 +175,6 @@ class BetterBatteryWidgetView extends WatchUi.View {
     function backgroundEvent(data) {
     	log("View.backgroundEvent", data);
     	mState = new State(data);
-    	mState.save();
         WatchUi.requestUpdate();
         setBackgroundEvent();
     }

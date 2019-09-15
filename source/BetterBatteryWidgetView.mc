@@ -21,6 +21,8 @@ class BetterBatteryWidgetView extends WatchUi.View {
         View.initialize();
     	log("View.initialize", backgroundData);
         backgroundEvent(backgroundData);
+        mState.measure();
+        mState.save();
     }
 
     function onLayout(dc) {
@@ -46,7 +48,11 @@ class BetterBatteryWidgetView extends WatchUi.View {
 					Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 		var predicted = mState.predict();
 		if (predicted == null ) {
-			predicted = "measuring...";
+			if (stats.charging) {
+				predicted = "charging...";
+			} else {
+				predicted = "measuring...";
+			}
 		} else {
 			predicted = predicted / 3600.0;
 			if (predicted >= 24) { 
@@ -175,6 +181,7 @@ class BetterBatteryWidgetView extends WatchUi.View {
     function backgroundEvent(data) {
     	log("View.backgroundEvent", data);
     	mState = new State(data);
+    	mState.save();
         WatchUi.requestUpdate();
         setBackgroundEvent();
     }

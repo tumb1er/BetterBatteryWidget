@@ -5,18 +5,9 @@ using Toybox.System;
 class BetterBatteryWidgetApp extends Application.AppBase {
     var mWidgetView;
     var mBackgroundData;
-
+    
     function initialize() {
-        AppBase.initialize();
-    }
-
-    function onStart(state) {
-        if( mWidgetView ) {
-            mWidgetView.setBackgroundEvent();
-        }
-    }
-
-    function onStop(state) {
+    	AppBase.initialize();
     }
 
     function onBackgroundData(data) {

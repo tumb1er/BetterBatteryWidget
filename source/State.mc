@@ -4,7 +4,7 @@ State describes current state of battery widget
 using Toybox.System;
 using Toybox.Time;
 
-const STATE_PROPERTY = "state";
+const STATE_PROPERTY = "stage";
 const KEY_POINTS = "p";
 const MAX_POINTS = 5;
 
@@ -27,7 +27,7 @@ class State {
 	
 	function getData() {
 		return {
-			KEY_POINTS => mData
+			KEY_POINTS => mData,
 		};
 		
 	}
@@ -39,15 +39,31 @@ class State {
 	
 	function measure() {
 		var ts = Time.now().value();
-		var value = System.getSystemStats().battery;
-		log("State.measure", [ts, value]);
-		var ready = mData.size() > 0;
-		mData.add([ts, value]);
+		var stats = System.getSystemStats();
+		log("State.measure", [ts, stats.battery, stats.charging]);
+		if (stats.charging) {
+			log("State.measure charging, reset at", stats.battery);
+			mData = [];
+		}
+		if (mData.size() > 0) {
+			if (stats.battery > mData[mData.size() - 1][1]) {
+				log("State.measure, value increase, reset at", stats.battery);
+				mData = [];
+			}
+		}
+		if (mData.size() > 0) {
+			if (stats.battery < mData[mData.size() - 1][1]) {
+				mData.add([ts, stats.battery]);
+			} else {
+				log("State.measure, same value", stats.battery);
+			}			
+		} else {
+			mData.add([ts, stats.battery]);
+		}
 		if (mData.size() > MAX_POINTS) {
 			mData = mData.slice(1, null);
 		}
-		save();
-		return ready;
+		return mData.size() > 0;
 	}
 	
 	function predict() {

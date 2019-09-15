@@ -10,26 +10,22 @@ class BetterBatteryWidgetApp extends Application.AppBase {
         AppBase.initialize();
     }
 
-    // onStart() is called on application start up
     function onStart(state) {
         if( mWidgetView ) {
             mWidgetView.setBackgroundEvent();
         }
     }
 
-    // onStop() is called when your application is exiting
     function onStop(state) {
-        Toybox.System.println(mProperties);
     }
 
-    // This method is called when data is returned from our
-    // Background process.
     function onBackgroundData(data) {
-    	System.println([now(), "App.onBackgroundData", data]);
+    	log("App.onBackgroundData", data);
         if( mWidgetView ) {
+	    	log("App.onBackgroundData", "calling View.backgroundEvent");
             mWidgetView.backgroundEvent(data);
         } else {
-        System.println([now(), "App: no mWidgetView"]);
+	    	log("App.onBackgroundData", "now widget");
             mBackgroundData = data;
         }
     }

@@ -1,4 +1,5 @@
 using Toybox.Application;
+using Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
 
@@ -27,7 +28,6 @@ function objectStorePut(key, value) {
 }
 
 (:background)
-function getPercentTs() {
-	var stats = System.getSystemStats();
-	return [stats.battery, Time.now().value()];
+function log(tag, data) {
+	System.println(Lang.format("[$1$] $2$: $3$",  [now(), tag, data]));
 }

@@ -9,13 +9,12 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
     }
 
     function onTemporalEvent() {
-		var prevPercent = objectStoreGet("percent", null);
-		var prevTimestamp = objectStoreGet("timestamp", null);
-		if (prevPercent != null) {
-			var current = getPercentTs();
-			var ret = [current[0], current[1], prevPercent, prevTimestamp, Time.now().value()];
-			System.println([now(), "background.exit", ret]);
-        	Background.exit(ret);
-    	}
+    	var data = Background.getBackgroundData();
+		log("Delegate.onTemporalEvent bgData", data); 
+    	var state = new State(data);
+    	state.measure();
+		var ret = state.getData();
+		log("Delegate.onTemporalEvent ret", ret); 
+		Background.exit(ret);
     }
 }

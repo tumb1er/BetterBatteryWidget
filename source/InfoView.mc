@@ -25,7 +25,7 @@ class InfoView extends WatchUi.View {
 			ts.sec.format("%02d")
 		]);
 		
-		var data = Lang.format("Charged to $1$%\n$2$", [percent.format("%.1f"), ts]);
+		var data = Lang.format("Charged to $1$%\n$2$", [percent.format("%.2f"), ts]);
 		
     	dc.drawText(120, y, 
     			Graphics.FONT_XTINY, 
@@ -92,7 +92,7 @@ class InfoViewInputDelegate extends WatchUi.BehaviorDelegate {
     
     function onBack() {
 		log("InfoViewInputDelegate.onBack", null);
-        popView(WatchUi.SLIDE_LEFT);
+        popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
 }

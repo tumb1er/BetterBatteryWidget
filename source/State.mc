@@ -108,27 +108,20 @@ class State {
 		if (mCharged == null) {
 			mCharged = [ts, stats.battery];
 		}
+		
 		if (stats.charging) {
 			log("State.measure charging, reset at", stats.battery);
 			mData = [];
 			mCharged = [ts, stats.battery];
 		}
 		if (mData.size() > 0) {
-			if (stats.battery > mData[mData.size() - 1][1]) {
+			if (stats.battery - 1.0 > mData[mData.size() - 1][1]) {
 				log("State.measure, value increase, reset at", stats.battery);
-				mCharged = mData[mData.size() - 1];
+				mCharged = [ts, stats.battery];
 				mData = [];
 			}
 		}
-		if (mData.size() > 0) {
-			if (stats.battery < mData[mData.size() - 1][1]) {
-				mData.add([ts, stats.battery]);
-			} else {
-				log("State.measure, same value", stats.battery);
-			}			
-		} else {
-			mData.add([ts, stats.battery]);
-		}
+		mData.add([ts, stats.battery]);
 		if (mData.size() > MAX_POINTS) {
 			mData = mData.slice(1, null);
 		}

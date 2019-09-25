@@ -3,6 +3,9 @@ using Toybox.Background;
 using Toybox.System;
 using Toybox.Time;
 
+const FIVE_MINUTES = new Time.Duration(5 * 60);
+
+
 (:background)
 class BetterBatteryWidgetApp extends Application.AppBase {
     var mWidgetView;
@@ -22,6 +25,10 @@ class BetterBatteryWidgetApp extends Application.AppBase {
             mBackgroundData = data;
         }
     }
+    
+    function onStart(state) {
+    	setBackgroundEvent();
+    }
 
     // This method runs each time the main application starts.
     function getInitialView() {
@@ -34,6 +41,28 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     function getServiceDelegate(){
         return [new BackgroundServiceDelegate()];
     }
+    
+        
+    function setBackgroundEvent() {    	
+    	var time = Background.getLastTemporalEventTime();
+    	log("App.setBackgroundEvent lastTime", formatTime(time));
+		time = Background.getTemporalEventRegisteredTime();
+		if (time != null) {
+			log("App.setBackgroundEvent regTime", formatTime(new Time.Moment(time.value())));
+			return;
+		}
+       	log("App.setBackgroundEvent scheduling", FIVE_MINUTES);
+		try {
+	 	    Background.registerForTemporalEvent(FIVE_MINUTES);
+	    } catch (e instanceof Background.InvalidBackgroundTimeException) {
+	        log("App.setBackgroundEvent error", e);
+        }
+    }
+   
+    function deleteBackgroundEvent() {
+    	log("App.deleteBackgroundEvent", "deleting");
+        Background.deleteTemporalEvent();
+    }  
 }
 
 (:background)

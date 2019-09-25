@@ -10,7 +10,6 @@ const angle=60;
 const window = 12.0;
 const beta=2/(1+window);
 const rm=(ro+ri)/2, rw=(ro-ri+1)/2;
-const FIVE_MINUTES = new Time.Duration(5 * 60);
 	
 
 class WidgetView extends WatchUi.View {
@@ -30,7 +29,6 @@ class WidgetView extends WatchUi.View {
     }
 
     function onShow() {
-    	setBackgroundEvent();
     }
 
     function onUpdate(dc) {
@@ -149,38 +147,11 @@ class WidgetView extends WatchUi.View {
     function onHide() {
     }
     
-    function setBackgroundEvent() {    	
-    	var time = Background.getLastTemporalEventTime();
-    	log("View.setBackgroundEvent lastTime", time);
-		if (time != null) {
-		    time = time.add(FIVE_MINUTES);
-		} else {
-			time = Background.getTemporalEventRegisteredTime();
-			log("View.setBackgroundEvent regTime", time);
-			if (time != null) {
-				return;
-			}
-			time = Time.now().add(FIVE_MINUTES);			
-		}
-       	log("View.setBackgroundEvent scheduling", formatTime(time));
-		try {
-	 	    Background.registerForTemporalEvent(time);
-	    } catch (e instanceof Background.InvalidBackgroundTimeException) {
-	        log("View.setBackgroundEvent error", e);
-        }
-    }
-
-    function deleteBackgroundEvent() {
-    	log("View.deleteBackgroundEvent", "deleting");
-        Background.deleteTemporalEvent();
-    }
-    
     function backgroundEvent(data) {
     	log("View.backgroundEvent", data);
     	mState = new State(data);
     	mState.save();
         WatchUi.requestUpdate();
-        setBackgroundEvent();
     }
 
 }

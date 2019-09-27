@@ -6,6 +6,9 @@ using Toybox.Time.Gregorian;
 
 (:background)
 function formatTime(moment) {
+	if (moment == null) {
+		return "null";
+	}
 	var info = Time.Gregorian.info(moment, Time.FORMAT_MEDIUM);
 	var ret = info.hour.format("%02d") + ":" +
 	    info.min.format("%02d") + ":" +

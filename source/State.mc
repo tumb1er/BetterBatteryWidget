@@ -1,12 +1,14 @@
 /** 
 State describes current state of battery widget
 */
+using Toybox.Activity;
 using Toybox.System;
 using Toybox.Time;
 
 const STATE_PROPERTY = "s";
 const KEY_POINTS = "p";
 const KEY_CHARGED = "c";
+const KEY_ACTIVITY = "a";
 const MAX_POINTS = 5;
 
 class Result {
@@ -72,6 +74,7 @@ class Result {
 class State {
 	var mData;	
 	var mCharged;
+	var mActivityRunning;
 	
 	function initialize(data) {
 		log("State.initialize: passed", data);
@@ -82,16 +85,19 @@ class State {
 		if (data == null) {
 			mData = [];
 			mCharged = null;
+			mActivityRunning = false;
 		} else {
 			mData = data[KEY_POINTS];
 			mCharged = data[KEY_CHARGED];
+			mActivityRunning = data[KEY_ACTIVITY];
 		}
 	}
 	
 	function getData() {
 		return {
 			KEY_POINTS => mData,
-			KEY_CHARGED => mCharged
+			KEY_CHARGED => mCharged,
+			KEY_ACTIVITY => mActivityRunning
 		};
 		
 	}
@@ -101,24 +107,40 @@ class State {
 		objectStorePut(STATE_PROPERTY, getData());
 	}
 	
+	function reset(ts, value) {
+		mData = [];
+		mCharged = [ts, value];
+	}
+	
 	function measure() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
 		log("State.measure", [ts, stats.battery, stats.charging, mCharged]);
 		if (mCharged == null) {
-			mCharged = [ts, stats.battery];
-		}
-		
-		if (stats.charging) {
-			log("State.measure charging, reset at", stats.battery);
-			mData = [];
-			mCharged = [ts, stats.battery];
+			log("State.measure data is empty, initializing", stats.battery);
+			reset(ts, stats.battery);
 		}
 		if (mData.size() > 0) {
-			if (stats.battery - 1.0 > mData[mData.size() - 1][1]) {
+			var prev = mData[mData.size() - 1][1];
+			var info = Activity.getActivityInfo();
+			var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
+			if (stats.charging) {
+				log("State.measure charging, reset at", stats.battery);
+				reset(ts, stats.battery);
+			}
+			if (activityRunning != mActivityRunning) {
+				log("State.measure activity state changed, reset at", stats.battery);
+				mActivityRunning = activityRunning;
+				reset(ts, stats.battery);
+			}
+			
+			if (stats.battery == prev) {
+				log("State.measure, same value, skip", stats.battery);
+				return true;
+			}	
+			if (stats.battery > prev + 1.0) {
 				log("State.measure, value increase, reset at", stats.battery);
-				mCharged = [ts, stats.battery];
-				mData = [];
+				reset(ts, stats.battery);
 			}
 		}
 		mData.add([ts, stats.battery]);

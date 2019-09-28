@@ -131,7 +131,7 @@ class State {
 			if (activityRunning != mActivityRunning) {
 				log("State.measure activity state changed, reset at", stats.battery);
 				mActivityRunning = activityRunning;
-				reset(ts, stats.battery);
+				mData = [];
 			}
 			
 			if (stats.battery == prev) {

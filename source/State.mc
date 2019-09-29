@@ -37,6 +37,16 @@ class Result {
 		return [speed, last[1] / speed];		
 	}
 	
+	function predictAvg(weight) {
+		if (windowPredict == null) {
+			return chargedPredict;
+		}
+		if (chargedPredict == null) {
+			return windowPredict;
+		}
+		return windowPredict * weight + chargedPredict * (1.0 - weight);
+	}
+	
 	function predictWindow() {
 		windowSpeed = null;
 		windowPredict = null;

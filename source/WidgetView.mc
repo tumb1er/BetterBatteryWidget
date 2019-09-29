@@ -47,15 +47,16 @@ class WidgetView extends WatchUi.View {
 					Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 		var result = new Result(mState);
 		result.predictWindow();
-		var predicted;
-		if (result.windowSpeed == null) {
+		result.predictCharged();
+		var predicted = result.predictAvg(0.5);
+		if (predicted == null) {
 			if (stats.charging) {
 				predicted = "charging...";
 			} else {
 				predicted = "measuring...";
 			}
 		} else {
-			predicted = formatInterval(result.windowPredict);
+			predicted = formatInterval(predicted);
 		}
 		dc.drawText(120, 160, Graphics.FONT_SMALL, 
 					predicted, 
@@ -136,10 +137,10 @@ class WidgetView extends WatchUi.View {
 
 }
 
-class WidgetViewInputDelegate extends WatchUi.BehaviorDelegate {
+class WidgetViewInputDelegate extends WatchUi.InputDelegate {
 
     function initialize() {
-        BehaviorDelegate.initialize();
+        InputDelegate.initialize();
     }
     
     function onTap(event) {

@@ -72,14 +72,16 @@ class InfoView extends WatchUi.View {
 						]),
 					Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     		y += 20;
-    	}	
+    	}
+    	
+		dc.fillPolygon([[120, 5], [125, 10], [115, 10]]);    		
 	}
 }
 
-class InfoViewInputDelegate extends WatchUi.BehaviorDelegate {
+class InfoViewInputDelegate extends WatchUi.InputDelegate {
 
     function initialize() {
-        BehaviorDelegate.initialize();
+        InputDelegate.initialize();
     }
     
     function onBack() {
@@ -87,4 +89,17 @@ class InfoViewInputDelegate extends WatchUi.BehaviorDelegate {
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
+    
+    function onSwipe(swipeEvent) {
+		log("InfoViewInputDelegate.onSwipe", swipeEvent);
+		if (swipeEvent.getDirection() == WatchUi.SWIPE_DOWN) {
+			var app = Application.getApp();
+			switchToView(new GraphView(app.mState), new GraphViewInputDelegate(), WatchUi.SLIDE_DOWN);    
+		}
+		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
+			popView(WatchUi.SLIDE_RIGHT);
+		}		
+		return true;
+    }
+   
 }

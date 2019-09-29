@@ -55,21 +55,28 @@ class GraphView extends WatchUi.View {
 		result.predictCharged();
 		result.predictWindow();
 		
+		var text;
 		if (result.windowPredict != null) {
-			colorize(dc, System.getSystemStats().battery);
-			dc.drawText(gcx-5, top-80, Graphics.FONT_XTINY, "since", Graphics.TEXT_JUSTIFY_RIGHT);
-			dc.drawText(gcx-5, top-65, Graphics.FONT_XTINY, "charged", Graphics.TEXT_JUSTIFY_RIGHT);
-			dc.drawText(gcx+5, top-86, Graphics.FONT_NUMBER_MEDIUM, formatPercent(result.windowSpeed * 3600), Graphics.TEXT_JUSTIFY_LEFT);
+			text = formatPercent(result.windowSpeed * 3600);
+		} else {
+			text = "--";
 		}
+		colorize(dc, System.getSystemStats().battery);
+		dc.drawText(gcx-5, top-80, Graphics.FONT_XTINY, "since", Graphics.TEXT_JUSTIFY_RIGHT);
+		dc.drawText(gcx-5, top-65, Graphics.FONT_XTINY, "charged", Graphics.TEXT_JUSTIFY_RIGHT);
+		dc.drawText(gcx+5, top-86, Graphics.FONT_NUMBER_MEDIUM, text, Graphics.TEXT_JUSTIFY_LEFT);
 		if (result.chargedPredict != null) {
-			dc.setColor(0xFFFFFF, Graphics.COLOR_TRANSPARENT);
-			dc.drawText(gcx-5, top-40, Graphics.FONT_XTINY, "over last", Graphics.TEXT_JUSTIFY_RIGHT);
-			dc.drawText(gcx-5, top-25, Graphics.FONT_XTINY, "30 min", Graphics.TEXT_JUSTIFY_RIGHT);
-			dc.drawText(gcx+5, top-46, Graphics.FONT_NUMBER_MEDIUM, formatPercent(result.chargedSpeed * 3600), Graphics.TEXT_JUSTIFY_LEFT);
+			text = formatPercent(result.chargedSpeed * 3600);
+		} else {
+			text = "--";
 		}
-		dc.setColor(0xFF0000, 0x000000);
+		dc.setColor(0xFFFFFF, Graphics.COLOR_TRANSPARENT);
+		dc.drawText(gcx-5, top-40, Graphics.FONT_XTINY, "over last", Graphics.TEXT_JUSTIFY_RIGHT);
+		dc.drawText(gcx-5, top-25, Graphics.FONT_XTINY, "30 min", Graphics.TEXT_JUSTIFY_RIGHT);
+		dc.drawText(gcx+5, top-46, Graphics.FONT_NUMBER_MEDIUM, text, Graphics.TEXT_JUSTIFY_LEFT);
 		
 		// graph 4 hours
+		dc.setColor(0xFF5555, 0x000000);
 		var points = mState.mPoints;
 		log("GraphView.onUpdate points", points.size());
 		if (points.size() < 2) {
@@ -80,8 +87,8 @@ class GraphView extends WatchUi.View {
 		var start = end - 3600 * 4;
 		for (var i = 1; i < points.size(); i++) {
 			var value = points[i][1];
-			if (min[0] > value) {min = points[i];}
-			if (max[0] < value) {max = points[i];}
+			if (min[1] > value) {min = points[i];}
+			if (max[1] < value) {max = points[i];}
 		}
 		if (min[1] == max[1]) {
 			log("GraphView.onUpdate min=max", min[1]);
@@ -113,6 +120,8 @@ class GraphView extends WatchUi.View {
 		
 		dc.fillPolygon([[x,y], [x+5, y+5], [x-5, y+5]]);
 		dc.drawText(x, y + 5, Graphics.FONT_SYSTEM_XTINY, formatPercent(max[1]), getTextJustify(x));
+		
+		dc.fillPolygon([[120, 235], [125, 230], [115, 230]]);
 
 	}
 	
@@ -127,15 +136,27 @@ class GraphView extends WatchUi.View {
 }
 
 
-class GraphViewInputDelegate extends WatchUi.BehaviorDelegate {
+class GraphViewInputDelegate extends WatchUi.InputDelegate {
 
     function initialize() {
-        BehaviorDelegate.initialize();
+        InputDelegate.initialize();
     }
     
     function onBack() {
 		log("GraphViewInputDelegate.onBack", null);
         popView(WatchUi.SLIDE_RIGHT);
         return true;
+    }
+    
+    function onSwipe(swipeEvent) {
+		log("GraphViewInputDelegate.onSwipe", swipeEvent);
+		if (swipeEvent.getDirection() == WatchUi.SWIPE_UP) {
+			var app = Application.getApp();
+			switchToView(new InfoView(app.mState), new InfoViewInputDelegate(), WatchUi.SLIDE_UP);    
+		}
+		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
+			popView(WatchUi.SLIDE_RIGHT);
+		}
+		return true;
     }
 }

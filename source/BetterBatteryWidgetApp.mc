@@ -2,6 +2,7 @@ using Toybox.Application;
 using Toybox.Background;
 using Toybox.System;
 using Toybox.Time;
+using Toybox.WatchUi;
 
 const FIVE_MINUTES = new Time.Duration(5 * 60);
 
@@ -9,21 +10,23 @@ const FIVE_MINUTES = new Time.Duration(5 * 60);
 (:background)
 class BetterBatteryWidgetApp extends Application.AppBase {
     var mWidgetView;
-    var mBackgroundData;
+    var mState;
     
     function initialize() {
     	AppBase.initialize();
+    	var data = Background.getBackgroundData();
+    	mState = new State(data);
     }
 
     function onBackgroundData(data) {
     	log("App.onBackgroundData", data);
+    	mState = new State(data);
+    	mState.save();
         if( mWidgetView ) {
-	    	log("App.onBackgroundData", "calling View.backgroundEvent");
-            mWidgetView.backgroundEvent(data);
-        } else {
-	    	log("App.onBackgroundData", "now widget");
-            mBackgroundData = data;
+	    	log("App.onBackgroundData", "calling WidgetView.updateState");
+            mWidgetView.updateState(mState);
         }
+        WatchUi.requestUpdate();
     }
     
     function onStart(state) {
@@ -32,9 +35,11 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 
     // This method runs each time the main application starts.
     function getInitialView() {
-        mWidgetView = new WidgetView(mBackgroundData);
+        mWidgetView = new WidgetView(mState);
         var inputDelegate = new WidgetViewInputDelegate();
         return [ mWidgetView, inputDelegate ];
+//		mWidgetView = new GraphView(mState);
+//		return [mWidgetView];
     }
 
     // This method runs each time the background process starts.

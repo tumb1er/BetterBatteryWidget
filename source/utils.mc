@@ -1,4 +1,5 @@
 using Toybox.Application;
+using Toybox.Graphics;
 using Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
@@ -14,6 +15,20 @@ function formatTime(moment) {
 	    info.min.format("%02d") + ":" +
 	    info.sec.format("%02d");
     return ret;
+}
+
+function formatTimestamp(ts) {
+	ts = Time.Gregorian.info(new Time.Moment(ts), Time.FORMAT_SHORT);
+	return Lang.format("$1$.$2$ $3$:$4$", [
+		ts.day,
+		ts.month.format("%02d"),
+		ts.hour.format("%02d"),
+		ts.min.format("%02d")
+	]);
+}
+
+function formatPercent(value) {
+	return Lang.format("$1$%", [value.format("%.1f")]);
 }
 
 (:background)
@@ -42,5 +57,27 @@ function formatInterval(seconds) {
 		return (hours / 24).format("%.1f") + "d";
 	} else {
 		return hours.format("%.1f") + "h";
+	}
+}
+
+function colorize(dc, percent) {
+	if (percent > 90) {
+		// blue
+		dc.setColor(0x00aaff, Graphics.COLOR_TRANSPARENT);
+	} else if (percent > 75) {
+		// cyan
+		dc.setColor(0x55ffff, Graphics.COLOR_TRANSPARENT);
+	} else if (percent > 50) {
+		// green
+		dc.setColor(0x55ff00, Graphics.COLOR_TRANSPARENT);
+	} else if (percent > 25) {
+		// yellow
+		dc.setColor(0xffff00, Graphics.COLOR_TRANSPARENT);
+	} else if (percent > 10) {
+		// orange
+		dc.setColor(0xffaa00, Graphics.COLOR_TRANSPARENT);			
+	} else {
+		// red
+		dc.setColor(0xff0000, Graphics.COLOR_TRANSPARENT);	
 	}
 }

@@ -6,6 +6,7 @@ using Toybox.System;
 using Toybox.Time;
 
 const STATE_PROPERTY = "s";
+const KEY_DATA = "d";
 const KEY_POINTS = "p";
 const KEY_CHARGED = "c";
 const KEY_ACTIVITY = "a";
@@ -73,6 +74,7 @@ class Result {
 (:background)
 class State {
 	var mData;	
+	var mPoints;
 	var mCharged;
 	var mActivityRunning;
 	
@@ -86,8 +88,10 @@ class State {
 			mData = [];
 			mCharged = null;
 			mActivityRunning = false;
+			mPoints = [];
 		} else {
-			mData = data[KEY_POINTS];
+			mData = data[KEY_DATA];
+			mPoints = data[KEY_POINTS];
 			mCharged = data[KEY_CHARGED];
 			mActivityRunning = data[KEY_ACTIVITY];
 		}
@@ -95,7 +99,8 @@ class State {
 	
 	function getData() {
 		return {
-			KEY_POINTS => mData,
+			KEY_DATA => mData,
+			KEY_POINTS => mPoints,
 			KEY_CHARGED => mCharged,
 			KEY_ACTIVITY => mActivityRunning
 		};
@@ -112,6 +117,21 @@ class State {
 		mCharged = [ts, value];
 	}
 	
+	function pushPoint(ts, value) {
+		if (mPoints.size() == 0) {
+			mPoints.add([ts, value]);
+			return;
+		}
+		var prev = mPoints[0];
+		if (ts - prev[0] < 1) {
+			return;
+		}
+		mPoints.add([ts, value]);
+		var i;
+		for (i=0; mPoints[i][0] < ts - 3600 * 4; i++) {}
+		mPoints = mPoints.slice(i, null);
+	}
+	
 	function measure() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
@@ -120,6 +140,7 @@ class State {
 			log("State.measure data is empty, initializing", stats.battery);
 			reset(ts, stats.battery);
 		}
+		pushPoint(ts, stats.battery);
 		if (mData.size() > 0) {
 			var prev = mData[mData.size() - 1][1];
 			var info = Activity.getActivityInfo();

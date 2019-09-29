@@ -1,3 +1,4 @@
+using Toybox.Application;
 using Toybox.Graphics;
 using Toybox.Math;
 using Toybox.System;
@@ -16,10 +17,10 @@ class WidgetView extends WatchUi.View {
 	var mBitmap;
 	var mState;
 
-    function initialize(backgroundData) {
+    function initialize(state) {
         View.initialize();
-    	log("View.initialize", backgroundData);
-        backgroundEvent(backgroundData);
+    	log("View.initialize", state);
+    	mState = state;
         mState.measure();
         mState.save();
     }
@@ -75,26 +76,7 @@ class WidgetView extends WatchUi.View {
 		dc.drawArc(cxr + rm * Math.cos(Math.toRadians(-angle)), 
 				   cyb - rm * Math.sin(Math.toRadians(-angle)),
 				   rw, Graphics.ARC_CLOCKWISE, -angle, -angle-180);
-		if (percent > 90) {
-			// blue
-			dc.setColor(0x00aaff, 0);
-		} else if (percent > 75) {
-			// cyan
-			dc.setColor(0x55ffff, 0);
-		} else if (percent > 50) {
-			// green
-			dc.setColor(0x55ff00, 0);
-		} else if (percent > 25) {
-			// yellow
-			dc.setColor(0xffff00, 0);
-		} else if (percent > 10) {
-			// orange
-			dc.setColor(0xffaa00, 0);			
-		} else {
-			// red
-			dc.setColor(0xff0000, 0);
-		
-		}
+		colorize(dc, percent);
 		// left 
 		dc.fillCircle(cxl + rm * Math.cos(Math.toRadians(180+angle)), 
 				      cyb - rm * Math.sin(Math.toRadians(180+angle)),
@@ -147,11 +129,9 @@ class WidgetView extends WatchUi.View {
     function onHide() {
     }
     
-    function backgroundEvent(data) {
-    	log("View.backgroundEvent", data);
-    	mState = new State(data);
+    function updateState(state) {
+    	mState = state;
     	mState.save();
-        WatchUi.requestUpdate();
     }
 
 }
@@ -164,7 +144,8 @@ class WidgetViewInputDelegate extends WatchUi.BehaviorDelegate {
     
     function onTap(event) {
 		log("WidgetViewInputDelegate.onTap", event);
-		pushView(new InfoView(), new InfoViewInputDelegate(), WatchUi.SLIDE_IMMEDIATE);    
+		var app = Application.getApp();
+		pushView(new GraphView(app.mState), new GraphViewInputDelegate(), WatchUi.SLIDE_IMMEDIATE);    
     	return true;
     }
 }

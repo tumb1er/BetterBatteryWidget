@@ -9,21 +9,13 @@ Shows debug data in text
 class InfoView extends WatchUi.View {
 	var mState;
 
-    function initialize() {
+    function initialize(state) {
     	View.initialize();
-		mState = new State(null);
+		mState = state;
 	}
 	
 	function drawCharged(dc, ts, percent, y) {
-		ts = Time.Gregorian.info(new Time.Moment(ts), Time.FORMAT_MEDIUM);
-		ts = Lang.format("$1$ $2$ $3$ $4$:$5$:$6$", [
-			ts.day,
-			ts.month,
-			ts.year,
-			ts.hour.format("%02d"),
-			ts.min.format("%02d"),
-			ts.sec.format("%02d")
-		]);
+		ts = formatTimestamp(ts);
 		
 		var data = Lang.format("Charged to $1$%\n$2$", [percent.format("%.2f"), ts]);
 		

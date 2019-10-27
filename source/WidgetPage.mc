@@ -13,7 +13,7 @@ const beta=2/(1+window);
 const rm=(ro+ri)/2, rw=(ro-ri+1)/2;
 	
 
-class WidgetView extends WatchUi.View {
+class WidgetPage extends WatchUi.View {
 	var mBitmap;
 	var mState;
 
@@ -137,17 +137,17 @@ class WidgetView extends WatchUi.View {
 
 }
 
-class WidgetViewInputDelegate extends WatchUi.InputDelegate {
+class WidgetPageInputDelegate extends WatchUi.InputDelegate {
 
     function initialize() {
         InputDelegate.initialize();
     }
     
     function onTap(event) {
-		log("WidgetViewInputDelegate.onTap", event);
+		log("WidgetPageInputDelegate.onTap", event);
 		var app = Application.getApp();
-		var view = new GraphView(app.mState);
-		pushView(view, new GraphViewInputDelegate(view), WatchUi.SLIDE_IMMEDIATE);    
+		var view = new GraphPage(app.mState);
+		pushView(view, new GraphPageInputDelegate(view), WatchUi.SLIDE_IMMEDIATE);    
     	return true;
     }
 }

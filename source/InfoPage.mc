@@ -6,7 +6,7 @@ using Toybox.WatchUi;
 /**
 Shows debug data in text
 */
-class InfoView extends WatchUi.View {
+class InfoPage extends WatchUi.View {
 	var mState;
 
     function initialize(state) {
@@ -78,24 +78,24 @@ class InfoView extends WatchUi.View {
 	}
 }
 
-class InfoViewInputDelegate extends WatchUi.InputDelegate {
+class InfoPageInputDelegate extends WatchUi.InputDelegate {
 
     function initialize() {
         InputDelegate.initialize();
     }
     
     function onBack() {
-		log("InfoViewInputDelegate.onBack", null);
+		log("InfoPageInputDelegate.onBack", null);
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onSwipe(swipeEvent) {
-		log("InfoViewInputDelegate.onSwipe", swipeEvent);
+		log("InfoPageInputDelegate.onSwipe", swipeEvent);
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_DOWN) {
 			var app = Application.getApp();
-			var view = new GraphView(app.mState);
-			switchToView(view, new GraphViewInputDelegate(view), WatchUi.SLIDE_DOWN);    
+			var view = new GraphPage(app.mState);
+			switchToView(view, new GraphPageInputDelegate(view), WatchUi.SLIDE_DOWN);    
 		}
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
 			popView(WatchUi.SLIDE_RIGHT);

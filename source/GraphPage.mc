@@ -11,7 +11,7 @@ const gw = 200, gh = 80, gcx=120, gcy=140, tick=5;
 /**
 Shows debug data in text
 */
-class GraphView extends WatchUi.View {
+class GraphPage extends WatchUi.View {
 	var mState;
 	var mMode;
 
@@ -80,7 +80,7 @@ class GraphView extends WatchUi.View {
 		
 		// graph 4 hours
 		var points = mState.mPoints;
-		log("GraphView.onUpdate points", points.size());
+		log("GraphPage.onUpdate points", points.size());
 		if (points.size() < 2) {
 			return;
 		}
@@ -93,7 +93,7 @@ class GraphView extends WatchUi.View {
 			if (max[1] < value) {max = points[i];}
 		}
 		if (min[1] == max[1]) {
-			log("GraphView.onUpdate min=max", min[1]);
+			log("GraphPage.onUpdate min=max", min[1]);
 			return;
 		}
 		
@@ -144,7 +144,7 @@ class GraphView extends WatchUi.View {
 }
 
 
-class GraphViewInputDelegate extends WatchUi.InputDelegate {
+class GraphPageInputDelegate extends WatchUi.InputDelegate {
 	var mView;
 
     function initialize(view) {
@@ -153,16 +153,16 @@ class GraphViewInputDelegate extends WatchUi.InputDelegate {
     }
     
     function onBack() {
-		log("GraphViewInputDelegate.onBack", null);
+		log("GraphPageInputDelegate.onBack", null);
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onSwipe(swipeEvent) {
-		log("GraphViewInputDelegate.onSwipe", swipeEvent);
+		log("GraphPageInputDelegate.onSwipe", swipeEvent);
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_UP) {
 			var app = Application.getApp();
-			switchToView(new InfoView(app.mState), new InfoViewInputDelegate(), WatchUi.SLIDE_UP);    
+			switchToView(new InfoPage(app.mState), new InfoPageInputDelegate(), WatchUi.SLIDE_UP);    
 		}
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
 			popView(WatchUi.SLIDE_RIGHT);
@@ -171,7 +171,7 @@ class GraphViewInputDelegate extends WatchUi.InputDelegate {
     }
     
     function onTap(clickEvent) {
-    	log("GraphViewInputDelegate.onTap", clickEvent);
+    	log("GraphPageInputDelegate.onTap", clickEvent);
     	mView.nextMode();
     	
     }

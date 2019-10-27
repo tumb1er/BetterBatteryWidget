@@ -9,7 +9,7 @@ const FIVE_MINUTES = new Time.Duration(5 * 60);
 
 (:background)
 class BetterBatteryWidgetApp extends Application.AppBase {
-    var mWidgetView;
+    var mWidgetPage;
     var mState;
     
     function initialize() {
@@ -22,9 +22,9 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     	log("App.onBackgroundData", data);
     	mState = new State(data);
     	mState.save();
-        if( mWidgetView ) {
-	    	log("App.onBackgroundData", "calling WidgetView.updateState");
-            mWidgetView.updateState(mState);
+        if( mWidgetPage ) {
+	    	log("App.onBackgroundData", "calling WidgetPage.updateState");
+            mWidgetPage.updateState(mState);
         }
         WatchUi.requestUpdate();
     }
@@ -35,11 +35,11 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 
     // This method runs each time the main application starts.
     function getInitialView() {
-        mWidgetView = new WidgetView(mState);
-        var inputDelegate = new WidgetViewInputDelegate();
-        return [ mWidgetView, inputDelegate ];
-//		mWidgetView = new GraphView(mState);
-//		return [mWidgetView];
+        mWidgetPage = new WidgetPage(mState);
+        var inputDelegate = new WidgetPageInputDelegate();
+        return [ mWidgetPage, inputDelegate ];
+//		mWidgetPage = new GraphPage(mState);
+//		return [mWidgetPage];
     }
 
     // This method runs each time the background process starts.

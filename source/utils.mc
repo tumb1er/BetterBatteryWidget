@@ -60,24 +60,24 @@ function formatInterval(seconds) {
 	}
 }
 
-function colorize(dc, percent) {
+function colorize(percent) {
 	if (percent > 90) {
 		// blue
-		dc.setColor(0x00aaff, Graphics.COLOR_TRANSPARENT);
+		return 0x00aaff;
 	} else if (percent > 75) {
 		// cyan
-		dc.setColor(0x55ffff, Graphics.COLOR_TRANSPARENT);
+		return 0x55ffff;
 	} else if (percent > 50) {
 		// green
-		dc.setColor(0x55ff00, Graphics.COLOR_TRANSPARENT);
+		return 0x55ff00;
 	} else if (percent > 25) {
 		// yellow
-		dc.setColor(0xffff00, Graphics.COLOR_TRANSPARENT);
+		return 0xffff00;
 	} else if (percent > 10) {
 		// orange
-		dc.setColor(0xffaa00, Graphics.COLOR_TRANSPARENT);			
+		return 0xffaa00;			
 	} else {
 		// red
-		dc.setColor(0xff0000, Graphics.COLOR_TRANSPARENT);	
+		return 0xff0000;	
 	}
 }

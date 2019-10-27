@@ -13,10 +13,12 @@ Shows debug data in text
 */
 class GraphView extends WatchUi.View {
 	var mState;
+	var mMode;
 
     function initialize(state) {
     	View.initialize();
 		mState = state;
+		mMode = 0;
 	}
 	
 	function getTextJustify(x) {
@@ -54,29 +56,29 @@ class GraphView extends WatchUi.View {
 		var result = new Result(mState);
 		result.predictCharged();
 		result.predictWindow();
+		var predictions = [result.chargedSpeed, result.windowSpeed];
+		var texts = [["since", "charged"], ["over last", "30 min"]];
+		var percent = null;
+		var text = null;
 		
-		var text;
-		if (result.windowPredict != null) {
-			text = formatPercent(result.windowSpeed * 3600);
-		} else {
-			text = "--";
+		var i = 0;
+		for (var j = mMode; i < 2; j=(j + 1) % 2) {
+			i++;
+			if (predictions[j] != null) {
+				percent = predictions[j];
+				text = texts[j];
+				break;
+			}
 		}
-		colorize(dc, System.getSystemStats().battery);
-		dc.drawText(gcx-5, top-80, Graphics.FONT_XTINY, "since", Graphics.TEXT_JUSTIFY_RIGHT);
-		dc.drawText(gcx-5, top-65, Graphics.FONT_XTINY, "charged", Graphics.TEXT_JUSTIFY_RIGHT);
-		dc.drawText(gcx+5, top-86, Graphics.FONT_NUMBER_MEDIUM, text, Graphics.TEXT_JUSTIFY_LEFT);
-		if (result.chargedPredict != null) {
-			text = formatPercent(result.chargedSpeed * 3600);
-		} else {
-			text = "--";
+		if (percent != null) {
+			percent = formatPercent(percent * 3600);
+			colorize(dc, System.getSystemStats().battery);
+			dc.drawText(gcx-20, top-60, Graphics.FONT_XTINY, text[0], Graphics.TEXT_JUSTIFY_RIGHT);
+			dc.drawText(gcx-20, top-45, Graphics.FONT_XTINY, text[1], Graphics.TEXT_JUSTIFY_RIGHT);
+			dc.drawText(gcx-10, top-66, Graphics.FONT_NUMBER_MEDIUM, percent, Graphics.TEXT_JUSTIFY_LEFT);
 		}
-		dc.setColor(0xFFFFFF, Graphics.COLOR_TRANSPARENT);
-		dc.drawText(gcx-5, top-40, Graphics.FONT_XTINY, "over last", Graphics.TEXT_JUSTIFY_RIGHT);
-		dc.drawText(gcx-5, top-25, Graphics.FONT_XTINY, "30 min", Graphics.TEXT_JUSTIFY_RIGHT);
-		dc.drawText(gcx+5, top-46, Graphics.FONT_NUMBER_MEDIUM, text, Graphics.TEXT_JUSTIFY_LEFT);
 		
 		// graph 4 hours
-		dc.setColor(0xFF5555, 0x000000);
 		var points = mState.mPoints;
 		log("GraphView.onUpdate points", points.size());
 		if (points.size() < 2) {
@@ -96,6 +98,7 @@ class GraphView extends WatchUi.View {
 		}
 		
 		// Graph
+		dc.setColor(0xFF0000, 0x000000);
 		var x = interpolate(start, end, points[0][0], left, right - 1);
 		var y = interpolate(min[1], max[1], points[0][1], bottom, top);
 		for (var i = 1; i < points.size(); i++) {
@@ -133,13 +136,20 @@ class GraphView extends WatchUi.View {
     function updateState(state) {
     	mState = state;
     }
+    
+    function nextMode() {
+    	mMode = (mMode + 1) % 2;
+    	requestUpdate();
+    }
 }
 
 
 class GraphViewInputDelegate extends WatchUi.InputDelegate {
+	var mView;
 
-    function initialize() {
+    function initialize(view) {
         InputDelegate.initialize();
+        mView = view;
     }
     
     function onBack() {
@@ -158,5 +168,11 @@ class GraphViewInputDelegate extends WatchUi.InputDelegate {
 			popView(WatchUi.SLIDE_RIGHT);
 		}
 		return true;
+    }
+    
+    function onTap(clickEvent) {
+    	log("GraphViewInputDelegate.onTap", clickEvent);
+    	mView.nextMode();
+    	
     }
 }

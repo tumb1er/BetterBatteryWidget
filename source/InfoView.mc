@@ -94,7 +94,8 @@ class InfoViewInputDelegate extends WatchUi.InputDelegate {
 		log("InfoViewInputDelegate.onSwipe", swipeEvent);
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_DOWN) {
 			var app = Application.getApp();
-			switchToView(new GraphView(app.mState), new GraphViewInputDelegate(), WatchUi.SLIDE_DOWN);    
+			var view = new GraphView(app.mState);
+			switchToView(view, new GraphViewInputDelegate(view), WatchUi.SLIDE_DOWN);    
 		}
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
 			popView(WatchUi.SLIDE_RIGHT);

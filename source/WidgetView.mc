@@ -146,7 +146,8 @@ class WidgetViewInputDelegate extends WatchUi.InputDelegate {
     function onTap(event) {
 		log("WidgetViewInputDelegate.onTap", event);
 		var app = Application.getApp();
-		pushView(new GraphView(app.mState), new GraphViewInputDelegate(), WatchUi.SLIDE_IMMEDIATE);    
+		var view = new GraphView(app.mState);
+		pushView(view, new GraphViewInputDelegate(view), WatchUi.SLIDE_IMMEDIATE);    
     	return true;
     }
 }

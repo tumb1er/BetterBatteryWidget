@@ -128,10 +128,6 @@ class GraphPage extends WatchUi.View {
 
 	}
 	
-	function interpolate(min_from, max_from, current, min_to, max_to) {
-		var fraction = (current - min_from).toDouble() / (max_from - min_from).toDouble();
-		return (min_to + (max_to - min_to).toDouble() * fraction).toNumber(); 
-	}
 	
     function updateState(state) {
     	mState = state;

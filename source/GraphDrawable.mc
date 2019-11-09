@@ -17,6 +17,8 @@ class GraphDrawable extends WatchUi.Drawable {
 	var interval; // data interval
 	var mExtremums; // min/max points
 	var start, end; // x axis margins
+	var scale; // y scale for animation
+	var mShowExtremums; // show extremums flag
 			
 	function initialize(params) {
 		Drawable.initialize(params);
@@ -28,6 +30,8 @@ class GraphDrawable extends WatchUi.Drawable {
 		foreground = params.get(:foreground);
 		background = params.get(:background);
 		interval = params.get(:interval);
+		scale = params.get(:scale);
+		mShowExtremums = true;
 	}
 	
 	function setData(data) {
@@ -57,7 +61,9 @@ class GraphDrawable extends WatchUi.Drawable {
 		drawFrame(dc);		
 		if (mExtremums != null) {
 			drawPoints(dc);
-			drawExtremums(dc);
+			if (mShowExtremums) {
+				drawExtremums(dc);
+			}
 		}
 	}
 			
@@ -94,10 +100,10 @@ class GraphDrawable extends WatchUi.Drawable {
 		var maxY = mExtremums[3];
 		dc.setColor(foreground, background);
 		var px = interpolate(start, end, mCoords[0], x, x + w - 1);
-		var py = interpolate(minY, maxY, mPoints[0], y + h - 1, y);
+		var py = interpolate(minY, maxY, mPoints[0], y + h - 1, y + h * (1-scale));
 		for (var i = 1; i < mCoords.size(); i++) {
 			var nx = interpolate(start, end, mCoords[i], x, x + w - 1);
-			var ny = interpolate(minY, maxY, mPoints[i], y + h - 1, y);
+			var ny = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
 			dc.drawLine(px, py, nx, ny);
 			px = nx;
 			py = ny;

@@ -17,7 +17,7 @@ class WidgetPage extends WatchUi.View {
 	var mBitmap;
 	var mPercentText;
 	var mPredictText;
-	var mGraphDrawable;
+	var mGaugeDrawable;
 	var mState;
 	
 	var percent, predicted;
@@ -33,7 +33,7 @@ class WidgetPage extends WatchUi.View {
     function onLayout(dc) {
     	var w = dc.getWidth();
     	var h = dc.getHeight();
-    	mGraphDrawable = new GraphDrawable({
+    	mGaugeDrawable = new GaugeDrawable({
 	    	:width => w,
 	    	:height => h
     	});
@@ -60,15 +60,15 @@ class WidgetPage extends WatchUi.View {
     	var s = mBitmap.getDimensions();
     	mBitmap.setLocation((w - s[0]) / 2, 7 * h / 24  - s[1] / 2);
     	
-    	setLayout([mGraphDrawable, mPercentText, mBitmap, mPredictText]);
+    	setLayout([mGaugeDrawable, mPercentText, mBitmap, mPredictText]);
     }
     
     function onShow() {
 		var stats = System.getSystemStats();
 		percent = stats.battery;
         predicted = computePredicted(stats);
-		mGraphDrawable.color = colorize(percent);
-		WatchUi.animate(mGraphDrawable, :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
+		mGaugeDrawable.color = colorize(percent);
+		WatchUi.animate(mGaugeDrawable, :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
 		WatchUi.animate(mPercentText, :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);    	
     }
     function onUpdate( dc ) {

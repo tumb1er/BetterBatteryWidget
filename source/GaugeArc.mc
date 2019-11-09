@@ -1,7 +1,7 @@
 using Toybox.Graphics;
 using Toybox.System;
 
-class GraphArc {
+class GaugeArc {
 	var cx, cy, r, p, start, end, color, value;
 	var bx, by, bs, be, br, ballStart = null;
 	

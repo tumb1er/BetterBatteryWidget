@@ -4,7 +4,7 @@ class DebugPage extends WatchUi.View {
 	var mView;
 	var mAnimated = false;
     function onLayout( dc ) {
-    	mView = new GraphDrawable({
+    	mView = new GaugeDrawable({
 	    	:width => dc.getWidth(),
 	    	:height => dc.getHeight()
     	});

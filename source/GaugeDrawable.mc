@@ -3,7 +3,7 @@ using Toybox.Graphics;
 using Toybox.Math;
 
 
-class GraphDrawable extends WatchUi.Drawable {
+class GaugeDrawable extends WatchUi.Drawable {
 	var mArcs;
 	var mText;
 	var mIcon;
@@ -15,7 +15,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		arc.put(:cy, cy);
 		arc.put(:startAngle, start);
 		arc.put(:endAngle, end);
-		return new GraphArc(arc);
+		return new GaugeArc(arc);
 	}
 	
 	function initialize(params) {

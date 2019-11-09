@@ -37,8 +37,8 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     function getInitialView() {
         mWidgetPage = new WidgetPage(mState);
         var inputDelegate = new WidgetPageInputDelegate();
-        return [ mWidgetPage, inputDelegate ];
-//		return [new DebugPage()];
+//        return [ mWidgetPage, inputDelegate ];
+		return [new DebugPage()];
     }
 
     // This method runs each time the background process starts.

@@ -42,7 +42,8 @@ class GraphPage extends WatchUi.View {
     		:height => 80,
     		:locX => 0,
     		:locY => 30,
-    		:color => Graphics.COLOR_WHITE
+    		:color => Graphics.COLOR_WHITE,
+    		:text => "computing"
     	});
     	setLayout([mGraph, mTriText]);
     }
@@ -80,6 +81,7 @@ class GraphPage extends WatchUi.View {
     	dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_BLUE);
     	dc.fillRectangle(0, 0, 240, 80);
 		var predictions = getPredictions();
+		var stats = System.getSystemStats();
     	log("drawPredictions", predictions[0]);
 		if (predictions[0] != null) {
 			mTriText.value = formatPercent(predictions[0] * 3600);
@@ -87,6 +89,11 @@ class GraphPage extends WatchUi.View {
 			mTriText.desc = predictions[2];
 		} else {
 			mTriText.value = null;
+			if (stats.charging) {
+				mTriText.text = "charging...";
+			} else {
+				mTriText.text = "computing...";
+			}
 		}
 		mTriText.draw(dc);	
     }

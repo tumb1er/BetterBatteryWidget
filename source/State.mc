@@ -125,6 +125,9 @@ class State {
 			mPoints = data[KEY_POINTS];
 			mCharged = data[KEY_CHARGED];
 			mMark = data[KEY_MARK];
+			if (mMark == false) {
+				mMark = null;
+			}
 			mActivityRunning = data[KEY_ACTIVITY];
 		}
 	}
@@ -135,14 +138,18 @@ class State {
 			KEY_POINTS => mPoints,
 			KEY_CHARGED => mCharged,
 			KEY_ACTIVITY => mActivityRunning,
-			KEY_MARK => mMark
+			KEY_MARK => (mMark != null)?mMark:false
 		};
 		
 	}
 	
 	function save() {
 		log("State.save", getData());
-		objectStorePut(STATE_PROPERTY, getData());
+		try {
+			objectStorePut(STATE_PROPERTY, getData());
+		} catch (ex) {
+			log("State.save ex", ex);
+		}
 	}
 	
 	function reset(ts, value) {

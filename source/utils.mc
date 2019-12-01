@@ -28,6 +28,9 @@ function formatTimestamp(ts) {
 }
 
 function formatPercent(value) {
+	if (value == null) {
+		return "";
+	}
 	return Lang.format("$1$%", [value.format("%.1f")]);
 }
 

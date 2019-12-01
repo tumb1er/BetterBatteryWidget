@@ -10,7 +10,8 @@ class PercentText extends WatchUi.Text {
 	}
 	
 	function draw(dc) {
-		setText(Lang.format("$1$%", [percent.format("%.1f")]));
+		var text = formatPercent(percent);
+		setText(text);
 		Text.draw(dc);
 	}
 }

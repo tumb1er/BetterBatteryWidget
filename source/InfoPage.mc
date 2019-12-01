@@ -25,22 +25,29 @@ class InfoPage extends WatchUi.View {
     		:locY => 50,
     		:color => Graphics.COLOR_WHITE,
     		:title => "charged",
-    		:suffix => true
+    		:suffix => true,
+    		:text => "no charge date"
     	};
     	mChargedText = new TriText(params);
     	params.put(:title, "last 30m");
     	params.put(:locY, 85);
+    	params.put(:text, "no interval data");
     	mIntervalText = new TriText(params);
     	params.put(:title, "mark");
     	params.put(:locY, 120);
+    	params.put(:text, "no mark set");
     	mMarkText = new TriText(params);
     	setLayout([mChargedText, mIntervalText, mMarkText]);
     }
 	
-	function drawCharged(dc, ts, percent) {
+	function drawCharged(dc, ts, percent, charging) {
 		var now = Time.now().value();
-		var data = Lang.format("On battery $1$", [formatInterval(now - ts)]);
-		
+		var data;
+		if (charging){
+			data = "charging";
+		} else {
+			data = Lang.format("On battery $1$", [formatInterval(now - ts)]);
+		}
     	dc.drawText(120, 40, 
     			Graphics.FONT_XTINY, 
 				data,
@@ -78,8 +85,8 @@ class InfoPage extends WatchUi.View {
 	}
 	
 	function onUpdate(dc) {
-	
 		var result = new Result(mState);
+		var stats = System.getSystemStats();
 		result.predictCharged();
 		result.predictWindow();
 		result.predictMark();
@@ -88,10 +95,7 @@ class InfoPage extends WatchUi.View {
 		setPredictValues(mMarkText, result.markSpeed, result.markPredict);
     	
 		View.onUpdate(dc);	
-
-		if (result.chargedTs != null) {
-			drawCharged(dc, result.chargedTs, result.chargedPercent);
-		}
+		drawCharged(dc, result.chargedTs, result.chargedPercent, stats.charging);
 		dc.fillPolygon([[120, 5], [125, 10], [115, 10]]);   
 		drawMark(dc); 	
 	}

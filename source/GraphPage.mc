@@ -13,6 +13,7 @@ Shows discharge graph
 */
 class GraphPage extends WatchUi.View {
 	var mState;
+	var mTriText;
 	var mMode;
 	var mGraph;
 
@@ -36,7 +37,14 @@ class GraphPage extends WatchUi.View {
     	});
     	mGraph.mShowExtremums = false;
     	mGraph.setData(mState.mPoints);
-    	setLayout([mGraph]);
+    	mTriText = new TriText({
+    		:width => 240,
+    		:height => 80,
+    		:locX => 0,
+    		:locY => 30,
+    		:color => Graphics.COLOR_WHITE
+    	});
+    	setLayout([mGraph, mTriText]);
     }
     
     function onShow() {
@@ -69,16 +77,18 @@ class GraphPage extends WatchUi.View {
     }
     
     function drawPredictions(dc) {
-    	dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_DK_GRAY);
+    	dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_BLUE);
     	dc.fillRectangle(0, 0, 240, 80);
-		var predictions = getPredictions();				
+		var predictions = getPredictions();
+    	log("drawPredictions", predictions[0]);
 		if (predictions[0] != null) {
-			var percent = formatPercent(predictions[0] * 3600);
-			dc.setColor(colorize(System.getSystemStats().battery), Graphics.COLOR_TRANSPARENT);
-			dc.drawText(gcx-20, top-60, Graphics.FONT_XTINY, predictions[1], Graphics.TEXT_JUSTIFY_RIGHT);
-			dc.drawText(gcx-20, top-45, Graphics.FONT_XTINY, predictions[2], Graphics.TEXT_JUSTIFY_RIGHT);
-			dc.drawText(gcx-10, top-66, Graphics.FONT_NUMBER_MEDIUM, percent, Graphics.TEXT_JUSTIFY_LEFT);
+			mTriText.value = formatPercent(predictions[0] * 3600);
+			mTriText.title = predictions[1];
+			mTriText.desc = predictions[2];
+		} else {
+			mTriText.value = null;
 		}
+		mTriText.draw(dc);	
     }
 	
 	function onUpdate(dc) {
@@ -124,7 +134,8 @@ class GraphPageInputDelegate extends WatchUi.InputDelegate {
 		log("GraphPageInputDelegate.onSwipe", swipeEvent);
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_UP) {
 			var app = Application.getApp();
-			switchToView(new InfoPage(app.mState), new InfoPageInputDelegate(), WatchUi.SLIDE_UP);    
+			var infoPage = new InfoPage(app.mState);
+			switchToView(infoPage, new InfoPageInputDelegate(infoPage), WatchUi.SLIDE_UP);    
 		}
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
 			popView(WatchUi.SLIDE_RIGHT);
@@ -133,8 +144,11 @@ class GraphPageInputDelegate extends WatchUi.InputDelegate {
     }
     
     function onTap(clickEvent) {
-    	log("GraphPageInputDelegate.onTap", clickEvent);
-    	mView.nextMode();
-    	
+    	var coords = clickEvent.getCoordinates();
+    	var type = clickEvent.getType();
+    	log("GraphPageInputDelegate.onTap", [coords, type]);
+    	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] <= 80) {
+	    	mView.nextMode();
+    	}	
     }
 }

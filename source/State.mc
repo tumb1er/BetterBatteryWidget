@@ -10,6 +10,7 @@ const KEY_DATA = "d";
 const KEY_POINTS = "p";
 const KEY_CHARGED = "c";
 const KEY_ACTIVITY = "a";
+const KEY_MARK = "m";
 const MAX_POINTS = 5;
 
 class Result {
@@ -17,6 +18,7 @@ class Result {
 	var chargedTs, chargedPercent;
 	var chargedSpeed, chargedPredict;
 	var windowSpeed, windowPredict;
+	var markSpeed, markPredict;
 	var avgSpeed, avgPredict;
 	
 	function initialize(stats) {
@@ -78,6 +80,23 @@ class Result {
 		chargedPredict = result[1];
 	}
 	
+	function predictMark() {
+		markSpeed = null;
+		markPredict = null;
+		var first = mStats.mMark;
+		if (first == null) {
+			return;
+		}
+		var data = mStats.mData;
+		if (data.size() == 0) {
+			return;
+		}
+		var last = data[data.size() - 1];
+		var result = predict(first, last);
+		markSpeed = result[0];
+		markPredict = result[1];
+	}
+	
 }
 
 
@@ -86,6 +105,7 @@ class State {
 	var mData;	
 	var mPoints;
 	var mCharged;
+	var mMark;
 	var mActivityRunning;
 	
 	function initialize(data) {
@@ -99,10 +119,12 @@ class State {
 			mCharged = null;
 			mActivityRunning = false;
 			mPoints = [];
+			mMark = null;
 		} else {
 			mData = data[KEY_DATA];
 			mPoints = data[KEY_POINTS];
 			mCharged = data[KEY_CHARGED];
+			mMark = data[KEY_MARK];
 			mActivityRunning = data[KEY_ACTIVITY];
 		}
 	}
@@ -112,7 +134,8 @@ class State {
 			KEY_DATA => mData,
 			KEY_POINTS => mPoints,
 			KEY_CHARGED => mCharged,
-			KEY_ACTIVITY => mActivityRunning
+			KEY_ACTIVITY => mActivityRunning,
+			KEY_MARK => mMark
 		};
 		
 	}
@@ -125,6 +148,14 @@ class State {
 	function reset(ts, value) {
 		mData = [];
 		mCharged = [ts, value];
+		mMark = null;
+	}
+	
+	function mark() {
+		var ts = Time.now().value();
+		var stats = System.getSystemStats();
+		log("State.mark", stats.battery);
+		mMark = [ts, stats.battery];
 	}
 	
 	function pushPoint(ts, value) {

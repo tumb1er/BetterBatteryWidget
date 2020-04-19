@@ -22,7 +22,7 @@ class InfoPage extends WatchUi.View {
     		:width => 240,
     		:height => 30,
     		:locX => 0,
-    		:locY => 50,
+    		:locY => 30,
     		:color => Graphics.COLOR_WHITE,
     		:title => "charged",
     		:suffix => true,
@@ -30,11 +30,11 @@ class InfoPage extends WatchUi.View {
     	};
     	mChargedText = new TriText(params);
     	params.put(:title, "last 30m");
-    	params.put(:locY, 85);
+    	params.put(:locY, 70);
     	params.put(:text, "no interval data");
     	mIntervalText = new TriText(params);
     	params.put(:title, "mark");
-    	params.put(:locY, 120);
+    	params.put(:locY, 110);
     	params.put(:text, "no mark set");
     	mMarkText = new TriText(params);
     	setLayout([mChargedText, mIntervalText, mMarkText]);
@@ -95,7 +95,7 @@ class InfoPage extends WatchUi.View {
 		setPredictValues(mMarkText, result.markSpeed, result.markPredict);
     	
 		View.onUpdate(dc);	
-		drawCharged(dc, result.chargedTs, result.chargedPercent, stats.charging);
+		// drawCharged(dc, result.chargedTs, result.chargedPercent, stats.charging);
 		dc.fillPolygon([[120, 5], [125, 10], [115, 10]]);   
 		drawMark(dc); 	
 	}

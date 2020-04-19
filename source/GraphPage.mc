@@ -43,6 +43,7 @@ class GraphPage extends WatchUi.View {
     		:locX => 0,
     		:locY => 30,
     		:color => Graphics.COLOR_WHITE,
+    		:suffix => true,
     		:text => "computing"
     	});
     	setLayout([mGraph, mTriText]);
@@ -60,8 +61,8 @@ class GraphPage extends WatchUi.View {
     	var result = new Result(mState);
 		result.predictCharged();
 		result.predictWindow();
-		var predictions = [result.chargedSpeed, result.windowSpeed];
-		var texts = [["since", "charged"], ["over last", "30 min"]];
+		var predictions = [result.chargedDuration(), result.windowSpeed];
+		var texts = [["since", "charged", true], ["over last", "30 min", false]];
 		var percent = null;
 		var text = [null, null];
 		
@@ -74,7 +75,7 @@ class GraphPage extends WatchUi.View {
 				break;
 			}
 		}
-		return [percent, text[0], text[1]];  
+		return [percent, text[0], text[1], text[2]];  
     }
     
     function drawPredictions(dc) {
@@ -84,9 +85,14 @@ class GraphPage extends WatchUi.View {
 		var stats = System.getSystemStats();
     	log("drawPredictions", predictions[0]);
 		if (predictions[0] != null) {
-			mTriText.value = formatPercent(predictions[0] * 3600);
+			if (predictions[3]) {
+				mTriText.value = formatInterval(predictions[0]);				
+			} else { 
+				mTriText.value = formatPercent(predictions[0]);				
+			}
 			mTriText.title = predictions[1];
 			mTriText.desc = predictions[2];
+			
 		} else {
 			mTriText.value = null;
 			if (stats.charging) {

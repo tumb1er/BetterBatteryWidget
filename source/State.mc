@@ -80,6 +80,20 @@ class Result {
 		chargedPredict = result[1];
 	}
 	
+	function chargedDuration() {
+		var first = mStats.mCharged;
+		if (first == null) {
+			return 0;
+		}
+		var data = mStats.mData;
+		if (data.size() == 0) {
+			return 0;
+		}
+		var last = data[data.size() - 1];
+		var duration = (last[0] - first[0]).toDouble();
+		return duration;
+	}
+	
 	function predictMark() {
 		markSpeed = null;
 		markPredict = null;

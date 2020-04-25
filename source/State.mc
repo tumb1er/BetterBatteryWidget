@@ -217,7 +217,7 @@ class State {
 				mData = [];
 			}
 			
-			if (stats.battery == prev) {
+			if (stats.battery <= prev + 0.05 && stats.battery >= prev - 0.05) {
 				log("State.measure, same value, skip", stats.battery);
 				return true;
 			}	

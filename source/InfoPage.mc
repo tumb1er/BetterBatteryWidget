@@ -109,20 +109,22 @@ class InfoPage extends WatchUi.View {
 
 class InfoPageInputDelegate extends WatchUi.InputDelegate {
 	var mView;
+	var log;
 
     function initialize(view) {
         InputDelegate.initialize();
+        log = new Log("InfoPageInputDelegate");
         mView = view;
     }
     
     function onBack() {
-		log("InfoPageInputDelegate.onBack", null);
+		log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onSwipe(swipeEvent) {
-		log("InfoPageInputDelegate.onSwipe", swipeEvent);
+		log.debug("InfoPageInputDelegate.onSwipe", swipeEvent);
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_DOWN) {
 			var app = Application.getApp();
 			var view = new GraphPage(app.mState);
@@ -137,7 +139,7 @@ class InfoPageInputDelegate extends WatchUi.InputDelegate {
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-    	log("InfoPageInputDelegate.onTap", [coords, type]);
+    	log.debug("InfoPageInputDelegate.onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] >= 160) {
 	    	mView.mark();
     	}	

@@ -3,10 +3,11 @@ using Toybox.Lang;
 using Toybox.WatchUi;
 
 class TriText extends WatchUi.Text {
-	var color, title, desc, value, suffix, text; 
+	var color, title, desc, value, suffix, text, log; 
 	
 	function initialize(params) {
 		Text.initialize(params);
+		log = new Log("TriText");
 		color = params.get(:color);
 		title = params.get(:title);
 		value = params.get(:value);
@@ -23,7 +24,7 @@ class TriText extends WatchUi.Text {
 			dc.drawText(gcx, top, Graphics.FONT_LARGE, text, Graphics.TEXT_JUSTIFY_CENTER);
 			return;
 		}
-		log("TriText.draw", [gcx, top]);
+		log.debug("draw", [gcx, top]);
 		dc.drawText(gcx-20, top, Graphics.FONT_XTINY, title, Graphics.TEXT_JUSTIFY_RIGHT);
 		dc.drawText(gcx-20, top + 15, Graphics.FONT_XTINY, desc, Graphics.TEXT_JUSTIFY_RIGHT);
 		var pos = gcx - 10;

@@ -121,12 +121,14 @@ class State {
 	var mCharged;
 	var mMark;
 	var mActivityRunning;
+	var log;
 	
 	function initialize(data) {
-		log("State.initialize: passed", data);
+		log = new Log("State");
+		log.debug("initialize: passed", data);
 		if (data == null) {
 			data = objectStoreGet(STATE_PROPERTY, null);			
-			log("State.initialize: loaded", data);
+			log.debug("initialize: loaded", data);
 		}
 		if (data == null) {
 			mData = [];
@@ -158,11 +160,11 @@ class State {
 	}
 	
 	function save() {
-		log("State.save", getData());
+		log.debug("save", getData());
 		try {
 			objectStorePut(STATE_PROPERTY, getData());
 		} catch (ex) {
-			log("State.save ex", ex);
+			log.error("save error", ex);
 		}
 	}
 	
@@ -175,7 +177,7 @@ class State {
 	function mark() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
-		log("State.mark", stats.battery);
+		log.debug("mark", stats.battery);
 		mMark = [ts, stats.battery];
 	}
 	
@@ -197,9 +199,10 @@ class State {
 	function measure() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
-		log("State.measure", [ts, stats.battery, stats.charging, mCharged]);
+		var ml = log.child("measure");
+		ml.debug("values", [ts, stats.battery, stats.charging, mCharged]);
 		if (mCharged == null) {
-			log("State.measure data is empty, initializing", stats.battery);
+			ml.debug("data is empty, initializing", stats.battery);
 			reset(ts, stats.battery);
 		}
 		pushPoint(ts, stats.battery);
@@ -208,21 +211,21 @@ class State {
 			var info = Activity.getActivityInfo();
 			var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
 			if (stats.charging) {
-				log("State.measure charging, reset at", stats.battery);
+				ml.debug("charging, reset at", stats.battery);
 				reset(ts, stats.battery);
 			}
 			if (activityRunning != mActivityRunning) {
-				log("State.measure activity state changed, reset at", stats.battery);
+				ml.debug("activity state changed, reset at", stats.battery);
 				mActivityRunning = activityRunning;
 				mData = [];
 			}
 			
 			if (stats.battery <= prev + 0.05 && stats.battery >= prev - 0.05) {
-				log("State.measure, same value, skip", stats.battery);
+				ml.debug("same value, skip", [stats.battery, prev]);
 				return true;
 			}	
 			if (stats.battery > prev + 1.0) {
-				log("State.measure, value increase, reset at", stats.battery);
+				ml.debug("value increase, reset at", stats.battery);
 				reset(ts, stats.battery);
 			}
 		}

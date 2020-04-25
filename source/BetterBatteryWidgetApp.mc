@@ -11,19 +11,21 @@ const FIVE_MINUTES = new Time.Duration(5 * 60);
 class BetterBatteryWidgetApp extends Application.AppBase {
     var mWidgetPage;
     var mState;
+ 	var log;
     
     function initialize() {
     	AppBase.initialize();
+    	log = new Log(self);
     	var data = Background.getBackgroundData();
     	mState = new State(data);
     }
 
     function onBackgroundData(data) {
-    	log("App.onBackgroundData", data);
+    	log.debug("onBackgroundData", data);
     	mState = new State(data);
     	mState.save();
         if( mWidgetPage ) {
-	    	log("App.onBackgroundData", "calling WidgetPage.updateState");
+	    	log.msg("onBackgroundData: calling WidgetPage.updateState");
             mWidgetPage.updateState(mState);
         }
         WatchUi.requestUpdate();
@@ -49,22 +51,22 @@ class BetterBatteryWidgetApp extends Application.AppBase {
         
     function setBackgroundEvent() {    	
     	var time = Background.getLastTemporalEventTime();
-    	log("App.setBackgroundEvent lastTime", formatTime(time));
+    	log.debug("setBackgroundEvent lastTime", time);
 		time = Background.getTemporalEventRegisteredTime();
 		if (time != null) {
-			log("App.setBackgroundEvent regTime", formatTime(new Time.Moment(time.value())));
+			log.debug("setBackgroundEvent regDuration", time);
 			return;
 		}
-       	log("App.setBackgroundEvent scheduling", FIVE_MINUTES);
+       	log.debug("setBackgroundEvent scheduling", FIVE_MINUTES);
 		try {
 	 	    Background.registerForTemporalEvent(FIVE_MINUTES);
 	    } catch (e instanceof Background.InvalidBackgroundTimeException) {
-	        log("App.setBackgroundEvent error", e);
+	        log.error("setBackgroundEvent error", e);
         }
     }
    
     function deleteBackgroundEvent() {
-    	log("App.deleteBackgroundEvent", "deleting");
+    	log.msg("deleteBackgroundEvent");
         Background.deleteTemporalEvent();
     }  
 }
@@ -77,11 +79,11 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
 
     function onTemporalEvent() {
     	var data = Background.getBackgroundData();
-		log("Delegate.onTemporalEvent bgData", data); 
+		log.debug("onTemporalEvent bgData", data); 
     	var state = new State(data);
     	state.measure();
 		var ret = state.getData();
-		log("Delegate.onTemporalEvent ret", ret); 
+		log.debug("onTemporalEvent ret", ret); 
 		Background.exit(ret);
     }
 }

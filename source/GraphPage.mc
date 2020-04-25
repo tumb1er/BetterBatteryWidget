@@ -16,9 +16,11 @@ class GraphPage extends WatchUi.View {
 	var mTriText;
 	var mMode;
 	var mGraph;
+	var log;
 
     function initialize(state) {
     	View.initialize();
+		log = new Log("GraphPage");
 		mState = state;
 		mMode = 0;
 	}
@@ -83,7 +85,7 @@ class GraphPage extends WatchUi.View {
     	dc.fillRectangle(0, 0, 240, 80);
 		var predictions = getPredictions();
 		var stats = System.getSystemStats();
-    	log("drawPredictions", predictions[0]);
+    	log.debug("drawPredictions", predictions[0]);
 		if (predictions[0] != null) {
 			if (predictions[3]) {
 				mTriText.value = formatInterval(predictions[0]);				
@@ -131,20 +133,22 @@ class GraphPage extends WatchUi.View {
 
 class GraphPageInputDelegate extends WatchUi.InputDelegate {
 	var mView;
+	var log;
 
     function initialize(view) {
         InputDelegate.initialize();
+        log = new Log("GraphPageInputDelegate");
         mView = view;
     }
     
     function onBack() {
-		log("GraphPageInputDelegate.onBack", null);
+		log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onSwipe(swipeEvent) {
-		log("GraphPageInputDelegate.onSwipe", swipeEvent);
+		log.debug("onSwipe", swipeEvent);
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_UP) {
 			var app = Application.getApp();
 			var infoPage = new InfoPage(app.mState);
@@ -159,7 +163,7 @@ class GraphPageInputDelegate extends WatchUi.InputDelegate {
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-    	log("GraphPageInputDelegate.onTap", [coords, type]);
+    	log.debug("onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] <= 80) {
 	    	mView.nextMode();
     	}	

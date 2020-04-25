@@ -19,12 +19,14 @@ class WidgetPage extends WatchUi.View {
 	var mPredictText;
 	var mGaugeDrawable;
 	var mState;
+	var log;
 	
 	var percent, predicted;
 
     function initialize(state) {
         View.initialize();
-    	log("View.initialize", state);
+        log = new Log("WidgetPage");
+    	log.debug("initialize", state);
     	mState = state;
         mState.measure();
         mState.save();
@@ -101,13 +103,15 @@ class WidgetPage extends WatchUi.View {
 }
 
 class WidgetPageInputDelegate extends WatchUi.InputDelegate {
+	var log;
 
     function initialize() {
         InputDelegate.initialize();
+        log = new Log("WidgetPageInputDeletage");
     }
     
     function onTap(event) {
-		log("WidgetPageInputDelegate.onTap", event);
+		log.debug("onTap", event);
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
 		pushView(view, new GraphPageInputDelegate(view), WatchUi.SLIDE_IMMEDIATE);    

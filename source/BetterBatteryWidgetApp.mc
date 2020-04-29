@@ -73,8 +73,10 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 
 (:background)
 class BackgroundServiceDelegate extends System.ServiceDelegate {
+	var log;
     function initialize() {
         ServiceDelegate.initialize();
+        log = new Log("BackgroundServiceDelegate");
     }
 
     function onTemporalEvent() {

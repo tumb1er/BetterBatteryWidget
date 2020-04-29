@@ -38,6 +38,7 @@ class GraphPage extends WatchUi.View {
 	    	:scale => 0
     	});
     	mGraph.mShowExtremums = false;
+    	log.debug("setData", mState.mPoints);
     	mGraph.setData(mState.mPoints);
     	mTriText = new TriText({
     		:width => 240,

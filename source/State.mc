@@ -148,7 +148,7 @@ class State {
 		}
 	}
 	
-	function getData() {
+	public function getData() {
 		return {
 			KEY_DATA => mData,
 			KEY_POINTS => mPoints,
@@ -159,7 +159,7 @@ class State {
 		
 	}
 	
-	function save() {
+	public function save() {
 		log.debug("save", getData());
 		try {
 			objectStorePut(STATE_PROPERTY, getData());
@@ -168,72 +168,124 @@ class State {
 		}
 	}
 	
-	function reset(ts, value) {
-		mData = [];
-		mCharged = [ts, value];
-		mMark = null;
-	}
-	
-	function mark() {
+	/**
+	Сохраняет отмеченное значение
+	*/
+	public function mark() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
 		log.debug("mark", stats.battery);
 		mMark = [ts, stats.battery];
 	}
 	
-	function pushPoint(ts, value) {
+	/**
+	Добавляет точки для графика. 
+	*/
+	private function pushPoint(ts, value) {
+		// Если массив пуст, добавляем точку без условий
 		if (mPoints.size() == 0) {
 			mPoints.add([ts, value]);
 			return;
 		}
-		var prev = mPoints[0];
+		// Не добавляем точку, если интервал времени между ними слишком мал
+		var prev = mPoints[mPoints.size() - 1];
 		if (ts - prev[0] < 1) {
 			return;
 		}
+		// Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
+		if (value == prev[1]) {
+			if (mPoints.size() > 1) {
+				prev[0] = ts;
+			}
+			return;
+		}
+		
 		mPoints.add([ts, value]);
+		
+		// Храним точки не дольше 4 часов
 		var i;
 		for (i=0; mPoints[i][0] < ts - 3600 * 4; i++) {}
-		mPoints = mPoints.slice(i, null);
+		if (i != 0) {
+			mPoints = mPoints.slice(i, null);
+		}
 	}
 	
-	function measure() {
+	public function measure() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
 		var ml = log.child("measure");
 		ml.debug("values", [ts, stats.battery, stats.charging, mCharged]);
+		
+		// Точку на график добавляем всегда
+		pushPoint(ts, stats.battery);
+		
+		// Если данные отсутствуют, просто добавляем одну точку.
 		if (mCharged == null) {
 			ml.debug("data is empty, initializing", stats.battery);
-			reset(ts, stats.battery);
+			return reset(ts, stats.battery);
 		}
-		pushPoint(ts, stats.battery);
-		if (mData.size() > 0) {
-			var prev = mData[mData.size() - 1][1];
-			var info = Activity.getActivityInfo();
-			var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
-			if (stats.charging) {
-				ml.debug("charging, reset at", stats.battery);
-				reset(ts, stats.battery);
-			}
-			if (activityRunning != mActivityRunning) {
-				ml.debug("activity state changed, reset at", stats.battery);
-				mActivityRunning = activityRunning;
-				mData = [];
-			}
+		
+		// На зарядке сбрасываем состояние
+		if (stats.charging) {
+			ml.debug("charging, reset at", stats.battery);
+			return reset(ts, stats.battery);
+		}
+
+		// При изменении статуса активности сбрасываем состояние.
+		var info = Activity.getActivityInfo();
+		var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
+		if (activityRunning != mActivityRunning) {
+			ml.debug("activity state changed, reset at", stats.battery);
+			mActivityRunning = activityRunning;
+			return reset(ts, stats.battery);
+		}
 			
-			if (stats.battery <= prev + 0.05 && stats.battery >= prev - 0.05) {
-				ml.debug("same value, skip", [stats.battery, prev]);
-				return true;
-			}	
-			if (stats.battery > prev + 1.0) {
-				ml.debug("value increase, reset at", stats.battery);
-				reset(ts, stats.battery);
-			}
+		// Добавляем точку для отслеживания показаний за последние полчаса.
+		pushData(ts, stats.battery);
+	}
+	
+	/**
+	Добавляет новую точку для измерений
+	*/
+	private function pushData(ts, value) {
+		var ml = log.child("pushData");
+		// Первую точку добавляем всегда.
+		if (mData.size() == 0) {
+			mData.add([ts, value]);
+			return;		
 		}
-		mData.add([ts, stats.battery]);
+
+		var prev = mData[mData.size() - 1][1];
+			
+		// Одинаковые значения не добавляем
+		if (prev == value) {
+			ml.debug("same value, skip", [value, prev]);
+			return;
+		}	
+		// Слишком быстрый рост заряда - это показатель пропущенных данных, сбрасываем.
+		if (value > prev + 1.0) {
+			ml.debug("value increase, reset at", value);
+			reset(ts, value);
+			return;
+		}
+
+		// Добавляем точку и удаляем устаревшие
+		mData.add([ts, value]);
 		if (mData.size() > MAX_POINTS) {
 			mData = mData.slice(1, null);
 		}
-		return mData.size() > 0;
+		return;
 	}
+	
+	
+	/**
+	Сбрасывает данные для измерений. 
+	*/
+	private function reset(ts, value) {
+		mData = [[ts, value]];
+		mCharged = [ts, value];
+		mMark = null;
+	}
+	
 	
 }

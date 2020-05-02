@@ -68,11 +68,11 @@ class InfoPage extends WatchUi.View {
 		dc.setColor(Graphics.COLOR_PINK, Graphics.COLOR_PINK);
     	dc.fillRectangle(0, 160, 240, 240);
 		dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-		dc.drawText(120, 170, 
+		dc.drawText(120, 160, 
 			Graphics.FONT_MEDIUM,
 			percent,
 			Graphics.TEXT_JUSTIFY_CENTER);
-		dc.drawText(120, 200,
+		dc.drawText(120, 190,
 			Graphics.FONT_XTINY,
 			marked,
 			Graphics.TEXT_JUSTIFY_CENTER);

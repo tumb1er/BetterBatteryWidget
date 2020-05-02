@@ -5,11 +5,6 @@ using Toybox.System;
 using Toybox.Time;
 using Toybox.Time.Gregorian;
 using Toybox.WatchUi;
-
-const angle=60;
-const window = 12.0;
-const beta=2/(1+window);
-//const rm=(ro+ri)/2, rw=(ro-ri+1)/2;
 	
 
 class WidgetPage extends WatchUi.View {

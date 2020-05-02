@@ -239,7 +239,9 @@ class State {
 		if (activityRunning != mActivityRunning) {
 			ml.debug("activity state changed, reset at", stats.battery);
 			mActivityRunning = activityRunning;
-			return reset(ts, stats.battery);
+			// Стираем только данные, отметка о последней зарядке остается на месте
+			mData = [[ts, value]];
+			return;
 		}
 			
 		// Добавляем точку для отслеживания показаний за последние полчаса.

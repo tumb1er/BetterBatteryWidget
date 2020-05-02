@@ -2,7 +2,7 @@
 
 Battery widget for Vivoactive series.
 
-[Connect IQ Store Link]()
+[Connect IQ Store Link](https://apps.garmin.com/en-US/apps/c6e9f350-955a-476d-a7b6-49e33b155870)
 
 ![Screenshot](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/title.png)
 
@@ -10,6 +10,11 @@ Battery widget for Vivoactive series.
 * Remaining time estimation
 * Discharge graph
 * Measure discharge speed for user-defined interval
+
+Widget | Graph | Info | Mark 
+-- | -- | -- | --
+![Widget](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/title.png) | ![Graph](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/graph_page.png) | ![Info](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/info_page.png) | ![Mark](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/mark.png)
+
 
 ### FAQ
 

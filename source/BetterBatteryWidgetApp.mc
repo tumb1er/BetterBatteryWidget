@@ -4,8 +4,6 @@ using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi;
 
-const FIVE_MINUTES = new Time.Duration(5 * 60);
-
 
 (:background)
 class BetterBatteryWidgetApp extends Application.AppBase {
@@ -14,7 +12,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     var mWidgetPage;
     var mState;
  	var mMeasureInterval;
- 	var mGraphWidth;
+ 	var mGraphDuration;
     
     function initialize() {
     	AppBase.initialize();
@@ -83,8 +81,8 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     
     private function loadSettings() {
     	mMeasureInterval = getProperty("MeasurePeriod");
-    	mGraphWidth = getProperty("GraphWidth");
-    	log.debug("settings loaded", [mMeasureInterval, mGraphWidth]);
+    	mGraphDuration = getProperty("GraphDuration");
+    	log.debug("settings loaded", [mMeasureInterval, mGraphDuration]);
     }
     
 }

@@ -23,9 +23,10 @@ class GaugeDrawable extends WatchUi.Drawable {
 		var w = params.get(:width);
 		var h = params.get(:height);
 		color = params.get(:color);
+		var pen = params.get(:pen);
 		var arc = {
-			:pen => 16,
-			:radius => w / 2 - 8,
+			:pen => pen,
+			:radius => w / 2 - pen / 2,
 			:color => color
 		};
 		mArcs = [

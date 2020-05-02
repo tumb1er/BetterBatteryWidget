@@ -5,10 +5,6 @@ using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi;
 
-const gw = 200, gh = 80, gcx=120, gcy=140, top=90, tick=5;
-
-
-
 /**
 Shows discharge graph
 */
@@ -17,37 +13,49 @@ class GraphPage extends WatchUi.View {
 	var mTriText;
 	var mMode;
 	var mGraph;
-	var mGraphWidth;
+	var mGraphDuration;
 	var log;
+	var mx, my;
 
     function initialize(state) {
     	View.initialize();
 		log = new Log("GraphPage");
 		mState = state;
 		mMode = 0;
-		mGraphWidth = 3600 * Application.getApp().mGraphWidth;
+		mGraphDuration = 3600 * Application.getApp().mGraphDuration;
 	}
 	
     function onLayout( dc ) {
+    	var w = dc.getWidth();
+    	var h = dc.getHeight();
+    	
+    	var gw = loadResource(Rez.Strings.GraphWidth).toNumber();
+    	var gh = loadResource(Rez.Strings.GraphHeight).toNumber();
+    	var th = loadResource(Rez.Strings.GraphStatusHeight).toNumber();
+    	var ty = loadResource(Rez.Strings.GraphStatusY).toNumber();
+    	
+    	mx = w / 2;
+    	my = h - 10;
+    	var graphMargin = (w - gw) / 2;
     	mGraph = new GraphDrawable({
-	    	:width => 200,
-	    	:height => 80,
-	    	:x => 20,
-	    	:y => 100,
+	    	:width => gw,
+	    	:height => gh,
+	    	:x => graphMargin,
+	    	:y => h / 2 - graphMargin,
 	    	:border => Graphics.COLOR_WHITE,
 	    	:background => Graphics.COLOR_TRANSPARENT,
 	    	:foreground => Graphics.COLOR_RED,
-	    	:interval => mGraphWidth,
+	    	:interval => mGraphDuration,
 	    	:scale => 0
     	});
     	mGraph.mShowExtremums = false;
     	log.debug("setData", mState.mPoints);
     	mGraph.setData(mState.mPoints);
     	mTriText = new TriText({
-    		:width => 240,
-    		:height => 80,
+    		:width => w,
+    		:height => th,
     		:locX => 0,
-    		:locY => 30,
+    		:locY => ty,
     		:color => Graphics.COLOR_WHITE,
     		:suffix => true,
     		:text => "computing"
@@ -86,7 +94,7 @@ class GraphPage extends WatchUi.View {
     
     function drawPredictions(dc) {
     	dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_BLUE);
-    	dc.fillRectangle(0, 0, 240, 80);
+    	dc.fillRectangle(0, 0, mTriText.width, mTriText.height);
 		var predictions = getPredictions();
 		var stats = System.getSystemStats();
     	log.debug("drawPredictions", predictions[0]);
@@ -119,7 +127,7 @@ class GraphPage extends WatchUi.View {
 		
 		mGraph.draw(dc);
 
-		dc.fillPolygon([[120, 235], [125, 230], [115, 230]]);
+		dc.fillPolygon([[mx, my + 5], [mx + 5, my], [mx - 5, my]]);
 	}
 	
 	

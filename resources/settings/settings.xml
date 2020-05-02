@@ -9,7 +9,7 @@
         </settingConfig>
     </setting>
 
-    <setting propertyKey="@Properties.GraphWidth" title="@Strings.GraphWidthTitle">
+    <setting propertyKey="@Properties.GraphDuration" title="@Strings.GraphWidthTitle">
         <settingConfig type="list">
             <listEntry value="1">@Strings.Hours1</listEntry>
             <listEntry value="2">@Strings.Hours2</listEntry>

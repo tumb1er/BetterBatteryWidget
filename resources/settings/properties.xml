@@ -1,6 +1,6 @@
 <properties>
 
     <property id="MeasurePeriod" type="number">5</property>
-    <property id="GraphWidth" type="number">4</property>
+    <property id="GraphDuration" type="number">4</property>
 
 </properties>

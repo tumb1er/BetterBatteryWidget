@@ -47,10 +47,10 @@ class GraphDrawable extends WatchUi.Drawable {
 	}
 	
 	function getTextJustify(tx) {
-		if (tx > x + 3 * gw/4) {
+		if (tx > x + 3 * w/4) {
 			return Graphics.TEXT_JUSTIFY_RIGHT;
 		}
-		if (tx < x + gw/4) {
+		if (tx < x + w/4) {
 			return Graphics.TEXT_JUSTIFY_LEFT;
 		}
 		return Graphics.TEXT_JUSTIFY_CENTER;

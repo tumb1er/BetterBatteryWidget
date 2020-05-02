@@ -122,11 +122,11 @@ class State {
 	var mMark;
 	var mActivityRunning;
 	var log;
-	var mGraphWidth;
+	var mGraphDuration;
 	
 	function initialize(data) {
 		log = new Log("State");
-		mGraphWidth = 3600 * Application.getApp().mGraphWidth;
+		mGraphDuration = 3600 * Application.getApp().mGraphDuration;
 		log.debug("initialize: passed", data);
 		if (data == null) {
 			data = objectStoreGet(STATE_PROPERTY, null);			
@@ -206,7 +206,7 @@ class State {
 		
 		// Храним точки не дольше N часов
 		var i;
-		for (i=0; mPoints[i][0] < ts - mGraphWidth; i++) {}
+		for (i=0; mPoints[i][0] < ts - mGraphDuration; i++) {}
 		if (i != 0) {
 			mPoints = mPoints.slice(i, null);
 		}

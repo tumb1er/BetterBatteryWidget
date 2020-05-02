@@ -22,14 +22,13 @@ class InfoPage extends WatchUi.View {
 	}
 	
     function onLayout( dc ) {
-    	var s = System.getDeviceSettings();
-    	sw = s.screenWidth;
-    	sh = s.screenHeight;
-    	cx = s.screenWidth / 2;
+    	sw = dc.getWidth();
+    	sh = dc.getHeight();
+    	cx = sw / 2;
     	mh = loadResource(Rez.Strings.MarkButtonHeight).toNumber();
     	my = loadResource(Rez.Strings.MarkButtonY).toNumber();
     	var params = {
-    		:width => s.screenWidth,
+    		:width => sw,
     		:height => loadResource(Rez.Strings.TriTextHeight).toNumber(),
     		:locX => 0,
     		:locY => loadResource(Rez.Strings.ChargedY).toNumber(),

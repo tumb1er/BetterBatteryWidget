@@ -30,6 +30,10 @@ Widget | Graph | Info | Mark
 	
    Your ideas about battery monitoring are highly welcome. You may write it here or [create an issue](https://github.com/tumb1er/BetterBatteryWidget/issues/new).
    Also, PR requests are [welcome](https://github.com/tumb1er/BetterBatteryWidget/pull/new/master).
+   
+## Unsupported devices
+
+* Approach S60 - no charging state available
 
 
 ## Release

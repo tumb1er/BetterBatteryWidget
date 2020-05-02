@@ -26,20 +26,22 @@ class GraphPage extends WatchUi.View {
 	}
 	
     function onLayout( dc ) {
+    	var w = dc.getWidth();
+    	var h = dc.getHeight();
+    	
     	var gw = loadResource(Rez.Strings.GraphWidth).toNumber();
     	var gh = loadResource(Rez.Strings.GraphHeight).toNumber();
     	var th = loadResource(Rez.Strings.GraphStatusHeight).toNumber();
     	var ty = loadResource(Rez.Strings.GraphStatusY).toNumber();
-    	var s = System.getDeviceSettings();
     	
-    	mx = s.screenWidth / 2;
-    	my = s.screenHeight - 10;
-    	var graphMargin = (s.screenWidth - gw) / 2;
+    	mx = w / 2;
+    	my = h - 10;
+    	var graphMargin = (w - gw) / 2;
     	mGraph = new GraphDrawable({
 	    	:width => gw,
 	    	:height => gh,
 	    	:x => graphMargin,
-	    	:y => s.screenHeight / 2 - graphMargin,
+	    	:y => h / 2 - graphMargin,
 	    	:border => Graphics.COLOR_WHITE,
 	    	:background => Graphics.COLOR_TRANSPARENT,
 	    	:foreground => Graphics.COLOR_RED,
@@ -50,7 +52,7 @@ class GraphPage extends WatchUi.View {
     	log.debug("setData", mState.mPoints);
     	mGraph.setData(mState.mPoints);
     	mTriText = new TriText({
-    		:width => s.screenWidth,
+    		:width => w,
     		:height => th,
     		:locX => 0,
     		:locY => ty,

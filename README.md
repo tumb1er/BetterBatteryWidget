@@ -13,7 +13,7 @@ Battery widget for Vivoactive series.
 
 Widget | Graph | Info | Mark 
 -- | -- | -- | --
-![Widget](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/title.png) | ![Graph](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/graph_page.png) | ![Info](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/info_page.png) | ![Mark](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/mark.png)
+![Widget](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/widget.png) | ![Graph](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/graph_page.png) | ![Info](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/info_page.png) | ![Mark](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/mark.png)
 
 
 ### FAQ

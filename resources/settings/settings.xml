@@ -1,0 +1,20 @@
+<settings>
+
+    <setting propertyKey="@Properties.MeasurePeriod" title="@Strings.MeasurePeriodTitle">
+        <settingConfig type="list">
+            <listEntry value="5">@Strings.Minutes5</listEntry>
+            <listEntry value="10">@Strings.Minutes10</listEntry>
+            <listEntry value="15">@Strings.Minutes15</listEntry>
+            <listEntry value="30">@Strings.Minutes30</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.GraphWidth" title="@Strings.GraphWidthTitle">
+        <settingConfig type="list">
+            <listEntry value="1">@Strings.Hours1</listEntry>
+            <listEntry value="2">@Strings.Hours2</listEntry>
+            <listEntry value="4">@Strings.Hours4</listEntry>
+        </settingConfig>
+    </setting>
+
+</settings>

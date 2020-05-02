@@ -1,3 +1,12 @@
 <strings>
     <string id="AppName">Battery</string>
+    <string id="MeasurePeriodTitle">Measure period</string>
+    <string id="GraphWidthTitle">Graph width</string>
+    <string id="Minutes5">5 min</string>
+    <string id="Minutes10">10 min</string>
+    <string id="Minutes15">15 min</string>
+    <string id="Minutes30">30 min</string>
+    <string id="Hours1">1 hour</string>
+    <string id="Hours2">2 hours</string>
+    <string id="Hours4">4 hours</string>
 </strings>

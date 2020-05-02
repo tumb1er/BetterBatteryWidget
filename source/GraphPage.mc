@@ -16,6 +16,7 @@ class GraphPage extends WatchUi.View {
 	var mTriText;
 	var mMode;
 	var mGraph;
+	var mGraphWidth;
 	var log;
 
     function initialize(state) {
@@ -23,6 +24,7 @@ class GraphPage extends WatchUi.View {
 		log = new Log("GraphPage");
 		mState = state;
 		mMode = 0;
+		mGraphWidth = 3600 * Application.getApp().mGraphWidth;
 	}
 	
     function onLayout( dc ) {
@@ -34,7 +36,7 @@ class GraphPage extends WatchUi.View {
 	    	:border => Graphics.COLOR_WHITE,
 	    	:background => Graphics.COLOR_TRANSPARENT,
 	    	:foreground => Graphics.COLOR_RED,
-	    	:interval => 3600 * 4,
+	    	:interval => mGraphWidth,
 	    	:scale => 0
     	});
     	mGraph.mShowExtremums = false;
@@ -64,7 +66,7 @@ class GraphPage extends WatchUi.View {
     	var result = new Result(mState);
 		result.predictCharged();
 		result.predictWindow();
-		var predictions = [result.chargedDuration(), result.windowSpeed];
+		var predictions = [result.chargedDuration(), result.windowSpeed * 3600];
 		var texts = [["since", "charged", true], ["over last", "30 min", false]];
 		var percent = null;
 		var text = [null, null];

@@ -9,13 +9,17 @@ const FIVE_MINUTES = new Time.Duration(5 * 60);
 
 (:background)
 class BetterBatteryWidgetApp extends Application.AppBase {
+ 	var log;
+
     var mWidgetPage;
     var mState;
- 	var log;
+ 	var mMeasureInterval;
+ 	var mGraphWidth;
     
     function initialize() {
     	AppBase.initialize();
-    	log = new Log(self);
+    	log = new Log("App");
+    	loadSettings();
     	var data = Background.getBackgroundData();
     	mState = new State(data);
     }
@@ -49,7 +53,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     }
     
         
-    function setBackgroundEvent() {    	
+    private function setBackgroundEvent() {    	
     	var time = Background.getLastTemporalEventTime();
     	log.debug("setBackgroundEvent lastTime", time);
 		time = Background.getTemporalEventRegisteredTime();
@@ -57,9 +61,10 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 			log.debug("setBackgroundEvent regDuration", time);
 			return;
 		}
-       	log.debug("setBackgroundEvent scheduling", FIVE_MINUTES);
+		var interval = new Time.Duration(mMeasureInterval * 60);
+       	log.debug("setBackgroundEvent scheduling", interval);
 		try {
-	 	    Background.registerForTemporalEvent(FIVE_MINUTES);
+	 	    Background.registerForTemporalEvent(interval);
 	    } catch (e instanceof Background.InvalidBackgroundTimeException) {
 	        log.error("setBackgroundEvent error", e);
         }
@@ -69,6 +74,19 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     	log.msg("deleteBackgroundEvent");
         Background.deleteTemporalEvent();
     }  
+    
+    function onSettingsChanged() {
+    	log.msg("onSettingsChanged");
+    	loadSettings();
+        WatchUi.requestUpdate();
+    }
+    
+    private function loadSettings() {
+    	mMeasureInterval = getProperty("MeasurePeriod");
+    	mGraphWidth = getProperty("GraphWidth");
+    	log.debug("settings loaded", [mMeasureInterval, mGraphWidth]);
+    }
+    
 }
 
 (:background)

@@ -6,11 +6,10 @@ using Toybox.Time;
 using Toybox.Time.Gregorian;
 using Toybox.WatchUi;
 
-const cxl=119, cxr=120, cyt=119, cyb=120, ro=119, ri=104;
 const angle=60;
 const window = 12.0;
 const beta=2/(1+window);
-const rm=(ro+ri)/2, rw=(ro-ri+1)/2;
+//const rm=(ro+ri)/2, rw=(ro-ri+1)/2;
 	
 
 class WidgetPage extends WatchUi.View {
@@ -35,9 +34,11 @@ class WidgetPage extends WatchUi.View {
     function onLayout(dc) {
     	var w = dc.getWidth();
     	var h = dc.getHeight();
+
     	mGaugeDrawable = new GaugeDrawable({
 	    	:width => w,
-	    	:height => h
+	    	:height => h,
+	    	:pen => loadResource(Rez.Strings.GaugePen).toNumber()
     	});
     	
     	mPercentText = new PercentText({

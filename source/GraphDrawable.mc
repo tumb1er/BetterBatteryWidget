@@ -99,9 +99,19 @@ class GraphDrawable extends WatchUi.Drawable {
 		var minY = mExtremums[1];
 		var maxY = mExtremums[3];
 		dc.setColor(foreground, background);
-		var px = interpolate(start, end, mCoords[0], x, x + w - 1);
-		var py = interpolate(minY, maxY, mPoints[0], y + h - 1, y + h * (1-scale));
-		for (var i = 1; i < mCoords.size(); i++) {
+		var px = null, py = null;
+		for (var i = 0; i < mCoords.size(); i++) {
+			if (mCoords[0] < start) {
+				// Пропускаем точки, находящиеся левее границы графика
+				continue;
+			}
+			if (px == null || py == null) {
+				// Вычисляем начальную точку
+				px = interpolate(start, end, mCoords[i], x, x + w - 1);
+				py = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
+				continue;
+			}
+			// Вычисляем следующие точки и рисуем на графике
 			var nx = interpolate(start, end, mCoords[i], x, x + w - 1);
 			var ny = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
 			dc.drawLine(px, py, nx, ny);

@@ -2,6 +2,9 @@
     <iq:application entry="BetterBatteryWidgetApp" id="3f5afd481ca34c6e811093f12ee3fa92" launcherIcon="@Drawables.LauncherIcon" name="@Strings.AppName" type="widget" version="0.0.0">
         <iq:products>
             <iq:product id="vivoactive3"/>
+            <iq:product id="vivoactive3d"/>
+            <iq:product id="vivoactive3m"/>
+            <iq:product id="vivoactive3mlte"/>
         </iq:products>
         <iq:permissions>
             <iq:uses-permission id="Background"/>

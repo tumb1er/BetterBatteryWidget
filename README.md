@@ -1,4 +1,4 @@
-# BettarBatteryWidget
+# BetterBatteryWidget
 
 Battery widget for Vivoactive series.
 

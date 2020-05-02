@@ -28,7 +28,7 @@ class GraphPage extends WatchUi.View {
     function onLayout( dc ) {
     	var gw = loadResource(Rez.Strings.GraphWidth).toNumber();
     	var gh = loadResource(Rez.Strings.GraphHeight).toNumber();
-    	var th = loadResource(Rez.Strings.TriTextHeight).toNumber();
+    	var th = loadResource(Rez.Strings.GraphStatusHeight).toNumber();
     	var ty = loadResource(Rez.Strings.GraphStatusY).toNumber();
     	var s = System.getDeviceSettings();
     	

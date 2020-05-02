@@ -14,6 +14,7 @@ class InfoPage extends WatchUi.View {
 	var mChargedText;
 	var mIntervalText;
 	var mMarkText;
+	var cx, sw, sh, mh, my;
 
     function initialize(state) {
     	View.initialize();
@@ -21,11 +22,17 @@ class InfoPage extends WatchUi.View {
 	}
 	
     function onLayout( dc ) {
+    	var s = System.getDeviceSettings();
+    	sw = s.screenWidth;
+    	sh = s.screenHeight;
+    	cx = s.screenWidth / 2;
+    	mh = loadResource(Rez.Strings.MarkButtonHeight).toNumber();
+    	my = loadResource(Rez.Strings.MarkButtonY).toNumber();
     	var params = {
-    		:width => 240,
-    		:height => 30,
+    		:width => s.screenWidth,
+    		:height => loadResource(Rez.Strings.TriTextHeight).toNumber(),
     		:locX => 0,
-    		:locY => 30,
+    		:locY => loadResource(Rez.Strings.ChargedY).toNumber(),
     		:color => Graphics.COLOR_WHITE,
     		:title => "charged",
     		:suffix => true,
@@ -33,11 +40,11 @@ class InfoPage extends WatchUi.View {
     	};
     	mChargedText = new TriText(params);
     	params.put(:title, "last 30m");
-    	params.put(:locY, 70);
+    	params.put(:locY, loadResource(Rez.Strings.Last30Y).toNumber());
     	params.put(:text, "no interval data");
     	mIntervalText = new TriText(params);
     	params.put(:title, "mark");
-    	params.put(:locY, 110);
+    	params.put(:locY, loadResource(Rez.Strings.MarkY).toNumber());
     	params.put(:text, "no mark set");
     	mMarkText = new TriText(params);
     	setLayout([mChargedText, mIntervalText, mMarkText]);
@@ -51,7 +58,7 @@ class InfoPage extends WatchUi.View {
 		} else {
 			data = Lang.format("On battery $1$", [formatInterval(now - ts)]);
 		}
-    	dc.drawText(120, 40, 
+    	dc.drawText(cx, 40, 
     			Graphics.FONT_XTINY, 
 				data,
 				Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
@@ -66,13 +73,13 @@ class InfoPage extends WatchUi.View {
 			percent = Lang.format("Marked $1$", [formatPercent(mark[1])]);
 		}
 		dc.setColor(Graphics.COLOR_PINK, Graphics.COLOR_PINK);
-    	dc.fillRectangle(0, 160, 240, 240);
+    	dc.fillRectangle(0, sh - mh, sw, sh);
 		dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-		dc.drawText(120, 160, 
+		dc.drawText(cx, my, 
 			Graphics.FONT_MEDIUM,
 			percent,
 			Graphics.TEXT_JUSTIFY_CENTER);
-		dc.drawText(120, 190,
+		dc.drawText(cx, my + 30,
 			Graphics.FONT_XTINY,
 			marked,
 			Graphics.TEXT_JUSTIFY_CENTER);
@@ -98,8 +105,7 @@ class InfoPage extends WatchUi.View {
 		setPredictValues(mMarkText, result.markSpeed, result.markPredict);
     	
 		View.onUpdate(dc);	
-		// drawCharged(dc, result.chargedTs, result.chargedPercent, stats.charging);
-		dc.fillPolygon([[120, 5], [125, 10], [115, 10]]);   
+		dc.fillPolygon([[cx, 5], [cx + 5, 10], [cx - 5, 10]]);   
 		drawMark(dc); 	
 	}
 	

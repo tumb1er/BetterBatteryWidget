@@ -1,6 +1,13 @@
 <strings>
 	<string id="GraphWidth">200</string>
 	<string id="GraphHeight">80</string>
-	<string id="TriTextHeight">80</string>
+	<string id="GraphStatusHeight">80</string>
 	<string id="GraphStatusY">30</string>
+	
+	<string id="TriTextHeight">30</string>
+	<string id="ChargedY">30</string>
+	<string id="Last30Y">70</string>
+	<string id="MarkY">110</string>
+	<string id="MarkButtonHeight">80</string>
+	<string id="MarkButtonY">160</string>
 </strings>

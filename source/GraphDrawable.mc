@@ -19,9 +19,11 @@ class GraphDrawable extends WatchUi.Drawable {
 	var start, end; // x axis margins
 	var scale; // y scale for animation
 	var mShowExtremums; // show extremums flag
+	var log;
 			
 	function initialize(params) {
 		Drawable.initialize(params);
+		log = new Log("GraphDrawable");
 		w = params.get(:width);
 		h = params.get(:height);
 		x = params.get(:x);
@@ -35,22 +37,24 @@ class GraphDrawable extends WatchUi.Drawable {
 	}
 	
 	function setData(data) {
-		mPoints = new [data.size()];
+		log.debug("setData", data.size());
+		mPoints = new[data.size()];
 		mCoords = new[data.size()];
-		for (var i=0; i< data.size(); i++) {
+		end = data[data.size() - 1][0];
+		start = end - interval;
+		for (var i = 0; i < data.size(); i++) {
 			mCoords[i] = data[i][0];
 			mPoints[i] = data[i][1];
 		}
 		mExtremums = extremums();
-		end = mCoords[mCoords.size() - 1];
-		start = end - interval;
+		log.debug("setData extremums", mExtremums);
 	}
 	
 	function getTextJustify(tx) {
-		if (tx > x + 3 * w/4) {
+		if (tx > x + 3 * w / 4) {
 			return Graphics.TEXT_JUSTIFY_RIGHT;
 		}
-		if (tx < x + w/4) {
+		if (tx < x + w / 4) {
 			return Graphics.TEXT_JUSTIFY_LEFT;
 		}
 		return Graphics.TEXT_JUSTIFY_CENTER;
@@ -82,14 +86,24 @@ class GraphDrawable extends WatchUi.Drawable {
 		if (mCoords.size() < 2) {
 			return null;
 		}
-		var minX = mCoords[0], maxX = mCoords[0];
-		var minY = mPoints[0], maxY = mPoints[0];
-		for (var i = 1; i < mCoords.size(); i++) {
+		var minX = null, maxX = null;
+		var minY = null, maxY = null;
+		for (var i = 0; i < mCoords.size(); i++) {
+			if (mCoords[i] < start) {
+				// Пропускаем точки, находящиеся левее границы графика
+				continue;
+			}
 			var value = mPoints[i];
+			if (minX == null || maxX == null) {
+				minX = mCoords[i]; minY = value;
+				maxX = mCoords[i]; maxY = value;
+				continue;
+			}
 			if (minY > value) {minX = mCoords[i]; minY = value;}
 			if (maxY < value) {maxX = mCoords[i]; maxY = value;}
 		}
 		if (minY == maxY) {
+			log.msg("extermums: minY == maxY");
 			return null;
 		}
 		return [minX, minY, maxX, maxY];		
@@ -101,7 +115,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		dc.setColor(foreground, background);
 		var px = null, py = null;
 		for (var i = 0; i < mCoords.size(); i++) {
-			if (mCoords[0] < start) {
+			if (mCoords[i] < start) {
 				// Пропускаем точки, находящиеся левее границы графика
 				continue;
 			}

@@ -7,13 +7,13 @@ class TriText extends WatchUi.Text {
 	
 	function initialize(params) {
 		Text.initialize(params);
-		log = new Log("TriText");
 		color = params.get(:color);
 		title = params.get(:title);
 		value = params.get(:value);
 		desc = params.get(:desc);
 		suffix = params.get(:suffix);
 		text = params.get(:text);
+		log = new Log(Lang.format("TriText.$1$", [title]));
 	}
 	
 	function draw(dc) {

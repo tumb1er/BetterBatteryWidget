@@ -23,11 +23,11 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     }
 
     function onBackgroundData(data) {
-    	log.debug("onBackgroundData", data);
+    	//log.debug("onBackgroundData", data);
     	mState = new State(data);
     	mState.save();
         if( mWidgetPage ) {
-	    	log.msg("onBackgroundData: calling WidgetPage.updateState");
+	    	//log.msg("onBackgroundData: calling WidgetPage.updateState");
             mWidgetPage.updateState(mState);
         }
         WatchUi.requestUpdate();
@@ -53,28 +53,28 @@ class BetterBatteryWidgetApp extends Application.AppBase {
         
     private function setBackgroundEvent() {    	
     	var time = Background.getLastTemporalEventTime();
-    	log.debug("setBackgroundEvent lastTime", time);
+    	//log.debug("setBackgroundEvent lastTime", time);
 		time = Background.getTemporalEventRegisteredTime();
 		if (time != null) {
-			log.debug("setBackgroundEvent regDuration", time);
+			//log.debug("setBackgroundEvent regDuration", time);
 			return;
 		}
 		var interval = new Time.Duration(mMeasureInterval * 60);
-       	log.debug("setBackgroundEvent scheduling", interval);
+       	//log.debug("setBackgroundEvent scheduling", interval);
 		try {
 	 	    Background.registerForTemporalEvent(interval);
 	    } catch (e instanceof Background.InvalidBackgroundTimeException) {
-	        log.error("setBackgroundEvent error", e);
+	        //log.error("setBackgroundEvent error", e);
         }
     }
    
     function deleteBackgroundEvent() {
-    	log.msg("deleteBackgroundEvent");
+    	//log.msg("deleteBackgroundEvent");
         Background.deleteTemporalEvent();
     }  
     
     function onSettingsChanged() {
-    	log.msg("onSettingsChanged");
+    	//log.msg("onSettingsChanged");
     	loadSettings();
         WatchUi.requestUpdate();
     }
@@ -82,7 +82,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     private function loadSettings() {
     	mMeasureInterval = getProperty("MeasurePeriod");
     	mGraphDuration = getProperty("GraphDuration");
-    	log.debug("settings loaded", [mMeasureInterval, mGraphDuration]);
+    	//log.debug("settings loaded", [mMeasureInterval, mGraphDuration]);
     }
     
 }
@@ -97,11 +97,11 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
 
     function onTemporalEvent() {
     	var data = Background.getBackgroundData();
-		log.debug("onTemporalEvent bgData", data); 
+		//log.debug("onTemporalEvent bgData", data); 
     	var state = new State(data);
     	state.measure();
 		var ret = state.getData();
-		log.debug("onTemporalEvent ret", ret); 
+		//log.debug("onTemporalEvent ret", ret); 
 		Background.exit(ret);
     }
 }

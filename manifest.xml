@@ -2,6 +2,11 @@
     <iq:application entry="BetterBatteryWidgetApp" id="c56c7327989346318f359c6edab0a26f" launcherIcon="@Drawables.LauncherIcon" minSdkVersion="2.3.0" name="@Strings.AppName" type="widget" version="0.3.1">
         <iq:products>
             <iq:product id="approachs62"/>
+            <iq:product id="fenix6"/>
+            <iq:product id="fenix6pro"/>
+            <iq:product id="fenix6s"/>
+            <iq:product id="fenix6spro"/>
+            <iq:product id="fenix6xpro"/>
             <iq:product id="legacyherofirstavenger"/>
             <iq:product id="legacysagadarthvader"/>
             <iq:product id="vivoactive3"/>

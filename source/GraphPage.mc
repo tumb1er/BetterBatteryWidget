@@ -29,10 +29,12 @@ class GraphPage extends WatchUi.View {
     	var w = dc.getWidth();
     	var h = dc.getHeight();
     	
-    	var gw = loadResource(Rez.Strings.GraphWidth).toNumber();
-    	var gh = loadResource(Rez.Strings.GraphHeight).toNumber();
-    	var th = loadResource(Rez.Strings.GraphStatusHeight).toNumber();
-    	var ty = loadResource(Rez.Strings.GraphStatusY).toNumber();
+    	var RS = Rez.Strings;
+    	
+    	var gw = loadResource(RS.GraphWidth).toNumber();
+    	var gh = loadResource(RS.GraphHeight).toNumber();
+    	var th = loadResource(RS.GraphStatusHeight).toNumber();
+    	var ty = loadResource(RS.GraphStatusY).toNumber();
     	
     	mx = w / 2;
     	my = h - 10;
@@ -42,21 +44,21 @@ class GraphPage extends WatchUi.View {
 	    	:height => gh,
 	    	:x => graphMargin,
 	    	:y => h / 2 - graphMargin,
-	    	:border => Graphics.COLOR_WHITE,
-	    	:background => Graphics.COLOR_TRANSPARENT,
-	    	:foreground => Graphics.COLOR_RED,
+	    	:border => 0xFFFFFF,
+	    	:background => -1, // Graphics.COLOR_TRANSPARENT
+	    	:foreground => 0xFF0000,
 	    	:interval => mGraphDuration,
 	    	:scale => 0
     	});
     	mGraph.mShowExtremums = false;
-    	log.debug("setData", mState.mPoints);
+    	//log.debug("setData", mState.mPoints);
     	mGraph.setData(mState.mPoints);
     	mTriText = new TriText({
     		:width => w,
     		:height => th,
     		:locX => 0,
     		:locY => ty,
-    		:color => Graphics.COLOR_WHITE,
+    		:color => 0xFFFFFF,
     		:suffix => true,
     		:text => "computing"
     	});
@@ -93,11 +95,11 @@ class GraphPage extends WatchUi.View {
     }
     
     function drawPredictions(dc) {
-    	dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_BLUE);
+    	dc.setColor(0x0000FF, 0x0000FF);
     	dc.fillRectangle(0, 0, mTriText.width, mTriText.height);
 		var predictions = getPredictions();
 		var stats = System.getSystemStats();
-    	log.debug("drawPredictions", predictions[0]);
+    	//log.debug("drawPredictions", predictions[0]);
 		if (predictions[0] != null) {
 			if (predictions[3]) {
 				mTriText.value = formatInterval(predictions[0]);				
@@ -154,13 +156,13 @@ class GraphPageInputDelegate extends WatchUi.InputDelegate {
     }
     
     function onBack() {
-		log.msg("onBack");
+		//log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onSwipe(swipeEvent) {
-		log.debug("onSwipe", swipeEvent);
+		//log.debug("onSwipe", swipeEvent);
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_UP) {
 			var app = Application.getApp();
 			var infoPage = new InfoPage(app.mState);
@@ -175,7 +177,7 @@ class GraphPageInputDelegate extends WatchUi.InputDelegate {
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-    	log.debug("onTap", [coords, type]);
+    	//log.debug("onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] <= 80) {
 	    	mView.nextMode();
     	}	

@@ -8,10 +8,6 @@ using Toybox.WatchUi;
 	
 
 class WidgetPage extends WatchUi.View {
-	var mBitmap;
-	var mPercentText;
-	var mPredictText;
-	var mGaugeDrawable;
 	var mState;
 	var log;
 	
@@ -20,57 +16,57 @@ class WidgetPage extends WatchUi.View {
     function initialize(state) {
         View.initialize();
         log = new Log("WidgetPage");
-    	log.debug("initialize", state);
+    	//log.debug("initialize", state);
     	mState = state;
         mState.measure();
         mState.save();
     }
 
     function onLayout(dc) {
-    	var w = dc.getWidth();
-    	var h = dc.getHeight();
+    	var w2 = dc.getWidth() / 2;
 
-    	mGaugeDrawable = new GaugeDrawable({
-	    	:width => w,
-	    	:height => h,
+    	var gaugeDrawable = new GaugeDrawable({
+	    	:radius => w2,
 	    	:pen => loadResource(Rez.Strings.GaugePen).toNumber()
     	});
     	
-    	mPercentText = new PercentText({
-    		:locX => w / 2,
-    		:locY => h / 2,
-    		:color => Graphics.COLOR_WHITE,
-    		:font => Graphics.FONT_SYSTEM_NUMBER_HOT,
-    		:justification => Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
+    	var percentText = new PercentText({
+    		:locX => w2,
+    		:locY => w2,
+    		:color => 0xFFFFFF,
+    		:font => 16, // Graphics.FONT_SYSTEM_NUMBER_HOT
+    		:justification => 5 // Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
     	});
     	
-		mPredictText = new WatchUi.Text({
-    		:locX => w / 2,
-    		:locY => 2 * h / 3,
-    		:color => Graphics.COLOR_WHITE,
-    		:font => Graphics.FONT_SMALL,
-    		:justification => Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
+		var predictText = new WatchUi.Text({
+    		:locX => w2,
+    		:locY => 4 * w2 / 3,
+    		:color => 0xFFFFFF,
+    		:font => 2, // Graphics.FONT_SMALL
+    		:justification => 5 // Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
 		});		
     	
-    	mBitmap = new WatchUi.Bitmap({
+    	var bitmap = new WatchUi.Bitmap({
     		:rezId => Rez.Drawables.BatteryIcon
     	});
-    	var s = mBitmap.getDimensions();
-    	mBitmap.setLocation((w - s[0]) / 2, 7 * h / 24  - s[1] / 2);
+    	var s = bitmap.getDimensions();
+    	bitmap.setLocation(w2 - s[0] / 2, 7 * w2 / 12  - s[1] / 2);
     	
-    	setLayout([mGaugeDrawable, mPercentText, mBitmap, mPredictText]);
+    	setLayout([gaugeDrawable, percentText, bitmap, predictText]);
     }
     
     function onShow() {
 		var stats = System.getSystemStats();
 		percent = stats.battery;
         predicted = computePredicted(stats);
-		mGaugeDrawable.color = colorize(percent);
-		WatchUi.animate(mGaugeDrawable, :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
-		WatchUi.animate(mPercentText, :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);    	
+		mLayout[0].color = colorize(percent);  // GaugeDrawable
+		WatchUi.animate(mLayout[0], :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
+		// PercentText
+		WatchUi.animate(mLayout[1], :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);    	
     }
     function onUpdate( dc ) {
-		mPredictText.setText(predicted);
+    	// PredictText
+		mLayout[3].setText(predicted);
         View.onUpdate( dc );
 	}    
 	
@@ -107,7 +103,7 @@ class WidgetPageInputDelegate extends WatchUi.InputDelegate {
     }
     
     function onTap(event) {
-		log.debug("onTap", event);
+		//log.debug("onTap", event);
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
 		pushView(view, new GraphPageInputDelegate(view), WatchUi.SLIDE_IMMEDIATE);    

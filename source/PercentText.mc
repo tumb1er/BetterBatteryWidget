@@ -1,4 +1,3 @@
-using Toybox.Lang;
 using Toybox.WatchUi;
 
 class PercentText extends WatchUi.Text {

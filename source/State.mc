@@ -126,11 +126,12 @@ class State {
 	
 	function initialize(data) {
 		log = new Log("State");
-		mGraphDuration = 3600 * Application.getApp().mGraphDuration;
-		log.debug("initialize: passed", data);
+		var app = Application.getApp();
+		mGraphDuration = 3600 * app.mGraphDuration;
+		//log.debug("initialize: passed", data);
 		if (data == null) {
-			data = objectStoreGet(STATE_PROPERTY, null);			
-			log.debug("initialize: loaded", data);
+			data = app.getProperty(STATE_PROPERTY);		
+			//log.debug("initialize: loaded", data);
 		}
 		if (data == null) {
 			mData = [];
@@ -162,11 +163,11 @@ class State {
 	}
 	
 	public function save() {
-		log.debug("save", getData());
+		//log.debug("save", getData());
 		try {
-			objectStorePut(STATE_PROPERTY, getData());
+			Application.getApp().setProperty(STATE_PROPERTY, getData());
 		} catch (ex) {
-			log.error("save error", ex);
+			//log.error("save error", ex);
 		}
 	}
 	
@@ -176,7 +177,7 @@ class State {
 	public function mark() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
-		log.debug("mark", stats.battery);
+		//log.debug("mark", stats.battery);
 		mMark = [ts, stats.battery];
 	}
 	
@@ -215,21 +216,20 @@ class State {
 	public function measure() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
-		var ml = log.child("measure");
-		ml.debug("values", [ts, stats.battery, stats.charging, mCharged]);
+		//log.debug("values", [ts, stats.battery, stats.charging, mCharged]);
 		
 		// Точку на график добавляем всегда
 		pushPoint(ts, stats.battery);
 		
 		// Если данные отсутствуют, просто добавляем одну точку.
 		if (mCharged == null) {
-			ml.debug("data is empty, initializing", stats.battery);
+			//log.debug("data is empty, initializing", stats.battery);
 			return reset(ts, stats.battery);
 		}
 		
 		// На зарядке сбрасываем состояние
 		if (stats.charging) {
-			ml.debug("charging, reset at", stats.battery);
+			//log.debug("charging, reset at", stats.battery);
 			return reset(ts, stats.battery);
 		}
 
@@ -237,7 +237,7 @@ class State {
 		var info = Activity.getActivityInfo();
 		var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
 		if (activityRunning != mActivityRunning) {
-			ml.debug("activity state changed, reset at", stats.battery);
+			//log.debug("activity state changed, reset at", stats.battery);
 			mActivityRunning = activityRunning;
 			// Стираем только данные, отметка о последней зарядке остается на месте
 			mData = [[ts, value]];
@@ -252,7 +252,6 @@ class State {
 	Добавляет новую точку для измерений
 	*/
 	private function pushData(ts, value) {
-		var ml = log.child("pushData");
 		// Первую точку добавляем всегда.
 		if (mData.size() == 0) {
 			mData.add([ts, value]);
@@ -263,12 +262,12 @@ class State {
 			
 		// Одинаковые значения не добавляем
 		if (prev == value) {
-			ml.debug("same value, skip", [value, prev]);
+			//log.debug("same value, skip", [value, prev]);
 			return;
 		}	
 		// Слишком быстрый рост заряда - это показатель пропущенных данных, сбрасываем.
 		if (value > prev + 1.0) {
-			ml.debug("value increase, reset at", value);
+			//log.debug("value increase, reset at", value);
 			reset(ts, value);
 			return;
 		}

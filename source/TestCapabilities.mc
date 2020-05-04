@@ -8,6 +8,5 @@ function testDeviceCapabilities(logger) {
 	Test.assertEqualMessage(s.screenShape, System.SCREEN_SHAPE_ROUND, "screen shape mismatch");
 	Test.assertMessage([240, 260].indexOf(s.screenWidth) >=0, Lang.format("screen width mismatch: $1$", [s.screenWidth]));
 	Test.assertMessage([240, 260].indexOf(s.screenHeight) >=0, Lang.format("screen height mismatch: $1$", [s.screenHeight]));
-	Test.assertMessage(s.isTouchScreen, "non-touch screen");
 	return true;
 }

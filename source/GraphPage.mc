@@ -95,7 +95,7 @@ class GraphPage extends WatchUi.View {
     }
     
     function drawPredictions(dc) {
-    	dc.setColor(0x0000FF, 0x0000FF);
+    	dc.setColor(0x00AAFF, 0x00AAFF);
     	dc.fillRectangle(0, 0, mTriText.width, mTriText.height);
 		var predictions = getPredictions();
 		var stats = System.getSystemStats();

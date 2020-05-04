@@ -93,16 +93,16 @@ class WidgetPage extends WatchUi.View {
 
 }
 
-class WidgetPageInputDelegate extends WatchUi.InputDelegate {
+class WidgetPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	var log;
 
     function initialize() {
         InputDelegate.initialize();
-        log = new Log("WidgetPageInputDeletage");
+        log = new Log("WidgetPageBehaviorDelegateate");
     }
     
-    function onTap(event) {
-		//log.debug("onTap", event);
+    function onSelect() {
+		log.msg("onSelect");
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
 		pushView(view, new GraphPageInputDelegate(view), WatchUi.SLIDE_IMMEDIATE);    

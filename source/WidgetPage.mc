@@ -102,7 +102,7 @@ class WidgetPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
     }
     
     function onSelect() {
-		log.msg("onSelect");
+		//log.msg("onSelect");
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
 		pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);    

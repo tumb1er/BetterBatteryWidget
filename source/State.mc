@@ -213,7 +213,7 @@ class State {
 	public function measure() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
-		// log.debug("values", [ts, stats.battery, stats.charging, mCharged]);	
+		// //log.debug("values", [ts, stats.battery, stats.charging, mCharged]);	
 		handleMeasurements(ts, stats);
 	}
 	

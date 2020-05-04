@@ -148,30 +148,45 @@ class GraphPage extends WatchUi.View {
 class GraphPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	var mView;
 	var log;
+	var handleSelect;
 
     function initialize(view) {
         InputDelegate.initialize();
         log = new Log("GraphPageBehaviorDelegate");
         mView = view;
+        var s = System.getDeviceSettings();
+        handleSelect = !s.isTouchScreen;
     }
     
     function onBack() {
-		log.msg("onBack");
+		//log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onNextPage() {
-    	log.msg("onNextPage");
+    	//log.msg("onNextPage");
 		var app = Application.getApp();
 		var infoPage = new InfoPage(app.mState);
-		switchToView(infoPage, new InfoPageInputDelegate(infoPage), WatchUi.SLIDE_UP);    
+		switchToView(infoPage, new InfoPageBehaviorDelegate(infoPage), WatchUi.SLIDE_UP);    
 	}
 
 	function onSelect() {
-		log.msg("onSelect");
-		mView.nextMode();
-	}    
+		if (handleSelect) {
+			//log.msg("onSelect");
+			mView.nextMode();
+		}
+		return handleSelect;
+    }
+    
+    function onTap(clickEvent) {
+    	var coords = clickEvent.getCoordinates();
+    	var type = clickEvent.getType();
+    	//log.debug("onTap", [coords, type]);
+    	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] <= 80) {
+	    	mView.nextMode();
+    	}	
+    }
 }
 
 

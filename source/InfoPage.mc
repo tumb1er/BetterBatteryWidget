@@ -121,14 +121,17 @@ class InfoPage extends WatchUi.View {
 	}
 }
 
-class InfoPageInputDelegate extends WatchUi.InputDelegate {
+class InfoPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	var mView;
 	var log;
+	var handleSelect;
 
     function initialize(view) {
         InputDelegate.initialize();
-        log = new Log("InfoPageInputDelegate");
+        log = new Log("InfoPageBehaviorDelegate");
         mView = view;
+        var s = System.getDeviceSettings();
+        handleSelect = !s.isTouchScreen;
     }
     
     function onBack() {
@@ -137,28 +140,29 @@ class InfoPageInputDelegate extends WatchUi.InputDelegate {
         return true;
     }
     
-    function onSwipe(swipeEvent) {
-		//log.debug("InfoPageInputDelegate.onSwipe", swipeEvent);
-		if (swipeEvent.getDirection() == WatchUi.SWIPE_DOWN) {
-			var app = Application.getApp();
-			var view = new GraphPage(app.mState);
-			switchToView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_DOWN);    
-		}
-		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
-			popView(WatchUi.SLIDE_RIGHT);
-		}		
-		return true;
+    function onPreviousPage() {
+    	//log.msg("onPreviousPage");
+		var app = Application.getApp();
+		var view = new GraphPage(app.mState);
+		switchToView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_DOWN);    
+    }
+    
+    function onSelect() {
+    	if (handleSelect) {
+    		mView.mark();
+    	}
+    	return handleSelect;
     }
        
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-    	//log.debug("InfoPageInputDelegate.onTap", [coords, type]);
+    	//log.debug("InfoPageBehaviorDelegate.onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] >= 160) {
 	    	mView.mark();
     	}	
+    	return true;
     }
-   
 }
 
 

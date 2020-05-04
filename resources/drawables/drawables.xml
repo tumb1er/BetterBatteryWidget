@@ -1,4 +1,12 @@
 <drawables>
-    <bitmap id="LauncherIcon" filename="launcher_icon.png" />
-    <bitmap id="BatteryIcon" filename="battery.png" />
+    <bitmap id="LauncherIcon" filename="launcher_icon.png">
+    <palette disableTransparency="false">
+            <color>00AA00</color>
+    	</palette>
+   	</bitmap>
+    <bitmap id="BatteryIcon" filename="battery.png">
+    	<palette disableTransparency="false">
+            <color>00FF00</color>
+    	</palette>
+    </bitmap>
 </drawables>

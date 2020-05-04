@@ -145,43 +145,33 @@ class GraphPage extends WatchUi.View {
 }
 
 
-class GraphPageInputDelegate extends WatchUi.InputDelegate {
+class GraphPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	var mView;
 	var log;
 
     function initialize(view) {
         InputDelegate.initialize();
-        log = new Log("GraphPageInputDelegate");
+        log = new Log("GraphPageBehaviorDelegate");
         mView = view;
     }
     
     function onBack() {
-		//log.msg("onBack");
+		log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
-    function onSwipe(swipeEvent) {
-		//log.debug("onSwipe", swipeEvent);
-		if (swipeEvent.getDirection() == WatchUi.SWIPE_UP) {
-			var app = Application.getApp();
-			var infoPage = new InfoPage(app.mState);
-			switchToView(infoPage, new InfoPageInputDelegate(infoPage), WatchUi.SLIDE_UP);    
-		}
-		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
-			popView(WatchUi.SLIDE_RIGHT);
-		}
-		return true;
-    }
-    
-    function onTap(clickEvent) {
-    	var coords = clickEvent.getCoordinates();
-    	var type = clickEvent.getType();
-    	//log.debug("onTap", [coords, type]);
-    	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] <= 80) {
-	    	mView.nextMode();
-    	}	
-    }
+    function onNextPage() {
+    	log.msg("onNextPage");
+		var app = Application.getApp();
+		var infoPage = new InfoPage(app.mState);
+		switchToView(infoPage, new InfoPageInputDelegate(infoPage), WatchUi.SLIDE_UP);    
+	}
+
+	function onSelect() {
+		log.msg("onSelect");
+		mView.nextMode();
+	}    
 }
 
 

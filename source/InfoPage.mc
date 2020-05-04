@@ -142,7 +142,7 @@ class InfoPageInputDelegate extends WatchUi.InputDelegate {
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_DOWN) {
 			var app = Application.getApp();
 			var view = new GraphPage(app.mState);
-			switchToView(view, new GraphPageInputDelegate(view), WatchUi.SLIDE_DOWN);    
+			switchToView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_DOWN);    
 		}
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
 			popView(WatchUi.SLIDE_RIGHT);

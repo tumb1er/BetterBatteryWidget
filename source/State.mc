@@ -237,7 +237,7 @@ class State {
 		var info = Activity.getActivityInfo();
 		var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
 		if (activityRunning != mActivityRunning) {
-			log.debug("activity state changed, reset at", stats.battery);
+			//log.debug("activity state changed, reset at", stats.battery);
 			mActivityRunning = activityRunning;
 			// Стираем только данные, отметка о последней зарядке остается на месте
 			mData = [[ts, value]];

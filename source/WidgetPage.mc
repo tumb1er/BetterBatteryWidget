@@ -10,6 +10,7 @@ using Toybox.WatchUi;
 class WidgetPage extends WatchUi.View {
 	var mState;
 	var log;
+	var mGaugeDrawable, mPercentText, mPredictText;
 	
 	var percent, predicted;
 
@@ -25,12 +26,12 @@ class WidgetPage extends WatchUi.View {
     function onLayout(dc) {
     	var w2 = dc.getWidth() / 2;
 
-    	var gaugeDrawable = new GaugeDrawable({
+    	mGaugeDrawable = new GaugeDrawable({
 	    	:radius => w2,
 	    	:pen => loadResource(Rez.Strings.GaugePen).toNumber()
     	});
     	
-    	var percentText = new PercentText({
+    	mPercentText = new PercentText({
     		:locX => w2,
     		:locY => w2,
     		:color => 0xFFFFFF,
@@ -38,7 +39,7 @@ class WidgetPage extends WatchUi.View {
     		:justification => 5 // Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
     	});
     	
-		var predictText = new WatchUi.Text({
+		mPredictText = new WatchUi.Text({
     		:locX => w2,
     		:locY => 4 * w2 / 3,
     		:color => 0xFFFFFF,
@@ -52,21 +53,19 @@ class WidgetPage extends WatchUi.View {
     	var s = bitmap.getDimensions();
     	bitmap.setLocation(w2 - s[0] / 2, 7 * w2 / 12  - s[1] / 2);
     	
-    	setLayout([gaugeDrawable, percentText, bitmap, predictText]);
+    	setLayout([mGaugeDrawable, mPercentText, bitmap, mPredictText]);
     }
     
     function onShow() {
 		var stats = System.getSystemStats();
 		percent = stats.battery;
         predicted = computePredicted(stats);
-		mLayout[0].color = colorize(percent);  // GaugeDrawable
-		WatchUi.animate(mLayout[0], :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
-		// PercentText
-		WatchUi.animate(mLayout[1], :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);    	
+		mGaugeDrawable.color = colorize(percent);
+		WatchUi.animate(mGaugeDrawable, :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
+		WatchUi.animate(mPercentText, :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);    	
     }
     function onUpdate( dc ) {
-    	// PredictText
-		mLayout[3].setText(predicted);
+    	mPredictText.setText(predicted);
         View.onUpdate( dc );
 	}    
 	

@@ -4,7 +4,6 @@ using Toybox.Time;
 class Log {
 	private var tag;
 	
-	(:debug)
 	function initialize(tag) {
 		self.tag = tag;
 	}

@@ -160,17 +160,6 @@ class InfoPageInputDelegate extends WatchUi.InputDelegate {
 function testInfoPageSmoke(logger) {
 	var app = Application.getApp();
 	var page = new InfoPage(app.mState);
-	var s = System.getDeviceSettings();
-	var display = new Graphics.BufferedBitmap({
-		:width => s.screenWidth,
-		:height => s.screenHeight
-	});
-	var dc = display.getDc();
-	logger.debug("onLayout");
-	page.onLayout(dc);
-	logger.debug("onShow");
-	page.onShow();
-	logger.debug("onUpdate");
-	page.onUpdate(dc);
+	assertViewDraw(logger, page);
 	return true;
 }

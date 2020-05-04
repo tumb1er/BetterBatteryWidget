@@ -215,21 +215,23 @@ class State {
 	public function measure() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
-		var ml = log.child("measure");
-		ml.debug("values", [ts, stats.battery, stats.charging, mCharged]);
-		
+		log.debug("values", [ts, stats.battery, stats.charging, mCharged]);	
+		handleMeasurements(ts, stats);
+	}
+	
+	public function handleMeasurements(ts, stats) {
 		// Точку на график добавляем всегда
 		pushPoint(ts, stats.battery);
 		
 		// Если данные отсутствуют, просто добавляем одну точку.
 		if (mCharged == null) {
-			ml.debug("data is empty, initializing", stats.battery);
+			log.debug("data is empty, initializing", stats.battery);
 			return reset(ts, stats.battery);
 		}
 		
 		// На зарядке сбрасываем состояние
 		if (stats.charging) {
-			ml.debug("charging, reset at", stats.battery);
+			log.debug("charging, reset at", stats.battery);
 			return reset(ts, stats.battery);
 		}
 
@@ -237,7 +239,7 @@ class State {
 		var info = Activity.getActivityInfo();
 		var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
 		if (activityRunning != mActivityRunning) {
-			ml.debug("activity state changed, reset at", stats.battery);
+			log.debug("activity state changed, reset at", stats.battery);
 			mActivityRunning = activityRunning;
 			// Стираем только данные, отметка о последней зарядке остается на месте
 			mData = [[ts, value]];

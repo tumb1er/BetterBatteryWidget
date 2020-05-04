@@ -79,3 +79,20 @@ function colorize(percent) {
 		return 0xff0000;	
 	}
 }
+
+(:debug)
+function assertViewDraw(logger, page) {
+	var s = System.getDeviceSettings();
+	var display = new Graphics.BufferedBitmap({
+		:width => s.screenWidth,
+		:height => s.screenHeight
+	});
+	var dc = display.getDc();
+	logger.debug("onLayout");
+	page.onLayout(dc);
+	logger.debug("onShow");
+	page.onShow();
+	logger.debug("onUpdate");
+	page.onUpdate(dc);
+	return dc;
+}

@@ -75,7 +75,7 @@ class GraphPage extends WatchUi.View {
     	var result = new Result(mState);
 		result.predictCharged();
 		result.predictWindow();
-		var predictions = [result.chargedDuration(), result.windowSpeed * 3600];
+		var predictions = [result.chargedDuration(), (result.windowSpeed != null)? result.windowSpeed * 3600: null];
 		var texts = [["since", "charged", true], ["over last", "30 min", false]];
 		var percent = null;
 		var text = [null, null];
@@ -187,19 +187,20 @@ class GraphPageInputDelegate extends WatchUi.InputDelegate {
 function testGraphPageSmoke(logger) {
 	var app = Application.getApp();
 	var page = new GraphPage(app.mState);
-	var s = System.getDeviceSettings();
-	var display = new Graphics.BufferedBitmap({
-		:width => s.screenWidth,
-		:height => s.screenHeight
-	});
-	var dc = display.getDc();
-	logger.debug("onLayout");
-	page.onLayout(dc);
-	logger.debug("onShow");
-	page.onShow();
-	logger.debug("onUpdate");
-	page.onUpdate(dc);
+	var dc = assertViewDraw(logger, page);
 	logger.debug("onAnimateEnd");
 	page.onAnimateEnd();
+	return true;
+}
+
+(:test)
+function testGraphPageEmptyData(logger) {
+	var app = Application.getApp();
+	var page = new GraphPage(app.mState);
+	var ts = Time.now().value();
+	var stats = System.getSystemStats();
+	stats.charging = true;
+	app.mState.handleMeasurements(ts, stats);
+	assertViewDraw(logger, page);
 	return true;
 }

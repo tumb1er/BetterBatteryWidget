@@ -99,7 +99,7 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
     	var data = Background.getBackgroundData();
 		log.debug("onTemporalEvent bgData", data); 
     	var state = new State(data);
-    	state.measure();
+		state.measure();
 		var ret = state.getData();
 		log.debug("onTemporalEvent ret", ret); 
 		Background.exit(ret);

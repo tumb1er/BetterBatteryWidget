@@ -1,6 +1,3 @@
-using Toybox.Graphics;
-using Toybox.System;
-
 class GaugeArc {
 	var cx, cy, r, p, start, end, color, value;
 	var bx, by, bs, be, br, ballStart = null;
@@ -40,20 +37,20 @@ class GaugeArc {
 	}
 	
 	function draw(dc) {
-		dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+		dc.setColor(0xFFFFFF, -1); // Graphics.COLOR_TRANSPARENT
 		dc.setPenWidth(1);
-		dc.drawArc(cx, cy, r + (p / 2 - 1), Graphics.ARC_CLOCKWISE, start, end);
-		dc.drawArc(cx, cy, r - (p / 2 - 1), Graphics.ARC_CLOCKWISE, start, end);
+		dc.drawArc(cx, cy, r + (p / 2 - 1), 1, start, end); // Graphics.ARC_CLOCKWISE
+		dc.drawArc(cx, cy, r - (p / 2 - 1), 1, start, end);
 		if (ballStart != null) {
-			dc.drawArc(bx, by, br, Graphics.ARC_CLOCKWISE, bs, be);
+			dc.drawArc(bx, by, br, 1, bs, be);
 		}
 		if (value < start) {
 			dc.setPenWidth(p);
-			dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+			dc.setColor(color, -1);
 			if (ballStart) {
 				dc.fillCircle(bx, by, br);
 			}
-			dc.drawArc(cx, cy, r, Graphics.ARC_CLOCKWISE, start, (value > end)? value: end);
+			dc.drawArc(cx, cy, r, 1, start, (value > end)? value: end);
 			if (value >= end) {
 				var a = Math.toRadians(value);
 				var vx = Math.round(cx + r * Math.cos(a));

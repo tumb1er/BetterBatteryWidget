@@ -34,21 +34,6 @@ function formatPercent(value) {
 	return Lang.format("$1$%", [value.format("%.1f")]);
 }
 
-(:background)
-function objectStoreGet(key, defaultValue) {
-    var value = Application.getApp().getProperty(key);
-    if((value == null) && (defaultValue != null)) {
-        value = defaultValue;
-        Application.getApp().setProperty(key, value);
-        }
-    return value;
-}
-
-(:background)
-function objectStorePut(key, value) {
-    Application.getApp().setProperty(key, value);
-}
-
 function formatInterval(seconds) {
 	var hours = seconds / 3600.0;
 	if (hours >= 24) { 

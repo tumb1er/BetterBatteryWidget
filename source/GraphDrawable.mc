@@ -37,7 +37,7 @@ class GraphDrawable extends WatchUi.Drawable {
 	}
 	
 	function setData(data) {
-		log.debug("setData", data.size());
+		//log.debug("setData", data.size());
 		mPoints = new[data.size()];
 		mCoords = new[data.size()];
 		end = data[data.size() - 1][0];
@@ -47,17 +47,17 @@ class GraphDrawable extends WatchUi.Drawable {
 			mPoints[i] = data[i][1];
 		}
 		mExtremums = extremums();
-		log.debug("setData extremums", mExtremums);
+		//log.debug("setData extremums", mExtremums);
 	}
 	
 	function getTextJustify(tx) {
 		if (tx > x + 3 * w / 4) {
-			return Graphics.TEXT_JUSTIFY_RIGHT;
+			return 0; // Graphics.TEXT_JUSTIFY_RIGHT
 		}
 		if (tx < x + w / 4) {
-			return Graphics.TEXT_JUSTIFY_LEFT;
+			return 2; // Graphics.TEXT_JUSTIFY_LEFT
 		}
-		return Graphics.TEXT_JUSTIFY_CENTER;
+		return 1; // Graphics.TEXT_JUSTIFY_CENTER
 	}
 	
 	
@@ -103,7 +103,7 @@ class GraphDrawable extends WatchUi.Drawable {
 			if (maxY < value) {maxX = mCoords[i]; maxY = value;}
 		}
 		if (minY == maxY) {
-			log.msg("extermums: minY == maxY");
+			//log.msg("extermums: minY == maxY");
 			return null;
 		}
 		return [minX, minY, maxX, maxY];		
@@ -144,12 +144,12 @@ class GraphDrawable extends WatchUi.Drawable {
 		var py = y + h;
 		
 		dc.fillPolygon([[px, py], [px + 5, py - 5], [px - 5, py - 5]]);
-		dc.drawText(px, py - 25, Graphics.FONT_SYSTEM_XTINY, formatPercent(minY), getTextJustify(px));
+		dc.drawText(px, py - 25, 9, formatPercent(minY), getTextJustify(px));  // Graphics.FONT_SYSTEM_XTINY
 		
 		px = interpolate(start, end, maxX, x, x + w - 1);
 		py = y;
 		
 		dc.fillPolygon([[px, py], [px + 5, py + 5], [px - 5, py + 5]]);
-		dc.drawText(px, py + 5, Graphics.FONT_SYSTEM_XTINY, formatPercent(maxY), getTextJustify(px));
+		dc.drawText(px, py + 5, 9, formatPercent(maxY), getTextJustify(px));  // Graphics.FONT_SYSTEM_XTINY
 	}
 }

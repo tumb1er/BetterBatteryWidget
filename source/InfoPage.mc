@@ -22,28 +22,31 @@ class InfoPage extends WatchUi.View {
 	}
 	
     function onLayout( dc ) {
+    	var RS = Rez.Strings;
     	sw = dc.getWidth();
     	sh = dc.getHeight();
     	cx = sw / 2;
-    	mh = loadResource(Rez.Strings.MarkButtonHeight).toNumber();
-    	my = loadResource(Rez.Strings.MarkButtonY).toNumber();
+    	mh = loadResource(RS.MarkButtonHeight).toNumber();
+    	my = loadResource(RS.MarkButtonY).toNumber();
+    	var sy = loadResource(RS.StatsY).toNumber();
+    	var ss = loadResource(RS.StatsSpacing).toNumber();
     	var params = {
     		:width => sw,
-    		:height => loadResource(Rez.Strings.TriTextHeight).toNumber(),
+    		:height => loadResource(RS.TriTextHeight).toNumber(),
     		:locX => 0,
-    		:locY => loadResource(Rez.Strings.ChargedY).toNumber(),
-    		:color => Graphics.COLOR_WHITE,
+    		:locY => sy,
+    		:color => 0xFFFFFF,
     		:title => "charged",
     		:suffix => true,
     		:text => "no charge date"
     	};
     	mChargedText = new TriText(params);
     	params.put(:title, "last 30m");
-    	params.put(:locY, loadResource(Rez.Strings.Last30Y).toNumber());
+    	params.put(:locY, sy + ss);
     	params.put(:text, "no interval data");
     	mIntervalText = new TriText(params);
     	params.put(:title, "mark");
-    	params.put(:locY, loadResource(Rez.Strings.MarkY).toNumber());
+    	params.put(:locY, sy + 2 * ss);
     	params.put(:text, "no mark set");
     	mMarkText = new TriText(params);
     	setLayout([mChargedText, mIntervalText, mMarkText]);
@@ -58,9 +61,10 @@ class InfoPage extends WatchUi.View {
 			data = Lang.format("On battery $1$", [formatInterval(now - ts)]);
 		}
     	dc.drawText(cx, 40, 
-    			Graphics.FONT_XTINY, 
+    			0, // Graphics.FONT_XTINY 
 				data,
-				Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+				5 // Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
+		);
 	}
 	
 	function drawMark(dc) {
@@ -71,17 +75,19 @@ class InfoPage extends WatchUi.View {
 			marked = formatTimestamp(mark[0]);
 			percent = Lang.format("Marked $1$", [formatPercent(mark[1])]);
 		}
-		dc.setColor(Graphics.COLOR_PINK, Graphics.COLOR_PINK);
+		dc.setColor(0xFF00FF, 0xFF00FF);
     	dc.fillRectangle(0, sh - mh, sw, sh);
-		dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+		dc.setColor(0xFFFFFF, -1); // Graphics.COLOR_TRANSPARENT
 		dc.drawText(cx, my, 
-			Graphics.FONT_MEDIUM,
+			3, // Graphics.FONT_MEDIUM
 			percent,
-			Graphics.TEXT_JUSTIFY_CENTER);
+			1 // Graphics.TEXT_JUSTIFY_CENTER
+		);
 		dc.drawText(cx, my + 30,
-			Graphics.FONT_XTINY,
+			0, // Graphics.FONT_XTINY
 			marked,
-			Graphics.TEXT_JUSTIFY_CENTER);
+			1 // Graphics.TEXT_JUSTIFY_CENTER
+		);
 	}
 	
 	function setPredictValues(view, speed, remaining) {
@@ -126,13 +132,13 @@ class InfoPageInputDelegate extends WatchUi.InputDelegate {
     }
     
     function onBack() {
-		log.msg("onBack");
+		//log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onSwipe(swipeEvent) {
-		log.debug("InfoPageInputDelegate.onSwipe", swipeEvent);
+		//log.debug("InfoPageInputDelegate.onSwipe", swipeEvent);
 		if (swipeEvent.getDirection() == WatchUi.SWIPE_DOWN) {
 			var app = Application.getApp();
 			var view = new GraphPage(app.mState);
@@ -147,7 +153,7 @@ class InfoPageInputDelegate extends WatchUi.InputDelegate {
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-    	log.debug("InfoPageInputDelegate.onTap", [coords, type]);
+    	//log.debug("InfoPageInputDelegate.onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] >= 160) {
 	    	mView.mark();
     	}	

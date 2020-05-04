@@ -1,6 +1,4 @@
 using Toybox.WatchUi;
-using Toybox.Graphics;
-using Toybox.Math;
 
 
 class GaugeDrawable extends WatchUi.Drawable {
@@ -8,7 +6,7 @@ class GaugeDrawable extends WatchUi.Drawable {
 	var mText;
 	var mIcon;
 	var value = 0;
-	var color = Graphics.COLOR_WHITE;
+	var color = 0xFFFFFF;
 	
 	function initArc(arc, cx, cy, start, end) {
 		arc.put(:cx, cx);
@@ -20,27 +18,28 @@ class GaugeDrawable extends WatchUi.Drawable {
 	
 	function initialize(params) {
 		Drawable.initialize(params);
-		var w = params.get(:width);
-		var h = params.get(:height);
+		var r = params.get(:radius);
+		var r1 = r - 1;
 		color = params.get(:color);
 		var pen = params.get(:pen);
 		var arc = {
 			:pen => pen,
-			:radius => w / 2 - pen / 2,
+			:radius => r - pen / 2,
 			:color => color
 		};
 		mArcs = [
-			initArc(arc, w/2-1, w/2,   600, 540),
-			initArc(arc, w/2-1, w/2-1, 540, 450),
-			initArc(arc, w/2,   w/2-1, 450, 360),
-			initArc(arc, w/2,   w/2,   360, 300)
+			initArc(arc, r1, r,  600, 540),
+			initArc(arc, r1, r1, 540, 450),
+			initArc(arc, r,  r1, 450, 360),
+			initArc(arc, r,  r,  360, 300)
 		];		
 	}
 	
 	function draw(dc) {
+		var v = 600 - 3 * value;
 		for (var i = 0; i < mArcs.size(); i++) {
 			var arc = mArcs[i];
-			arc.value = 600 - 3 * value;
+			arc.value = v;
 			arc.color = color;
 			arc.draw(dc);
 		}

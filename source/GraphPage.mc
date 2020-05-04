@@ -95,7 +95,7 @@ class GraphPage extends WatchUi.View {
     }
     
     function drawPredictions(dc) {
-    	dc.setColor(0x0000FF, 0x0000FF);
+    	dc.setColor(0x00AAFF, 0x00AAFF);
     	dc.fillRectangle(0, 0, mTriText.width, mTriText.height);
 		var predictions = getPredictions();
 		var stats = System.getSystemStats();
@@ -145,14 +145,17 @@ class GraphPage extends WatchUi.View {
 }
 
 
-class GraphPageInputDelegate extends WatchUi.InputDelegate {
+class GraphPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	var mView;
 	var log;
+	var handleSelect;
 
     function initialize(view) {
         InputDelegate.initialize();
-        log = new Log("GraphPageInputDelegate");
+        log = new Log("GraphPageBehaviorDelegate");
         mView = view;
+        var s = System.getDeviceSettings();
+        handleSelect = !s.isTouchScreen;
     }
     
     function onBack() {
@@ -161,17 +164,19 @@ class GraphPageInputDelegate extends WatchUi.InputDelegate {
         return true;
     }
     
-    function onSwipe(swipeEvent) {
-		//log.debug("onSwipe", swipeEvent);
-		if (swipeEvent.getDirection() == WatchUi.SWIPE_UP) {
-			var app = Application.getApp();
-			var infoPage = new InfoPage(app.mState);
-			switchToView(infoPage, new InfoPageInputDelegate(infoPage), WatchUi.SLIDE_UP);    
+    function onNextPage() {
+    	//log.msg("onNextPage");
+		var app = Application.getApp();
+		var infoPage = new InfoPage(app.mState);
+		switchToView(infoPage, new InfoPageBehaviorDelegate(infoPage), WatchUi.SLIDE_UP);    
+	}
+
+	function onSelect() {
+		if (handleSelect) {
+			//log.msg("onSelect");
+			mView.nextMode();
 		}
-		if (swipeEvent.getDirection() == WatchUi.SWIPE_RIGHT) {
-			popView(WatchUi.SLIDE_RIGHT);
-		}
-		return true;
+		return handleSelect;
     }
     
     function onTap(clickEvent) {

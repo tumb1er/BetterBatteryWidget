@@ -157,7 +157,7 @@ class InfoPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-    	//log.debug("InfoPageBehaviorDelegate.onTap", [coords, type]);
+    	//log.debug("onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] >= 160) {
 	    	mView.mark();
     	}	

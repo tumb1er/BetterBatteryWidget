@@ -2,7 +2,7 @@ using Toybox.Lang;
 using Toybox.WatchUi;
 
 class TriText extends WatchUi.Text {
-	var color, title, desc, value, suffix, text, log, numberOffset; 
+	var color, title, desc, value, suffix, text, log, numberOffset, centerOffset; 
 	
 	function initialize(params) {
 		Text.initialize(params);
@@ -14,6 +14,7 @@ class TriText extends WatchUi.Text {
 		text = params.get(:text);
 		log = new Log(Lang.format("TriText.$1$", [title]));
 		numberOffset = loadResource(Rez.Strings.TriTextNumOffset).toNumber();
+		centerOffset = loadResource(Rez.Strings.TriTextCenterOffset).toNumber();
 	}
 	
 	function draw(dc) {
@@ -30,24 +31,24 @@ class TriText extends WatchUi.Text {
 			return;
 		}
 		//log.debug("draw", [gcx, top]);
+		var pos = gcx - centerOffset;
 		dc.drawText(
-			gcx-20, top, 
+			pos - 10, top, 
 			0, // Graphics.FONT_XTINY
 			title, 
 			0 // Graphics.TEXT_JUSTIFY_RIGHT
 		);
 		dc.drawText(
-			gcx-20, top + 15, 
+			pos - 10, top + 15, 
 			0, // Graphics.FONT_XTINY
 			desc, 
 			0 // Graphics.TEXT_JUSTIFY_RIGHT
 		);
-		var pos = gcx - 10;
 		if (suffix) {
 			var val = value.substring(0, value.length() - 1);
 			var sfx = value.substring(value.length() - 1, value.length());
 			dc.drawText(
-				pos, top  + numberOffset, 
+				pos, top  - numberOffset, 
 				6, // Graphics.FONT_NUMBER_MEDIUM
 				val, 
 				2 // Graphics.TEXT_JUSTIFY_LEFT
@@ -61,7 +62,7 @@ class TriText extends WatchUi.Text {
 			);
 		} else {
 			dc.drawText(
-				pos, top + numberOffset, 
+				pos, top - numberOffset, 
 				6, // Graphics.FONT_NUMBER_MEDIUM
 				value, 
 				2 // Graphics.TEXT_JUSTIFY_LEFT

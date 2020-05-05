@@ -1,11 +1,11 @@
 <strings>
 	<string id="GraphWidth">210</string>
 	<string id="GraphHeight">100</string>
-	<string id="GraphStatusY">20</string>
+	<string id="GraphStatusY">30</string>
 	
 	<string id="StatsY">40</string>
-	<string id="StatsSpacing">40</string>
+	<string id="StatsSpacing">45</string>
 	<string id="MarkButtonY">190</string>
-
+	
 	<string id="GaugePen">18</string>
 </strings>

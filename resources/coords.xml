@@ -8,9 +8,11 @@
 	<string id="StatsY">30</string>
 	<string id="StatsSpacing">40</string>
 	<string id="MarkButtonHeight">80</string>
-	<string id="MarkButtonY">160</string>
+	<string id="MarkButtonY">165</string>
+	<string id="MarkDateOffset">30</string>
 	
 	<string id="GaugePen">16</string>
 	
-	<string id="TriTextNumOffset">-6</string>
+	<string id="TriTextNumOffset">6</string>
+	<string id="TriTextCenterOffset">10</string>
 </strings>

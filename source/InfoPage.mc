@@ -15,6 +15,7 @@ class InfoPage extends WatchUi.View {
 	var mIntervalText;
 	var mMarkText;
 	var cx, sw, sh, mh, my;
+	var markDateOffset;
 
     function initialize(state) {
     	View.initialize();
@@ -30,6 +31,7 @@ class InfoPage extends WatchUi.View {
     	my = loadResource(RS.MarkButtonY).toNumber();
     	var sy = loadResource(RS.StatsY).toNumber();
     	var ss = loadResource(RS.StatsSpacing).toNumber();
+    	markDateOffset = loadResource(RS.MarkDateOffset).toNumber();
     	var params = {
     		:width => sw,
     		:height => loadResource(RS.TriTextHeight).toNumber(),
@@ -83,7 +85,7 @@ class InfoPage extends WatchUi.View {
 			percent,
 			1 // Graphics.TEXT_JUSTIFY_CENTER
 		);
-		dc.drawText(cx, my + 30,
+		dc.drawText(cx, my + markDateOffset,
 			0, // Graphics.FONT_XTINY
 			marked,
 			1 // Graphics.TEXT_JUSTIFY_CENTER

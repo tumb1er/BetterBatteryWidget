@@ -2,7 +2,7 @@ using Toybox.Lang;
 using Toybox.WatchUi;
 
 class TriText extends WatchUi.Text {
-	var color, title, desc, value, suffix, text, log; 
+	var color, title, desc, value, suffix, text, log, numberOffset; 
 	
 	function initialize(params) {
 		Text.initialize(params);
@@ -13,6 +13,7 @@ class TriText extends WatchUi.Text {
 		suffix = params.get(:suffix);
 		text = params.get(:text);
 		log = new Log(Lang.format("TriText.$1$", [title]));
+		numberOffset = loadResource(Rez.Strings.TriTextNumOffset).toNumber();
 	}
 	
 	function draw(dc) {
@@ -46,7 +47,7 @@ class TriText extends WatchUi.Text {
 			var val = value.substring(0, value.length() - 1);
 			var sfx = value.substring(value.length() - 1, value.length());
 			dc.drawText(
-				pos, top - 6, 
+				pos, top  + numberOffset, 
 				6, // Graphics.FONT_NUMBER_MEDIUM
 				val, 
 				2 // Graphics.TEXT_JUSTIFY_LEFT
@@ -60,7 +61,7 @@ class TriText extends WatchUi.Text {
 			);
 		} else {
 			dc.drawText(
-				pos, top - 6, 
+				pos, top + numberOffset, 
 				6, // Graphics.FONT_NUMBER_MEDIUM
 				value, 
 				2 // Graphics.TEXT_JUSTIFY_LEFT

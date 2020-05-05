@@ -11,4 +11,6 @@
 	<string id="MarkButtonY">160</string>
 	
 	<string id="GaugePen">16</string>
+	
+	<string id="TriTextNumOffset">-6</string>
 </strings>

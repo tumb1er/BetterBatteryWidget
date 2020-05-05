@@ -3,7 +3,8 @@
 	<string id="GraphHeight">100</string>
 	<string id="GraphStatusY">20</string>
 	
-	<string id="StatsSpacing">35</string>
+	<string id="StatsY">40</string>
+	<string id="StatsSpacing">40</string>
 	<string id="MarkButtonY">190</string>
 
 	<string id="GaugePen">18</string>

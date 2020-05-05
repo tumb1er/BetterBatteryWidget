@@ -1,1 +1,5 @@
 project.manifest = manifest.xml
+fenix6.resourcePath = $(fenix6.resourcePath);resources-f6family
+fenix6pro.resourcePath = $(fenix6pro.resourcePath);resources-f6family
+fenix6s.resourcePath = $(fenix6s.resourcePath);resources-f6family
+fenix6spro.resourcePath = $(fenix6spro.resourcePath);resources-f6family

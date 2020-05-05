@@ -1,13 +1,13 @@
 <strings>
 	<string id="GraphWidth">230</string>
 	<string id="GraphHeight">110</string>
-	<string id="GraphStatusY">30</string>
+	<string id="GraphStatusY">25</string>
 	
 	<string id="StatsY">50</string>
 	<string id="StatsSpacing">50</string>
 	<string id="MarkButtonY">205</string>
-
+	<string id="MarkButtonHeight">75</string>
+	
 	<string id="GaugePen">20</string>
 	
-	<string id="TriTextCenterOffset">20</string>
 </strings>

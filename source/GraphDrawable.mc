@@ -84,6 +84,7 @@ class GraphDrawable extends WatchUi.Drawable {
 	
 	function extremums() {
 		if (mCoords.size() < 2) {
+			log.msg("not enough extremums points");
 			return null;
 		}
 		var minX = null, maxX = null;
@@ -110,13 +111,14 @@ class GraphDrawable extends WatchUi.Drawable {
 			if (maxY < value) {maxX = mCoords[i]; maxY = value;}
 		}
 		if (minY == maxY) {
-			//log.msg("extermums: minY == maxY");
+			log.msg("extermums: minY == maxY");
 			return null;
 		}
 		return [minX, minY, maxX, maxY];		
 	}
 	
 	function drawPoints(dc) {
+		log.msg("drawPoints");
 		var minY = mExtremums[1];
 		var maxY = mExtremums[3];
 		dc.setColor(foreground, background);
@@ -133,8 +135,8 @@ class GraphDrawable extends WatchUi.Drawable {
 					py = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
 				} else {
 					// Вычисляем высоту точки на границе графика.
-					px = start;
-					var value = interpolate(mCoords[i - 1], mCoords[i], start, mPoints[i - 1], value);
+					px = x;
+					var value = interpolate(mCoords[i - 1], mCoords[i], start, mPoints[i - 1], mPoints[i]);
 					py = interpolate(minY, maxY, value, y + h - 1, y + h * (1-scale));
 				}
 				continue;

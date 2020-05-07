@@ -208,7 +208,8 @@ class State {
 		var i;
 		for (i=0; mPoints[i][0] < ts - mGraphDuration; i++) {}
 		if (i != 0) {
-			mPoints = mPoints.slice(i, null);
+			// Оставляем одну точку про запас для графика
+			mPoints = mPoints.slice(i - 1, null);
 		}
 	}
 	

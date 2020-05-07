@@ -2,8 +2,11 @@ using Toybox.WatchUi;
 
 
 function interpolate(min_from, max_from, current, min_to, max_to) {
-	var fraction = (current - min_from).toDouble() / (max_from - min_from).toDouble();
-	var result = (min_to + (max_to - min_to).toDouble() * fraction).toNumber();
+	var fraction = 0.5;
+	if (min_from != max_from) {
+		fraction = (current - min_from).toDouble() / (max_from - min_from).toDouble();
+	}
+	var result = (min_to + (max_to - min_to).toDouble() * fraction);
 	return result;
 	 
 }
@@ -19,11 +22,11 @@ class GraphDrawable extends WatchUi.Drawable {
 	var start, end; // x axis margins
 	var scale; // y scale for animation
 	var mShowExtremums; // show extremums flag
-	var log;
+	//var log;
 			
 	function initialize(params) {
 		Drawable.initialize(params);
-		log = new Log("GraphDrawable");
+		//log = new Log("GraphDrawable");
 		w = params.get(:width);
 		h = params.get(:height);
 		x = params.get(:x);
@@ -84,7 +87,7 @@ class GraphDrawable extends WatchUi.Drawable {
 	
 	function extremums() {
 		if (mCoords.size() < 2) {
-			log.msg("not enough extremums points");
+			//log.msg("not enough extremums points");
 			return null;
 		}
 		var minX = null, maxX = null;
@@ -111,14 +114,14 @@ class GraphDrawable extends WatchUi.Drawable {
 			if (maxY < value) {maxX = mCoords[i]; maxY = value;}
 		}
 		if (minY == maxY) {
-			log.msg("extermums: minY == maxY");
-			return null;
+			//log.msg("extermums: minY == maxY");
+			return [mCoords[mCoords.size() - 1], minY, maxX, maxY];
 		}
 		return [minX, minY, maxX, maxY];		
 	}
 	
 	function drawPoints(dc) {
-		log.msg("drawPoints");
+		//log.msg("drawPoints");
 		var minY = mExtremums[1];
 		var maxY = mExtremums[3];
 		dc.setColor(foreground, background);
@@ -139,6 +142,10 @@ class GraphDrawable extends WatchUi.Drawable {
 					var value = interpolate(mCoords[i - 1], mCoords[i], start, mPoints[i - 1], mPoints[i]);
 					py = interpolate(minY, maxY, value, y + h - 1, y + h * (1-scale));
 				}
+				if (i == mCoords.size() - 1) {
+					// Есть единственная точка, нужно нарисовать горизонтальную линию.
+					dc.drawLine(x, py, x + w - 1, py);
+				}
 				continue;
 			}
 			// Вычисляем следующие точки и рисуем на графике
@@ -157,13 +164,13 @@ class GraphDrawable extends WatchUi.Drawable {
 		var maxY = mExtremums[3];
 		dc.setColor(border, background);
 		var px = interpolate(start, end, minX, x, x + w - 1);
-		var py = y + h;
+		var py = (minY == maxY)? y + h / 2: y + h;
 		
 		dc.fillPolygon([[px, py], [px + 5, py - 5], [px - 5, py - 5]]);
 		dc.drawText(px, py - 25, 9, formatPercent(minY), getTextJustify(px));  // Graphics.FONT_SYSTEM_XTINY
 		
 		px = interpolate(start, end, maxX, x, x + w - 1);
-		py = y;
+		py = (minY == maxY)? y + h / 2: y;
 		
 		dc.fillPolygon([[px, py], [px + 5, py + 5], [px - 5, py + 5]]);
 		dc.drawText(px, py + 5, 9, formatPercent(maxY), getTextJustify(px));  // Graphics.FONT_SYSTEM_XTINY

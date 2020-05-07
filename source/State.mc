@@ -123,11 +123,11 @@ class State {
 	var mCharged;
 	var mMark;
 	var mActivityRunning;
-	var log;
+	//var log;
 	var mGraphDuration;
 	
 	function initialize(data) {
-		log = new Log("State");
+		//log = new Log("State");
 		var app = Application.getApp();
 		mGraphDuration = 3600 * app.mGraphDuration;
 		//log.debug("initialize: passed", data);

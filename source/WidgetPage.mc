@@ -9,14 +9,14 @@ using Toybox.WatchUi;
 
 class WidgetPage extends WatchUi.View {
 	var mState;
-	var log;
+	//var log;
 	var mGaugeDrawable, mPercentText, mPredictText;
 	
 	var percent, predicted;
 
     function initialize(state) {
         View.initialize();
-        log = new Log("WidgetPage");
+        //log = new Log("WidgetPage");
     	//log.debug("initialize", state);
     	mState = state;
         mState.measure();
@@ -94,11 +94,11 @@ class WidgetPage extends WatchUi.View {
 }
 
 class WidgetPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
-	var log;
+	//var log;
 
     function initialize() {
         InputDelegate.initialize();
-        log = new Log("WidgetPageBehaviorDelegateate");
+        //log = new Log("WidgetPageBehaviorDelegateate");
     }
     
     function onSelect() {

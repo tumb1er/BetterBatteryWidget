@@ -95,8 +95,15 @@ class GraphDrawable extends WatchUi.Drawable {
 			}
 			var value = mPoints[i];
 			if (minX == null || maxX == null) {
-				minX = mCoords[i]; minY = value;
-				maxX = mCoords[i]; maxY = value;
+				// Если есть точки левее графика, интерполируем их.
+				if (i == 0) {
+					minX = mCoords[i]; minY = value;
+					maxX = mCoords[i]; maxY = value;
+				} else {
+					value = interpolate(mCoords[i - 1], mCoords[i], start, mPoints[i - 1], value);
+					minX = start; minY = value;
+					maxX = start; maxY = value;
+				}
 				continue;
 			}
 			if (minY > value) {minX = mCoords[i]; minY = value;}
@@ -120,9 +127,16 @@ class GraphDrawable extends WatchUi.Drawable {
 				continue;
 			}
 			if (px == null || py == null) {
-				// Вычисляем начальную точку
-				px = interpolate(start, end, mCoords[i], x, x + w - 1);
-				py = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
+				if (i == 0) {
+					// Вычисляем начальную точку
+					px = interpolate(start, end, mCoords[i], x, x + w - 1);
+					py = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
+				} else {
+					// Вычисляем высоту точки на границе графика.
+					px = start;
+					var value = interpolate(mCoords[i - 1], mCoords[i], start, mPoints[i - 1], value);
+					py = interpolate(minY, maxY, value, y + h - 1, y + h * (1-scale));
+				}
 				continue;
 			}
 			// Вычисляем следующие точки и рисуем на графике

@@ -20,10 +20,11 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     	loadSettings();
     	var data = Background.getBackgroundData();
     	mState = new State(data);
+    	log.debug("initialize", mState.mPoints);
     }
 
     function onBackgroundData(data) {
-    	//log.debug("onBackgroundData", data);
+    	log.debug("onBackgroundData", data);
     	mState = new State(data);
     	mState.save();
         if( mWidgetPage ) {

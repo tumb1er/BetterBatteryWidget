@@ -2,7 +2,9 @@
 State describes current state of battery widget
 */
 using Toybox.Activity;
+using Toybox.Application;
 using Toybox.System;
+using Toybox.Test;
 using Toybox.Time;
 
 const STATE_PROPERTY = "s";
@@ -214,27 +216,36 @@ class State {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
 		//log.debug("values", [ts, stats.battery, stats.charging, mCharged]);	
-		handleMeasurements(ts, stats);
+		handleMeasurements(ts, stats.battery, stats.charging);
+		checkActivityState(Activity.getActivityInfo(), ts, stats.battery);
 	}
 	
-	public function handleMeasurements(ts, stats) {		
+	public function handleMeasurements(ts, battery, charging) {		
 		// Точку на график добавляем всегда
-		pushPoint(ts, stats.battery);
+		pushPoint(ts, battery);
 		
 		// Если данные отсутствуют, просто добавляем одну точку.
 		if (mCharged == null) {
 			//log.debug("data is empty, initializing", stats.battery);
-			return reset(ts, stats.battery);
+			return reset(ts, battery);
 		}
 		
 		// На зарядке сбрасываем состояние
-		if (stats.charging) {
+		if (charging) {
 			//log.debug("charging, reset at", stats.battery);
-			return reset(ts, stats.battery);
+			return reset(ts, battery);
 		}
-
+			
+		// Добавляем точку для отслеживания показаний за последние полчаса.
+		pushData(ts, battery);
+	}
+	
+	/**
+	Resets prediction data if activity state changed
+	*/
+	function checkActivityState(info, ts, value) {
+		
 		// При изменении статуса активности сбрасываем состояние.
-		var info = Activity.getActivityInfo();
 		var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
 		if (activityRunning != mActivityRunning) {
 			//log.debug("activity state changed, reset at", stats.battery);
@@ -243,11 +254,8 @@ class State {
 			mData = [[ts, value]];
 			return;
 		}
-			
-		// Добавляем точку для отслеживания показаний за последние полчаса.
-		pushData(ts, stats.battery);
+		
 	}
-	
 	/**
 	Добавляет новую точку для измерений
 	*/
@@ -289,6 +297,54 @@ class State {
 		mCharged = [ts, value];
 		mMark = null;
 	}
+}
+
+(:test)
+function testCheckActivityState(logger) {
+	var app = Application.getApp();
+	var state = app.mState;
+	var ts = Time.now().value();
+	var value = 75.1;
 	
+	state.mActivityRunning = true;
 	
+	// activity not registered
+	state.checkActivityState(null, ts, value);
+	
+	Test.assertEqualMessage(state.mActivityRunning, false, "mActivityRunning not updated");
+	Test.assertEqualMessage(state.mData.size(), 1, "mData not reset");
+	
+	state.mData.add([ts, value]);
+	var info = new Activity.Info();
+	info.timerState = Activity.TIMER_STATE_ON;
+	
+	// activity started
+	state.checkActivityState(info, ts, value);
+	
+	Test.assertEqualMessage(state.mActivityRunning, true, "mActivityRunning not updated");
+	Test.assertEqualMessage(state.mData.size(), 1, "mData not reset");
+	
+	state.mData.add([ts, value]);
+	info.timerState = Activity.TIMER_STATE_OFF;
+	
+	// activity stopped
+	state.checkActivityState(info, ts, value);
+	
+	Test.assertEqualMessage(state.mActivityRunning, false, "mActivityRunning not updated");
+	Test.assertEqualMessage(state.mData.size(), 1, "mData not reset");
+	return true;
+} 
+
+(:test)
+function testMeasureSmoke(logger) {
+	var app = Application.getApp();
+	var state = app.mState;
+	state.mPoints = [];
+	state.mData = [];
+	
+	state.measure();
+	
+	Test.assertEqualMessage(state.mPoints.size(), 1, "mPoints not updated");
+	Test.assertEqualMessage(state.mData.size(), 1, "mData not updated");
+	return true;
 }

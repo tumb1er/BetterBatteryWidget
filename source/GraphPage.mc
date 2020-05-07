@@ -205,9 +205,7 @@ function testGraphPageEmptyData(logger) {
 	var app = Application.getApp();
 	var page = new GraphPage(app.mState);
 	var ts = Time.now().value();
-	var stats = System.getSystemStats();
-	stats.charging = true;
-	app.mState.handleMeasurements(ts, stats);
+	app.mState.handleMeasurements(ts, 75.5, true);
 	assertViewDraw(logger, page);
 	return true;
 }

@@ -123,11 +123,11 @@ class State {
 	var mCharged;
 	var mMark;
 	var mActivityRunning;
-	var log;
+	//var log;
 	var mGraphDuration;
 	
 	function initialize(data) {
-		log = new Log("State");
+		//log = new Log("State");
 		var app = Application.getApp();
 		mGraphDuration = 3600 * app.mGraphDuration;
 		//log.debug("initialize: passed", data);
@@ -208,7 +208,8 @@ class State {
 		var i;
 		for (i=0; mPoints[i][0] < ts - mGraphDuration; i++) {}
 		if (i != 0) {
-			mPoints = mPoints.slice(i, null);
+			// Оставляем одну точку про запас для графика
+			mPoints = mPoints.slice(i - 1, null);
 		}
 	}
 	

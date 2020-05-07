@@ -2,8 +2,11 @@ using Toybox.WatchUi;
 
 
 function interpolate(min_from, max_from, current, min_to, max_to) {
-	var fraction = (current - min_from).toDouble() / (max_from - min_from).toDouble();
-	var result = (min_to + (max_to - min_to).toDouble() * fraction).toNumber();
+	var fraction = 0.5;
+	if (min_from != max_from) {
+		fraction = (current - min_from).toDouble() / (max_from - min_from).toDouble();
+	}
+	var result = (min_to + (max_to - min_to).toDouble() * fraction);
 	return result;
 	 
 }
@@ -19,11 +22,11 @@ class GraphDrawable extends WatchUi.Drawable {
 	var start, end; // x axis margins
 	var scale; // y scale for animation
 	var mShowExtremums; // show extremums flag
-	var log;
+	//var log;
 			
 	function initialize(params) {
 		Drawable.initialize(params);
-		log = new Log("GraphDrawable");
+		//log = new Log("GraphDrawable");
 		w = params.get(:width);
 		h = params.get(:height);
 		x = params.get(:x);
@@ -84,6 +87,7 @@ class GraphDrawable extends WatchUi.Drawable {
 	
 	function extremums() {
 		if (mCoords.size() < 2) {
+			//log.msg("not enough extremums points");
 			return null;
 		}
 		var minX = null, maxX = null;
@@ -95,8 +99,15 @@ class GraphDrawable extends WatchUi.Drawable {
 			}
 			var value = mPoints[i];
 			if (minX == null || maxX == null) {
-				minX = mCoords[i]; minY = value;
-				maxX = mCoords[i]; maxY = value;
+				// Если есть точки левее графика, интерполируем их.
+				if (i == 0) {
+					minX = mCoords[i]; minY = value;
+					maxX = mCoords[i]; maxY = value;
+				} else {
+					value = interpolate(mCoords[i - 1], mCoords[i], start, mPoints[i - 1], value);
+					minX = start; minY = value;
+					maxX = start; maxY = value;
+				}
 				continue;
 			}
 			if (minY > value) {minX = mCoords[i]; minY = value;}
@@ -104,12 +115,13 @@ class GraphDrawable extends WatchUi.Drawable {
 		}
 		if (minY == maxY) {
 			//log.msg("extermums: minY == maxY");
-			return null;
+			return [mCoords[mCoords.size() - 1], minY, maxX, maxY];
 		}
 		return [minX, minY, maxX, maxY];		
 	}
 	
 	function drawPoints(dc) {
+		//log.msg("drawPoints");
 		var minY = mExtremums[1];
 		var maxY = mExtremums[3];
 		dc.setColor(foreground, background);
@@ -120,9 +132,20 @@ class GraphDrawable extends WatchUi.Drawable {
 				continue;
 			}
 			if (px == null || py == null) {
-				// Вычисляем начальную точку
-				px = interpolate(start, end, mCoords[i], x, x + w - 1);
-				py = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
+				if (i == 0) {
+					// Вычисляем начальную точку
+					px = interpolate(start, end, mCoords[i], x, x + w - 1);
+					py = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
+				} else {
+					// Вычисляем высоту точки на границе графика.
+					px = x;
+					var value = interpolate(mCoords[i - 1], mCoords[i], start, mPoints[i - 1], mPoints[i]);
+					py = interpolate(minY, maxY, value, y + h - 1, y + h * (1-scale));
+				}
+				if (i == mCoords.size() - 1) {
+					// Есть единственная точка, нужно нарисовать горизонтальную линию.
+					dc.drawLine(x, py, x + w - 1, py);
+				}
 				continue;
 			}
 			// Вычисляем следующие точки и рисуем на графике
@@ -141,13 +164,13 @@ class GraphDrawable extends WatchUi.Drawable {
 		var maxY = mExtremums[3];
 		dc.setColor(border, background);
 		var px = interpolate(start, end, minX, x, x + w - 1);
-		var py = y + h;
+		var py = (minY == maxY)? y + h / 2: y + h;
 		
 		dc.fillPolygon([[px, py], [px + 5, py - 5], [px - 5, py - 5]]);
 		dc.drawText(px, py - 25, 9, formatPercent(minY), getTextJustify(px));  // Graphics.FONT_SYSTEM_XTINY
 		
 		px = interpolate(start, end, maxX, x, x + w - 1);
-		py = y;
+		py = (minY == maxY)? y + h / 2: y;
 		
 		dc.fillPolygon([[px, py], [px + 5, py + 5], [px - 5, py + 5]]);
 		dc.drawText(px, py + 5, 9, formatPercent(maxY), getTextJustify(px));  // Graphics.FONT_SYSTEM_XTINY

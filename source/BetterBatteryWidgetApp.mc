@@ -7,7 +7,7 @@ using Toybox.WatchUi;
 
 (:background)
 class BetterBatteryWidgetApp extends Application.AppBase {
- 	var log;
+ 	//var log;
 
     var mWidgetPage;
     var mState;
@@ -16,10 +16,12 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     
     function initialize() {
     	AppBase.initialize();
-    	log = new Log("App");
+    	//log = new Log("App");
     	loadSettings();
     	var data = Background.getBackgroundData();
     	mState = new State(data);
+    	mState.measure();
+    	//log.debug("initialize", mState.mPoints);
     }
 
     function onBackgroundData(data) {
@@ -88,10 +90,10 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 
 (:background)
 class BackgroundServiceDelegate extends System.ServiceDelegate {
-	var log;
+	//var log;
     function initialize() {
         ServiceDelegate.initialize();
-        log = new Log("BackgroundServiceDelegate");
+        //log = new Log("BackgroundServiceDelegate");
     }
 
     function onTemporalEvent() {

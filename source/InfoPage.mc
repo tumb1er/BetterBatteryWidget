@@ -125,12 +125,12 @@ class InfoPage extends WatchUi.View {
 
 class InfoPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	var mView;
-	var log;
+	//var log;
 	var handleSelect;
 
     function initialize(view) {
         InputDelegate.initialize();
-        log = new Log("InfoPageBehaviorDelegate");
+        //log = new Log("InfoPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();
         handleSelect = !s.isTouchScreen;

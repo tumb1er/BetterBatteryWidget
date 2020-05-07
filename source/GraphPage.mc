@@ -14,12 +14,12 @@ class GraphPage extends WatchUi.View {
 	var mMode;
 	var mGraph;
 	var mGraphDuration;
-	var log;
+	//var log;
 	var mx, my;
 
     function initialize(state) {
     	View.initialize();
-		log = new Log("GraphPage");
+		//log = new Log("GraphPage");
 		mState = state;
 		mMode = 0;
 		mGraphDuration = 3600 * Application.getApp().mGraphDuration;
@@ -147,12 +147,12 @@ class GraphPage extends WatchUi.View {
 
 class GraphPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	var mView;
-	var log;
+	//var log;
 	var handleSelect;
 
     function initialize(view) {
         InputDelegate.initialize();
-        log = new Log("GraphPageBehaviorDelegate");
+        //log = new Log("GraphPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();
         handleSelect = !s.isTouchScreen;

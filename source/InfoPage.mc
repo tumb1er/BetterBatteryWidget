@@ -129,7 +129,7 @@ class InfoPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	var handleSelect;
 
     function initialize(view) {
-        InputDelegate.initialize();
+        BehaviorDelegate.initialize();
         //log = new Log("InfoPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();

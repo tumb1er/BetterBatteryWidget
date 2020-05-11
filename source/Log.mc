@@ -24,7 +24,8 @@ class Log {
 	}
 	
 	function error(msg, ex) {
-		System.println(Lang.format("[$1$] $2$> $3$: $4$",  [formatTime(Time.now()), tag, msg, ex]));
+		System.println(Lang.format("[$1$] $2$> $3$:",  [formatTime(Time.now()), tag, msg]));
+		ex.printStackTrace();
 	}
 	
 }

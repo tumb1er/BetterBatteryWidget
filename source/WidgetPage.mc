@@ -20,7 +20,6 @@ class WidgetPage extends WatchUi.View {
     	//log.debug("initialize", state);
     	mState = state;
         mState.measure();
-        mState.save();
     }
 
     function onLayout(dc) {
@@ -88,7 +87,6 @@ class WidgetPage extends WatchUi.View {
     
     function updateState(state) {
     	mState = state;
-    	mState.save();
     }
 
 }
@@ -97,7 +95,7 @@ class WidgetPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	//var log;
 
     function initialize() {
-        InputDelegate.initialize();
+        BehaviorDelegate.initialize();
         //log = new Log("WidgetPageBehaviorDelegateate");
     }
     

@@ -12,7 +12,7 @@ class TriText extends WatchUi.Text {
 		desc = params.get(:desc);
 		suffix = params.get(:suffix);
 		text = params.get(:text);
-		log = new Log(Lang.format("TriText.$1$", [title]));
+		//log = new Log(Lang.format("TriText.$1$", [title]));
 		numberOffset = loadResource(Rez.Strings.TriTextNumOffset).toNumber();
 		centerOffset = loadResource(Rez.Strings.TriTextCenterOffset).toNumber();
 	}

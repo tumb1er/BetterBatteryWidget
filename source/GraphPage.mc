@@ -151,7 +151,7 @@ class GraphPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 	var handleSelect;
 
     function initialize(view) {
-        InputDelegate.initialize();
+        BehaviorDelegate.initialize();
         //log = new Log("GraphPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();

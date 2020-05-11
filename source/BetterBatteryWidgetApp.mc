@@ -5,7 +5,7 @@ using Toybox.Time;
 using Toybox.WatchUi;
 
 
-(:background)
+(:background :glance)
 class BetterBatteryWidgetApp extends Application.AppBase {
  	//var log;
 
@@ -20,13 +20,11 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     	loadSettings();
     	var data = Background.getBackgroundData();
     	mState = new State(data);
-    	mState.measure();
-    	//log.debug("initialize", mState.mPoints);
     }
 
     function onBackgroundData(data) {
-    	//log.debug("onBackgroundData", data);
     	mState = new State(data);
+    	//log.debug("onBackgroundData: saving", data);
     	mState.save();
         if( mWidgetPage ) {
 	    	//log.msg("onBackgroundData: calling WidgetPage.updateState");
@@ -100,6 +98,7 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
     	var data = Background.getBackgroundData();
 		//log.debug("onTemporalEvent bgData", data); 
     	var state = new State(data);
+    	//log.debug("onTemporalEvent measure", state.mData);
 		state.measure();
 		var ret = state.getData();
 		//log.debug("onTemporalEvent ret", ret); 

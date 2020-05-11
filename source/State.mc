@@ -3,6 +3,7 @@ State describes current state of battery widget
 */
 using Toybox.Activity;
 using Toybox.Application;
+using Toybox.Lang;
 using Toybox.System;
 using Toybox.Test;
 using Toybox.Time;
@@ -131,7 +132,9 @@ class State {
 		var app = Application.getApp();
 		mGraphDuration = 3600 * app.mGraphDuration;
 		//log.debug("initialize: passed", data);
-		data = app.getProperty(STATE_PROPERTY);		
+		if (data == null) {
+			data = app.getProperty(STATE_PROPERTY);		
+		}
 		if (data == null) {
 			mData = [];
 			mCharged = null;
@@ -148,6 +151,7 @@ class State {
 			}
 			mActivityRunning = data[KEY_ACTIVITY];
 		}
+		//log.debug("initialize: data", mData);
 	}
 	
 	public function getData() {
@@ -216,9 +220,10 @@ class State {
 	public function measure() {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
-		//log.debug("values", [ts, stats.battery, stats.charging, mCharged]);	
+		//log.debug("values", [ts, stats.battery, mData]);	
 		handleMeasurements(ts, stats.battery, stats.charging);
 		checkActivityState(Activity.getActivityInfo(), ts, stats.battery);
+		//log.debug("handled", [ts, stats.battery, mData]);	
 	}
 	
 	public function handleMeasurements(ts, battery, charging) {		
@@ -227,18 +232,18 @@ class State {
 		
 		// Если данные отсутствуют, просто добавляем одну точку.
 		if (mCharged == null) {
-			//log.debug("data is empty, initializing", stats.battery);
+			//log.debug("data is empty, initializing", battery);
 			return reset(ts, battery);
 		}
 		
 		// На зарядке сбрасываем состояние
 		if (charging) {
-			//log.debug("charging, reset at", stats.battery);
+			//log.debug("charging, reset at", battery);
 			return reset(ts, battery);
 		}
 			
 		// Добавляем точку для отслеживания показаний за последние полчаса.
-		pushData(ts, battery);
+		return pushData(ts, battery);
 	}
 	
 	/**
@@ -249,7 +254,7 @@ class State {
 		// При изменении статуса активности сбрасываем состояние.
 		var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
 		if (activityRunning != mActivityRunning) {
-			//log.debug("activity state changed, reset at", stats.battery);
+			//log.debug("activity state changed, reset at", value);
 			mActivityRunning = activityRunning;
 			// Стираем только данные, отметка о последней зарядке остается на месте
 			mData = [[ts, value]];
@@ -262,6 +267,7 @@ class State {
 	*/
 	private function pushData(ts, value) {
 		// Первую точку добавляем всегда.
+		//log.debug("pushData", mData);
 		if (mData.size() == 0) {
 			mData.add([ts, value]);
 			return;		
@@ -276,7 +282,7 @@ class State {
 		}	
 		// Слишком быстрый рост заряда - это показатель пропущенных данных, сбрасываем.
 		if (value > prev + 1.0) {
-			//log.debug("value increase, reset at", value);
+			//log.debug("value increase, reset at", [value, prev]);
 			reset(ts, value);
 			return;
 		}

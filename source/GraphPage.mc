@@ -14,6 +14,7 @@ class GraphPage extends WatchUi.View {
 	var mMode;
 	var mGraph;
 	var mGraphDuration;
+	var mGraphMode;
 	//var log;
 	var mx, my;
 
@@ -22,7 +23,9 @@ class GraphPage extends WatchUi.View {
 		//log = new Log("GraphPage");
 		mState = state;
 		mMode = 0;
-		mGraphDuration = 3600 * Application.getApp().mGraphDuration;
+		var app = Application.getApp();
+		mGraphDuration = 3600 * app.mGraphDuration;
+		mGraphMode = app.mGraphMode;
 	}
 	
     function onLayout( dc ) {
@@ -46,6 +49,7 @@ class GraphPage extends WatchUi.View {
 	    	:y => h / 2 - graphMargin,
 	    	:border => 0xFFFFFF,
 	    	:background => -1, // Graphics.COLOR_TRANSPARENT
+	    	:shade => (mGraphMode == 1)? 0xAAAAAA: null,
 	    	:foreground => 0xFF0000,
 	    	:interval => mGraphDuration,
 	    	:scale => 0

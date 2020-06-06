@@ -13,6 +13,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     var mState;
  	var mMeasureInterval;
  	var mGraphDuration;
+ 	var mGraphMode;
     
     function initialize() {
     	AppBase.initialize();
@@ -81,6 +82,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     private function loadSettings() {
     	mMeasureInterval = getProperty("MeasurePeriod");
     	mGraphDuration = getProperty("GraphDuration");
+    	mGraphMode = getProperty("GraphMode");
     	//log.debug("settings loaded", [mMeasureInterval, mGraphDuration]);
     }
     

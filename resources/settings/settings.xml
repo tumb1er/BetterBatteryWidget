@@ -16,5 +16,12 @@
             <listEntry value="4">@Strings.Hours4</listEntry>
         </settingConfig>
     </setting>
+    
+    <setting propertyKey="@Properties.GraphMode" title="@Strings.GraphMode">
+    	<settingConfig type="list">
+    		<listEntry value="0">@Strings.Line</listEntry>
+    		<listEntry value="1">@Strings.Area</listEntry>
+    	</settingConfig>
+    </setting>
 
 </settings>

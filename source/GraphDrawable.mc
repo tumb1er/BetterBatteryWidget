@@ -14,9 +14,9 @@ function interpolate(min_from, max_from, current, min_to, max_to) {
 
 class GraphDrawable extends WatchUi.Drawable {
 	var w, h, x, y; // coordinates
-	var border, foreground, background; // colors
+	var border, foreground, background, shade; // colors
 	var tick = 5;
-	var mPoints, mCoords;
+	var mPoints, mCoords, mData;
 	var interval; // data interval
 	var mExtremums; // min/max points
 	var start, end; // x axis margins
@@ -34,26 +34,36 @@ class GraphDrawable extends WatchUi.Drawable {
 		border = params.get(:border);
 		foreground = params.get(:foreground);
 		background = params.get(:background);
+		shade = params.get(:shade);
 		interval = params.get(:interval);
 		scale = params.get(:scale);
 		mShowExtremums = true;
 	}
 	
-	function setData(data) {
+	public function setData(data) {
 		//log.debug("setData", data.size());
-		mPoints = new[data.size()];
-		mCoords = new[data.size()];
+		
+		// computing bounds for graph data
 		end = data[data.size() - 1][0];
 		start = end - interval;
-		for (var i = 0; i < data.size(); i++) {
-			mCoords[i] = data[i][0];
-			mPoints[i] = data[i][1];
-		}
-		mExtremums = extremums();
+
+		// get min/max coords
+		mExtremums = extremums(data);
+		// cleanup memory;
+		mData = null;
+		mData = points(data);
+//
+//
+//		mPoints = new[data.size()];
+//		mCoords = new[data.size()];
+//		for (var i = 0; i < data.size(); i++) {
+//			mCoords[i] = data[i][0];
+//			mPoints[i] = data[i][1];
+//		}
 		//log.debug("setData extremums", mExtremums);
 	}
 	
-	function getTextJustify(tx) {
+	private function getTextJustify(tx) {
 		if (tx > x + 3 * w / 4) {
 			return 0; // Graphics.TEXT_JUSTIFY_RIGHT
 		}
@@ -64,17 +74,21 @@ class GraphDrawable extends WatchUi.Drawable {
 	}
 	
 	
-	function draw(dc) {
+	public function draw(dc) {
 		drawFrame(dc);		
 		if (mExtremums != null) {
-			drawPoints(dc);
+			if (shade != null) {
+				drawGraphShade(dc);
+			} else {
+				drawGraphLine(dc);
+			}
 			if (mShowExtremums) {
 				drawExtremums(dc);
 			}
 		}
 	}
 			
-	function drawFrame(dc) {
+	private function drawFrame(dc) {
 		dc.setColor(border, background);
 		dc.drawRectangle(x, y, w, h);
 		// ticks
@@ -85,39 +99,131 @@ class GraphDrawable extends WatchUi.Drawable {
 		}
 	}
 	
-	function extremums() {
-		if (mCoords.size() < 2) {
+	private function extremums(data) {
+		if (data.size() < 2) {
 			//log.msg("not enough extremums points");
 			return null;
 		}
 		var minX = null, maxX = null;
 		var minY = null, maxY = null;
-		for (var i = 0; i < mCoords.size(); i++) {
-			if (mCoords[i] < start) {
+		for (var i = 0; i < data.size(); i++) {
+			var ts = data[i][0];
+			var value = data[i][1]; 
+			if (ts < start) {
 				// Пропускаем точки, находящиеся левее границы графика
 				continue;
 			}
-			var value = mPoints[i];
 			if (minX == null || maxX == null) {
 				// Если есть точки левее графика, интерполируем их.
 				if (i == 0) {
-					minX = mCoords[i]; minY = value;
-					maxX = mCoords[i]; maxY = value;
+					minX = ts; minY = value;
+					maxX = ts; maxY = value;
 				} else {
-					value = interpolate(mCoords[i - 1], mCoords[i], start, mPoints[i - 1], value);
+					value = interpolate(data[i - 1][0], ts, start, data[i - 1][1], value);
 					minX = start; minY = value;
 					maxX = start; maxY = value;
 				}
 				continue;
 			}
-			if (minY > value) {minX = mCoords[i]; minY = value;}
-			if (maxY < value) {maxX = mCoords[i]; maxY = value;}
+			if (minY > value) {minX = ts; minY = value;}
+			if (maxY < value) {maxX = ts; maxY = value;}
 		}
 		if (minY == maxY) {
 			//log.msg("extermums: minY == maxY");
-			return [mCoords[mCoords.size() - 1], minY, maxX, maxY];
+			return [data[data.size() - 1][0], minY, maxX, maxY];
 		}
 		return [minX, minY, maxX, maxY];		
+	}
+	
+	private function points(data) {
+		if (mExtremums == null) {
+			return null;
+		}
+		var minY = mExtremums[1];
+		var maxY = mExtremums[3];
+		var px = null, py = null;
+		var prevTs = null, prevValue = null;
+		var left = x, right = x + w - 1;
+//		var top = y, bottom = y + h - 1;
+		var top = h - 2, bottom = 0;
+		var points = [];
+		
+		
+		for (var i = 0; i < data.size(); i++) {
+			var ts = data[i][0];
+			var value = data[i][1];
+			if (ts < start) {
+				// skip points out of left bound
+				prevTs = ts;
+				prevValue = value;
+				continue;
+			}
+			if (px == null || py == null) {
+				if (i == 0) {
+					// initial points
+					px = interpolate(start, end, ts, left, right);
+					py = interpolate(minY, maxY, value, bottom, top);
+				} else {
+					// interpolate point at left graph border
+					px = x;
+					var value = interpolate(prevTs, ts, start, prevValue, value);
+					py = interpolate(minY, maxY, value, bottom, top);
+				}
+				if (i == data.size() - 1) {
+					// the only point withing graph boundaries, draw horizontal line
+					return [[left, py], [right, py]];
+				}
+				points.add([px.toNumber(), py.toNumber()]);
+				continue;
+			}
+			// Next points on graph
+			var nx = interpolate(start, end, ts, left, right);
+			var ny = interpolate(minY, maxY, value, bottom, top);
+			points.add([px.toNumber(), py.toNumber()]);
+//			dc.drawLine(px, py, nx, ny);
+			px = nx;
+			py = ny;
+		}
+		points.add([px.toNumber(), py.toNumber()]);
+		return points;
+	}
+	
+	private function drawGraphLine(dc) {
+		dc.setColor(foreground, background);
+		if (mData.size() < 2) {
+			return;
+		}
+		var p = mData[0];
+		var b = y + h-2;
+		for (var i = 1; i < mData.size(); i++) {
+			var n = mData[i];
+			if (p != null) {
+				// Draw next line
+				dc.drawLine(p[0], b - scale * p[1], n[0], b - scale * n[1]);
+			}
+			p = n;
+		}	
+	}
+	
+	private function drawGraphShade(dc) {
+		dc.setColor(shade, background);
+		var s = mData.size();
+		if (s < 2) {
+			return;
+		}
+		var shadeCoords = [];
+		var b = y + h - 2;
+		var p;
+		for (var i = 0; i < s; i++) {
+			p = mData[i];
+			shadeCoords.add([p[0], b - scale * p[1]]);
+		}
+		p = mData[s - 1];
+		shadeCoords.add([p[0], b]);
+		p = mData[0];
+		shadeCoords.add([p[0], b]);
+		dc.fillPolygon(shadeCoords);
+		
 	}
 	
 	function drawPoints(dc) {
@@ -157,7 +263,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		}
 	}
 	
-	function drawExtremums(dc) {
+	private function drawExtremums(dc) {
 		var minX = mExtremums[0];
 		var minY = mExtremums[1];
 		var maxX = mExtremums[2];

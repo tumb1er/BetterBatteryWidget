@@ -226,43 +226,6 @@ class GraphDrawable extends WatchUi.Drawable {
 		
 	}
 	
-	function drawPoints(dc) {
-		//log.msg("drawPoints");
-		var minY = mExtremums[1];
-		var maxY = mExtremums[3];
-		dc.setColor(foreground, background);
-		var px = null, py = null;
-		for (var i = 0; i < mCoords.size(); i++) {
-			if (mCoords[i] < start) {
-				// Пропускаем точки, находящиеся левее границы графика
-				continue;
-			}
-			if (px == null || py == null) {
-				if (i == 0) {
-					// Вычисляем начальную точку
-					px = interpolate(start, end, mCoords[i], x, x + w - 1);
-					py = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
-				} else {
-					// Вычисляем высоту точки на границе графика.
-					px = x;
-					var value = interpolate(mCoords[i - 1], mCoords[i], start, mPoints[i - 1], mPoints[i]);
-					py = interpolate(minY, maxY, value, y + h - 1, y + h * (1-scale));
-				}
-				if (i == mCoords.size() - 1) {
-					// Есть единственная точка, нужно нарисовать горизонтальную линию.
-					dc.drawLine(x, py, x + w - 1, py);
-				}
-				continue;
-			}
-			// Вычисляем следующие точки и рисуем на графике
-			var nx = interpolate(start, end, mCoords[i], x, x + w - 1);
-			var ny = interpolate(minY, maxY, mPoints[i], y + h - 1, y + h * (1-scale));
-			dc.drawLine(px, py, nx, ny);
-			px = nx;
-			py = ny;
-		}
-	}
-	
 	private function drawExtremums(dc) {
 		var minX = mExtremums[0];
 		var minY = mExtremums[1];

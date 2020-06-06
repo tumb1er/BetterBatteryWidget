@@ -134,6 +134,13 @@ class GraphPage extends WatchUi.View {
 		mGraph.draw(dc);
 
 		dc.fillPolygon([[mx, my + 5], [mx + 5, my], [mx - 5, my]]);
+		
+		dc.drawText(
+			mx, my-20, 
+			0, // FONT_XTINY
+			formatInterval(mGraph.interval), 
+			5 // TEXT_JUSTIFY_CENTER | TEXT_JUSTIFY_VCENTER
+		);
 	}
 	
 	

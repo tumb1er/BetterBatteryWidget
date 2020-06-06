@@ -10,6 +10,9 @@
     <string id="Hours1">1 hour</string>
     <string id="Hours2">2 hours</string>
     <string id="Hours4">4 hours</string>
+    <string id="Hours6">6 hours</string>
+    <string id="Hours12">12 hours</string>
+    <string id="Hours24">24 hours</string>
     <string id="Line">Line</string>
     <string id="Area">Area</string>
 </strings>

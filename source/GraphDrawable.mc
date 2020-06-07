@@ -143,7 +143,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		var maxY = mExtremums[3];
 		var px = null, py = null;
 		var prevTs = null, prevValue = null;
-		var left = x, right = x + w - 1;
+		var left = x, right = x + w - 2;
 //		var top = y, bottom = y + h - 1;
 		var top = h - 2, bottom = 0;
 		var points = [];
@@ -206,24 +206,37 @@ class GraphDrawable extends WatchUi.Drawable {
 	}
 	
 	private function drawGraphShade(dc) {
+		//log.msg("drawGraphShade");
 		dc.setColor(shade, background);
 		var s = mData.size();
 		if (s < 2) {
+			//log.msg("skip draw, size too small");
 			return;
 		}
-		var shadeCoords = [];
-		var b = y + h - 2;
-		var p;
-		for (var i = 0; i < s; i++) {
-			p = mData[i];
-			shadeCoords.add([p[0], b - scale * p[1]]);
+		var start = 0;
+		var next = null;
+		while (start < s) {
+			//log.debug("start at", [start, s]);
+			var shadeCoords = [];
+			var b = y + h - 2;
+			var p;
+			for (var i = start; i < s && i < start + 60; i++) {
+				p = mData[i];
+				shadeCoords.add([p[0], b - scale * p[1]]);
+				next = i;
+			}
+			// Add two points for drawing bottom line of polygon,
+			// first bottom-right and then bottom-left point.
+			p = mData[next];
+			shadeCoords.add([p[0], b]);
+			p = mData[start];
+			shadeCoords.add([p[0], b]);
+			dc.fillPolygon(shadeCoords);
+			// We need to overlap points to exclude holes in graph, but for last iteration it leads to 
+			// infinite loop. So we disable overlap for last iteration. 
+			start = (next == start)? next + 1: next;
 		}
-		p = mData[s - 1];
-		shadeCoords.add([p[0], b]);
-		p = mData[0];
-		shadeCoords.add([p[0], b]);
-		dc.fillPolygon(shadeCoords);
-		
+		//log.msg("done drawGraphShade");		
 	}
 	
 	private function drawExtremums(dc) {

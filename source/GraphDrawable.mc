@@ -6,8 +6,17 @@ function interpolate(min_from, max_from, current, min_to, max_to) {
 	if (min_from != max_from) {
 		fraction = (current - min_from).toDouble() / (max_from - min_from).toDouble();
 	}
-	var result = (min_to + (max_to - min_to).toDouble() * fraction);
-	return result;
+	try {
+		var result = (min_to + (max_to - min_to).toDouble() * fraction);
+		return result;
+		
+	} catch (ex) {
+		var log = new Log("interpolate");
+		log.debug("interpolate: ", [min_from, max_from, current, min_to, max_to]);
+		log.error("interpolate error", ex);
+		throw ex;
+		return null;
+	}
 	 
 }
 
@@ -152,6 +161,9 @@ class GraphDrawable extends WatchUi.Drawable {
 		for (var i = 0; i < data.size(); i++) {
 			var ts = data[i][0];
 			var value = data[i][1];
+			if (value == null) {
+				new Log("points").debug("value is null", [i, data[i]]);
+			}
 			if (ts < start) {
 				// skip points out of left bound
 				prevTs = ts;
@@ -166,8 +178,8 @@ class GraphDrawable extends WatchUi.Drawable {
 				} else {
 					// interpolate point at left graph border
 					px = x;
-					var value = interpolate(prevTs, ts, start, prevValue, value);
-					py = interpolate(minY, maxY, value, bottom, top);
+					var v = interpolate(prevTs, ts, start, prevValue, value);
+					py = interpolate(minY, maxY, v, bottom, top);
 				}
 				if (i == data.size() - 1) {
 					// the only point withing graph boundaries, draw horizontal line

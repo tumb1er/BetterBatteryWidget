@@ -1,5 +1,6 @@
 using Toybox.Application;
 using Toybox.Background;
+using Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi;
@@ -104,6 +105,12 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
 		state.measure();
 		var ret = state.getData();
 		//log.debug("onTemporalEvent ret", ret); 
-		Background.exit(ret);
+		try {
+			Background.exit(ret);
+		} catch (e instanceof Background.ExitDataSizeLimitException) {
+			throw new Exception("ExitDataSizeLimitException");
+		} catch (e) {
+			throw new Exception(Lang.format("Unknown error $1$", [e]));
+		}
     }
 }

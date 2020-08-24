@@ -60,9 +60,14 @@ class WidgetPage extends WatchUi.View {
 		percent = stats.battery;
         predicted = computePredicted(stats);
 		mGaugeDrawable.color = colorize(percent);
-		WatchUi.animate(mGaugeDrawable, :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
-		WatchUi.animate(mPercentText, :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);    	
+		try {
+			WatchUi.animate(mGaugeDrawable, :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
+			WatchUi.animate(mPercentText, :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);
+		} catch (e instanceof Lang.InvalidValueException) {
+			throw new Exception(Lang.format("Invalid value $1$: $2$", [percent, e.msg]));
+		}
     }
+    
     function onUpdate( dc ) {
     	mPredictText.setText(predicted);
         View.onUpdate( dc );
@@ -105,6 +110,14 @@ class WidgetPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 		var view = new GraphPage(app.mState);
 		pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);    
     	return true;
+    }
+    
+    function onKey(ev) {
+    	if (ev.getKey() == WatchUi.KEY_ENTER || ev.getKey() == WatchUi.KEY_START) {
+    		// workaround for fr245m, fenix6xpro, fenix5splus, etc...
+    		return onSelect();
+    	}
+    	return false;
     }
 }
 

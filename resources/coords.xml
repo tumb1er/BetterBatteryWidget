@@ -3,7 +3,7 @@
 	<string id="GraphHeight">80</string>
 	<string id="GraphStatusHeight">80</string>
 	<string id="GraphStatusY">30</string>
-	<string id="GraphIntervalOffset"></string>
+	<string id="GraphIntervalOffset">20</string>
 	
 	<string id="TriTextHeight">30</string>
 	<string id="StatsY">30</string>

@@ -97,26 +97,29 @@ class WidgetPage extends WatchUi.View {
 }
 
 class WidgetPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
-	//var log;
+	var log;
 
     function initialize() {
         BehaviorDelegate.initialize();
-        //log = new Log("WidgetPageBehaviorDelegateate");
+        log = new Log("WidgetPageBehaviorDelegateate");
     }
     
     function onSelect() {
-		//log.msg("onSelect");
+		log.msg("onSelect");
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
-		pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);    
+		pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);   
+		log.msg("onSelect done"); 
     	return true;
     }
     
     function onKey(ev) {
+    	log.debug("onKey", ev.getKey());
     	if (ev.getKey() == WatchUi.KEY_ENTER || ev.getKey() == WatchUi.KEY_START) {
     		// workaround for fr245m, fenix6xpro, fenix5splus, etc...
     		return onSelect();
     	}
+    	log.msg("onKey skipped");
     	return false;
     }
 }

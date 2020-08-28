@@ -156,48 +156,71 @@ class GraphPage extends WatchUi.View {
 }
 
 
-class GraphPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
+class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 	var mView;
-	//var log;
-	var handleSelect;
+	var log;
 
     function initialize(view) {
-        BehaviorDelegate.initialize();
-        //log = new Log("GraphPageBehaviorDelegate");
+        InputDelegate.initialize();
+        log = new Log("GraphPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();
-        handleSelect = !s.isTouchScreen;
     }
     
     function onBack() {
-		//log.msg("onBack");
+		log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onNextPage() {
-    	//log.msg("onNextPage");
+    	log.msg("onNextPage");
 		var app = Application.getApp();
 		var infoPage = new InfoPage(app.mState);
 		switchToView(infoPage, new InfoPageBehaviorDelegate(infoPage), WatchUi.SLIDE_UP);    
 	}
 
 	function onSelect() {
-		if (handleSelect) {
-			//log.msg("onSelect");
-			mView.nextMode();
-		}
-		return handleSelect;
+		log.msg("onSelect");
+		mView.nextMode();
+		return true;
     }
     
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-    	//log.debug("onTap", [coords, type]);
+    	log.debug("onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] <= 80) {
+    		log.msg("nextMode()");
 	    	mView.nextMode();
     	}	
     }
+    
+        
+    function onKey(keyEvent) {
+    	log.debug("onKey", keyEvent.getKey());
+    	switch(keyEvent.getKey()) {
+			case WatchUi.KEY_ENTER:
+				return onSelect();
+			case WatchUi.KEY_DOWN:
+				return onNextPage();
+			default:
+				return false;
+    	}
+    }
+    
+    function onSwipe(swipeEvent) {
+   		log.debug("onSwipe", swipeEvent.getDirection());
+   		switch (swipeEvent.getDirection()) {
+   			case WatchUi.SWIPE_UP:
+   				return onNextPage();
+			case WatchUi.SWIPE_RIGHT:
+   				return onBack();
+   			default:
+   				return false;
+   		}
+   	}
+    
 }
 
 

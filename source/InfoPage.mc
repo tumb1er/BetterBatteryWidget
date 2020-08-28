@@ -123,48 +123,69 @@ class InfoPage extends WatchUi.View {
 	}
 }
 
-class InfoPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
+class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
 	var mView;
-	//var log;
-	var handleSelect;
+	var log;
 
     function initialize(view) {
-        BehaviorDelegate.initialize();
-        //log = new Log("InfoPageBehaviorDelegate");
+        InputDelegate.initialize();
+        log = new Log("InfoPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();
-        handleSelect = !s.isTouchScreen;
     }
     
     function onBack() {
-		//log.msg("onBack");
+		log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onPreviousPage() {
-    	//log.msg("onPreviousPage");
+    	log.msg("onPreviousPage");
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
 		switchToView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_DOWN);    
     }
     
     function onSelect() {
-    	if (handleSelect) {
-    		mView.mark();
-    	}
-    	return handleSelect;
+		mView.mark();
+    	return true;
     }
        
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-    	//log.debug("onTap", [coords, type]);
+    	log.debug("onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] >= 160) {
 	    	mView.mark();
     	}	
     	return true;
     }
+        
+    function onKey(keyEvent) {
+    	log.debug("onKey", keyEvent.getKey());
+    	switch(keyEvent.getKey()) {
+			case WatchUi.KEY_ENTER:
+				return onSelect();
+			case WatchUi.KEY_UP:
+				return onPreviousPage();
+			default:
+				return false;
+    	}
+    }
+    
+    function onSwipe(swipeEvent) {
+   		log.debug("onSwipe", swipeEvent.getDirection());
+   		switch (swipeEvent.getDirection()) {
+   			case WatchUi.SWIPE_DOWN:
+   				return onPreviousPage();
+			case WatchUi.SWIPE_RIGHT:
+   				return onBack();
+   			default:
+   				return false;
+   		}
+   	}
+    
 }
 
 

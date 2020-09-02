@@ -156,17 +156,15 @@ class GraphPage extends WatchUi.View {
 }
 
 
-class GraphPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
+class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 	var mView;
 	//var log;
-	var handleSelect;
 
     function initialize(view) {
-        BehaviorDelegate.initialize();
+        InputDelegate.initialize();
         //log = new Log("GraphPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();
-        handleSelect = !s.isTouchScreen;
     }
     
     function onBack() {
@@ -180,14 +178,13 @@ class GraphPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 		var app = Application.getApp();
 		var infoPage = new InfoPage(app.mState);
 		switchToView(infoPage, new InfoPageBehaviorDelegate(infoPage), WatchUi.SLIDE_UP);    
+		return true;
 	}
 
 	function onSelect() {
-		if (handleSelect) {
-			//log.msg("onSelect");
-			mView.nextMode();
-		}
-		return handleSelect;
+		//log.msg("onSelect");
+		mView.nextMode();
+		return true;
     }
     
     function onTap(clickEvent) {
@@ -195,9 +192,40 @@ class GraphPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
     	var type = clickEvent.getType();
     	//log.debug("onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] <= 80) {
+    		//log.msg("nextMode()");
 	    	mView.nextMode();
-    	}	
+    	}
+    	return true;
     }
+    
+        
+    function onKey(keyEvent) {
+    	//log.debug("onKey", keyEvent.getKey());
+    	switch(keyEvent.getKey()) {
+			case WatchUi.KEY_ENTER:
+				return onSelect();
+			case WatchUi.KEY_DOWN:
+				return onNextPage();
+			case WatchUi.KEY_ESC:
+				return onBack();
+			default:
+				//log.msg("wrong button");
+				return true;
+    	}
+    }
+    
+    function onSwipe(swipeEvent) {
+   		//log.debug("onSwipe", swipeEvent.getDirection());
+   		switch (swipeEvent.getDirection()) {
+   			case WatchUi.SWIPE_UP:
+   				return onNextPage();
+			case WatchUi.SWIPE_RIGHT:
+   				return onBack();
+   			default:
+   				return false;
+   		}
+   	}
+    
 }
 
 

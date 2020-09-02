@@ -1,5 +1,6 @@
 using Toybox.Application;
 using Toybox.Graphics;
+using Toybox.Lang;
 using Toybox.Math;
 using Toybox.System;
 using Toybox.Time;
@@ -64,7 +65,7 @@ class WidgetPage extends WatchUi.View {
 			WatchUi.animate(mGaugeDrawable, :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
 			WatchUi.animate(mPercentText, :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);
 		} catch (e instanceof Lang.InvalidValueException) {
-			throw new Exception(Lang.format("Invalid value $1$: $2$", [percent, e.msg]));
+			throw new Lang.Exception(Lang.format("Invalid value $1$: $2$", [percent, e.msg]));
 		}
     }
     
@@ -96,29 +97,39 @@ class WidgetPage extends WatchUi.View {
 
 }
 
-class WidgetPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
+class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
 	//var log;
 
     function initialize() {
-        BehaviorDelegate.initialize();
-        //log = new Log("WidgetPageBehaviorDelegateate");
+        InputDelegate.initialize();
+        //log = new Log("WidgetPageBehaviorDelegate");
     }
     
-    function onSelect() {
-		//log.msg("onSelect");
+    function enterWidget() {
+		//log.msg("enterWidget");
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
-		pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);    
+		pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);   
+		//log.msg("enterWidget done"); 
     	return true;
     }
     
-    function onKey(ev) {
-    	if (ev.getKey() == WatchUi.KEY_ENTER || ev.getKey() == WatchUi.KEY_START) {
-    		// workaround for fr245m, fenix6xpro, fenix5splus, etc...
-    		return onSelect();
+    function onKey(keyEvent) {
+    	//log.debug("onKey", keyEvent.getKey());
+    	if (keyEvent.getKey() == WatchUi.KEY_ENTER) {
+    		return enterWidget();
     	}
     	return false;
     }
+    
+    function onTap(tapEvent) {
+   		//log.msg("onTap");
+   		return enterWidget();
+   	}
+   	function onSwipe(swipeEvent) {
+   		//log.msg("onSwipe");
+   		return false;
+   	}
 }
 
 (:test)

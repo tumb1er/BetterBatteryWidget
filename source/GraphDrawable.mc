@@ -15,9 +15,8 @@ function interpolate(min_from, max_from, current, min_to, max_to) {
 		log.debug("interpolate: ", [min_from, max_from, current, min_to, max_to]);
 		log.error("interpolate error", ex);
 		throw ex;
-		return null;
 	}
-	 
+	return null;
 }
 
 

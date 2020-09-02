@@ -123,17 +123,15 @@ class InfoPage extends WatchUi.View {
 	}
 }
 
-class InfoPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
+class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
 	var mView;
 	//var log;
-	var handleSelect;
 
     function initialize(view) {
-        BehaviorDelegate.initialize();
+        InputDelegate.initialize();
         //log = new Log("InfoPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();
-        handleSelect = !s.isTouchScreen;
     }
     
     function onBack() {
@@ -147,13 +145,12 @@ class InfoPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
 		switchToView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_DOWN);    
+		return true;
     }
     
     function onSelect() {
-    	if (handleSelect) {
-    		mView.mark();
-    	}
-    	return handleSelect;
+		mView.mark();
+    	return true;
     }
        
     function onTap(clickEvent) {
@@ -165,6 +162,34 @@ class InfoPageBehaviorDelegate extends WatchUi.BehaviorDelegate {
     	}	
     	return true;
     }
+        
+    function onKey(keyEvent) {
+    	//log.debug("onKey", keyEvent.getKey());
+    	switch(keyEvent.getKey()) {
+			case WatchUi.KEY_ENTER:
+				return onSelect();
+			case WatchUi.KEY_UP:
+				return onPreviousPage();
+			case WatchUi.KEY_ESC:
+				return onBack();			
+			default:
+				//log.msg("wrong button");
+				return true;
+		}
+    }
+    
+    function onSwipe(swipeEvent) {
+   		//log.debug("onSwipe", swipeEvent.getDirection());
+   		switch (swipeEvent.getDirection()) {
+   			case WatchUi.SWIPE_DOWN:
+   				return onPreviousPage();
+			case WatchUi.SWIPE_RIGHT:
+   				return onBack();
+   			default:
+   				return false;
+   		}
+   	}
+    
 }
 
 

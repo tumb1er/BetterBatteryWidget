@@ -37,6 +37,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     
     function onStart(state) {
     	setBackgroundEvent();
+    	//log.msg("app started");
     }
 
     // This method runs each time the main application starts.
@@ -108,9 +109,9 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
 		try {
 			Background.exit(ret);
 		} catch (e instanceof Background.ExitDataSizeLimitException) {
-			throw new Exception("ExitDataSizeLimitException");
+			throw new Lang.Exception("ExitDataSizeLimitException");
 		} catch (e) {
-			throw new Exception(Lang.format("Unknown error $1$", [e]));
+			throw new Lang.Exception(Lang.format("Unknown error $1$", [e]));
 		}
     }
 }

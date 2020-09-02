@@ -16,7 +16,7 @@ class GraphPage extends WatchUi.View {
 	var mGraphDuration;
 	var mGraphMode;
 	//var log;
-	var mx, my;
+	var mx, my, offset;
 
     function initialize(state) {
     	View.initialize();
@@ -38,7 +38,7 @@ class GraphPage extends WatchUi.View {
     	var gh = loadResource(RS.GraphHeight).toNumber();
     	var th = loadResource(RS.GraphStatusHeight).toNumber();
     	var ty = loadResource(RS.GraphStatusY).toNumber();
-    	
+    	offset = loadResource(RS.GraphIntervalOffset).toNumber();
     	mx = w / 2;
     	my = h - 10;
     	var graphMargin = (w - gw) / 2;
@@ -136,7 +136,7 @@ class GraphPage extends WatchUi.View {
 		dc.fillPolygon([[mx, my + 5], [mx + 5, my], [mx - 5, my]]);
 		
 		dc.drawText(
-			mx, my-20, 
+			mx, my-offset, 
 			0, // FONT_XTINY
 			formatInterval(mGraph.interval), 
 			5 // TEXT_JUSTIFY_CENTER | TEXT_JUSTIFY_VCENTER

@@ -98,24 +98,24 @@ class WidgetPage extends WatchUi.View {
 }
 
 class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
-	var log;
+//	var log;
 
     function initialize() {
         InputDelegate.initialize();
-        log = new Log("WidgetPageBehaviorDelegate");
+//        log = new Log("WidgetPageBehaviorDelegate");
     }
     
     function enterWidget() {
-		log.msg("enterWidget");
+//		log.msg("enterWidget");
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
 		pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);   
-		log.msg("enterWidget done"); 
+//		log.msg("enterWidget done"); 
     	return true;
     }
     
     function onKey(keyEvent) {
-    	log.debug("onKey", keyEvent.getKey());
+//    	log.debug("onKey", keyEvent.getKey());
     	if (keyEvent.getKey() == WatchUi.KEY_ENTER) {
     		return enterWidget();
     	}
@@ -123,11 +123,11 @@ class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
     }
     
     function onTap(tapEvent) {
-   		log.msg("onTap");
+//   		log.msg("onTap");
    		return enterWidget();
    	}
    	function onSwipe(swipeEvent) {
-   		log.msg("onSwipe");
+//   		log.msg("onSwipe");
    		return false;
    	}
 }

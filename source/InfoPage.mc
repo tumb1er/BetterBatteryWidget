@@ -125,26 +125,27 @@ class InfoPage extends WatchUi.View {
 
 class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
 	var mView;
-	var log;
+//	var log;
 
     function initialize(view) {
         InputDelegate.initialize();
-        log = new Log("InfoPageBehaviorDelegate");
+//        log = new Log("InfoPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();
     }
     
     function onBack() {
-		log.msg("onBack");
+//		log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onPreviousPage() {
-    	log.msg("onPreviousPage");
+//    	log.msg("onPreviousPage");
 		var app = Application.getApp();
 		var view = new GraphPage(app.mState);
 		switchToView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_DOWN);    
+		return true;
     }
     
     function onSelect() {
@@ -155,7 +156,7 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-    	log.debug("onTap", [coords, type]);
+//    	log.debug("onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] >= 160) {
 	    	mView.mark();
     	}	
@@ -163,19 +164,22 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
     }
         
     function onKey(keyEvent) {
-    	log.debug("onKey", keyEvent.getKey());
+//    	log.debug("onKey", keyEvent.getKey());
     	switch(keyEvent.getKey()) {
 			case WatchUi.KEY_ENTER:
 				return onSelect();
 			case WatchUi.KEY_UP:
 				return onPreviousPage();
+			case WatchUi.KEY_ESC:
+				return onBack();			
 			default:
-				return false;
-    	}
+//				log.msg("wrong button");
+				return true;
+		}
     }
     
     function onSwipe(swipeEvent) {
-   		log.debug("onSwipe", swipeEvent.getDirection());
+//   		log.debug("onSwipe", swipeEvent.getDirection());
    		switch (swipeEvent.getDirection()) {
    			case WatchUi.SWIPE_DOWN:
    				return onPreviousPage();

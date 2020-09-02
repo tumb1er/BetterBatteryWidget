@@ -158,23 +158,23 @@ class GraphPage extends WatchUi.View {
 
 class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 	var mView;
-//	var log;
+	//var log;
 
     function initialize(view) {
         InputDelegate.initialize();
-//        log = new Log("GraphPageBehaviorDelegate");
+        //log = new Log("GraphPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();
     }
     
     function onBack() {
-//		log.msg("onBack");
+		//log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
     function onNextPage() {
-//    	log.msg("onNextPage");
+    	//log.msg("onNextPage");
 		var app = Application.getApp();
 		var infoPage = new InfoPage(app.mState);
 		switchToView(infoPage, new InfoPageBehaviorDelegate(infoPage), WatchUi.SLIDE_UP);    
@@ -182,7 +182,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 	}
 
 	function onSelect() {
-//		log.msg("onSelect");
+		//log.msg("onSelect");
 		mView.nextMode();
 		return true;
     }
@@ -190,9 +190,9 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
     function onTap(clickEvent) {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
-//    	log.debug("onTap", [coords, type]);
+    	//log.debug("onTap", [coords, type]);
     	if (type == WatchUi.CLICK_TYPE_TAP && coords[1] <= 80) {
-//    		log.msg("nextMode()");
+    		//log.msg("nextMode()");
 	    	mView.nextMode();
     	}
     	return true;
@@ -200,7 +200,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
     
         
     function onKey(keyEvent) {
-//    	log.debug("onKey", keyEvent.getKey());
+    	//log.debug("onKey", keyEvent.getKey());
     	switch(keyEvent.getKey()) {
 			case WatchUi.KEY_ENTER:
 				return onSelect();
@@ -209,13 +209,13 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 			case WatchUi.KEY_ESC:
 				return onBack();
 			default:
-//				log.msg("wrong button");
+				//log.msg("wrong button");
 				return true;
     	}
     }
     
     function onSwipe(swipeEvent) {
-//   		log.debug("onSwipe", swipeEvent.getDirection());
+   		//log.debug("onSwipe", swipeEvent.getDirection());
    		switch (swipeEvent.getDirection()) {
    			case WatchUi.SWIPE_UP:
    				return onNextPage();

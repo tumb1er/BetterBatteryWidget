@@ -64,7 +64,7 @@ class GraphPage extends WatchUi.View {
     		:locY => ty,
     		:color => 0xFFFFFF,
     		:suffix => true,
-    		:text => "computing"
+    		:text => loadResource(Rez.Strings.Computing)
     	});
     	setLayout([mGraph, mTriText]);
     }
@@ -81,8 +81,10 @@ class GraphPage extends WatchUi.View {
     	var result = new Result(mState);
 		result.predictCharged();
 		result.predictWindow();
+		var RS = Rez.Strings;
 		var predictions = [result.chargedDuration(), (result.windowSpeed != null)? result.windowSpeed * 3600: null];
-		var texts = [["since", "charged", true], ["over last", "30 min", false]];
+		var texts = [[loadResource(RS.Since), loadResource(RS.Charged), true], 
+					 [loadResource(RS.OverLast), loadResource(RS.Minutes30), false]];
 		var percent = null;
 		var text = [null, null];
 		
@@ -116,9 +118,9 @@ class GraphPage extends WatchUi.View {
 		} else {
 			mTriText.value = null;
 			if (stats.charging) {
-				mTriText.text = "charging...";
+				mTriText.text = loadResource(Rez.Strings.ChargingDot);
 			} else {
-				mTriText.text = "computing...";
+				mTriText.text = loadResource(Rez.Strings.ComputingDot);
 			}
 		}
 		mTriText.draw(dc);	

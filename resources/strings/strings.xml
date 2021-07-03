@@ -17,8 +17,9 @@
     <string id="Area">Area</string>
     <string id="Computing">computing</string>
     <string id="Since">since</string>
-    <string id="Charging">charging</string>
     <string id="Charged">charged</string>
+    <string id="Charging">charging</string>
+    <string id="SinceCharged">charged</string>
     <string id="OverLast">over last</string>
     <string id="ChargingDot">charging...</string>
     <string id="ComputingDot">computing...</string>

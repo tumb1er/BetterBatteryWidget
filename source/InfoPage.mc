@@ -38,7 +38,7 @@ class InfoPage extends WatchUi.View {
     		:locX => 0,
     		:locY => sy,
     		:color => 0xFFFFFF,
-    		:title => loadResource(RS.Charged),
+    		:title => loadResource(RS.SinceCharged),
     		:suffix => true,
     		:text => loadResource(RS.NoChargeData)
     	};

@@ -45,6 +45,7 @@
         </iq:permissions>
         <iq:languages>
             <iq:language>eng</iq:language>
+            <iq:language>rus</iq:language>
             <iq:language>zhs</iq:language>
         </iq:languages>
         <iq:barrels/>

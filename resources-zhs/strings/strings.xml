@@ -17,8 +17,9 @@
     <string id="Area">区域</string>
     <string id="Computing">计算中</string>
     <string id="Since">距离</string>
-    <string id="Charging">充电中</string>
     <string id="Charged">上次充电</string>
+    <string id="Charging">充电中</string>
+    <string id="SinceCharged">上次充电</string>
     <string id="OverLast">最后</string>
     <string id="ChargingDot">正在充电...</string>
     <string id="ComputingDot">正在计算...</string>

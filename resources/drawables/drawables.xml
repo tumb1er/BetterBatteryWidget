@@ -1,6 +1,6 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.png">
-    <palette disableTransparency="false">
+    	<palette disableTransparency="false">
             <color>00AA00</color>
     	</palette>
    	</bitmap>

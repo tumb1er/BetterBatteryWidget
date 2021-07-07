@@ -38,18 +38,18 @@ class InfoPage extends WatchUi.View {
     		:locX => 0,
     		:locY => sy,
     		:color => 0xFFFFFF,
-    		:title => "charged",
+    		:title => loadResource(RS.SinceCharged),
     		:suffix => true,
-    		:text => "no charge date"
+    		:text => loadResource(RS.NoChargeData)
     	};
     	mChargedText = new TriText(params);
-    	params.put(:title, "last 30m");
+    	params.put(:title, loadResource(RS.Last30Min));
     	params.put(:locY, sy + ss);
-    	params.put(:text, "no interval data");
+    	params.put(:text, loadResource(RS.NoIntervalData));
     	mIntervalText = new TriText(params);
-    	params.put(:title, "mark");
+    	params.put(:title, loadResource(RS.mark));
     	params.put(:locY, sy + 2 * ss);
-    	params.put(:text, "no mark set");
+    	params.put(:text, loadResource(RS.NoMarkSet));
     	mMarkText = new TriText(params);
     	setLayout([mChargedText, mIntervalText, mMarkText]);
     }
@@ -57,10 +57,11 @@ class InfoPage extends WatchUi.View {
 	function drawCharged(dc, ts, percent, charging) {
 		var now = Time.now().value();
 		var data;
+		var RS = Rez.Strings;
 		if (charging){
-			data = "charging";
+			data = loadResource(RS.Charging);
 		} else {
-			data = Lang.format("On battery $1$", [formatInterval(now - ts)]);
+			data = Lang.format(loadResource(RS.OnBatteryWithParam), [formatInterval(now - ts)]);
 		}
     	dc.drawText(cx, 40, 
     			0, // Graphics.FONT_XTINY 
@@ -71,11 +72,12 @@ class InfoPage extends WatchUi.View {
 	
 	function drawMark(dc) {
 		var mark = mState.mMark;
-		var percent = "Mark";
-		var marked = "press to put mark";
+		var RS = Rez.Strings;
+		var percent = loadResource(RS.Mark);
+		var marked = loadResource(RS.PressToPutMark);
 		if (mark != null) {
 			marked = formatTimestamp(mark[0]);
-			percent = Lang.format("Marked $1$", [formatPercent(mark[1])]);
+			percent = Lang.format(loadResource(RS.MarkedWithParam), [formatPercent(mark[1])]);
 		}
 		dc.setColor(0xFF00FF, 0xFF00FF);
     	dc.fillRectangle(0, sh - mh, sw, sh);
@@ -95,7 +97,7 @@ class InfoPage extends WatchUi.View {
 	function setPredictValues(view, speed, remaining) {
 		if (speed != null) {
 			view.value = formatInterval(remaining);
-			view.desc = Lang.format("$1$/h", [formatPercent(speed * 3600)]);
+			view.desc = Lang.format(loadResource(Rez.Strings.perHourWithParam), [formatPercent(speed * 3600)]);
 		} else {
 			view.value = null;
 		}

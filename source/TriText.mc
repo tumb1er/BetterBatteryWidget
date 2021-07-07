@@ -46,18 +46,21 @@ class TriText extends WatchUi.Text {
 			0 // Graphics.TEXT_JUSTIFY_RIGHT
 		);
 		if (suffix) {
-			var val = value.substring(0, value.length() - 1);
-			var sfx = value.substring(value.length() - 1, value.length());
+			var sd = loadResource(Rez.Strings.shortDay);
+			var sh = loadResource(Rez.Strings.shortHour);
+			var sfx_len = value.find(sd) != null ? sd.length() : ( value.find(sh) != null ? sh.length() : 0 );
+			var val = value.substring(0, value.length() - sfx_len);
+			var sfx = value.substring(value.length() - sfx_len, value.length());
 			dc.drawText(
 				pos, top  - numberOffset, 
 				6, // Graphics.FONT_NUMBER_MEDIUM
 				val, 
 				2 // Graphics.TEXT_JUSTIFY_LEFT
 			);
-			pos += dc.getTextWidthInPixels(val, 6); // Graphics.FONT_NUMBER_MEDIUM
+			pos += dc.getTextWidthInPixels(val, 6) + 4; // Graphics.FONT_NUMBER_MEDIUM
 			dc.drawText(
-				pos, top + 5, 
-				4, // Graphics.FONT_LARGE 
+				pos, top + 8, 
+				3, // Graphics.FONT_LARGE 
 				sfx, 
 				2 // Graphics.TEXT_JUSTIFY_LEFT
 			);

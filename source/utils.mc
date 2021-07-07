@@ -1,9 +1,9 @@
-using Toybox.Application;
 using Toybox.Graphics;
 using Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.Time.Gregorian;
+using Toybox.WatchUi;
 
 (:background)
 function formatTime(moment) {
@@ -19,7 +19,7 @@ function formatTime(moment) {
 
 function formatTimestamp(ts) {
 	ts = Time.Gregorian.info(new Time.Moment(ts), Time.FORMAT_SHORT);
-	return Lang.format("$1$.$2$ $3$:$4$", [
+	return Lang.format(WatchUi.loadResource(Rez.Strings.DateTimeFormat), [
 		ts.day,
 		ts.month.format("%02d"),
 		ts.hour.format("%02d"),
@@ -36,10 +36,10 @@ function formatPercent(value) {
 
 function formatInterval(seconds) {
 	var hours = seconds / 3600.0;
-	if (hours >= 24) { 
-		return (hours / 24).format("%.1f") + "d";
+	if (hours >= 24) {
+		return (hours / 24).format("%.1f") + WatchUi.loadResource(Rez.Strings.shortDay);
 	} else {
-		return hours.format("%.1f") + "h";
+		return hours.format("%.1f") + WatchUi.loadResource(Rez.Strings.shortHour);
 	}
 }
 

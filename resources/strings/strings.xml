@@ -15,4 +15,26 @@
     <string id="Hours24">24 hours</string>
     <string id="Line">Line</string>
     <string id="Area">Area</string>
+    <string id="Computing">computing</string>
+    <string id="Since">since</string>
+    <string id="Charged">charged</string>
+    <string id="Charging">charging</string>
+    <string id="SinceCharged">charged</string>
+    <string id="OverLast">over last</string>
+    <string id="ChargingDot">charging...</string>
+    <string id="ComputingDot">computing...</string>
+    <string id="NoChargeData">no charge data</string>
+    <string id="Last30Min">last 30m</string>
+    <string id="NoIntervalData">no interval data</string>
+    <string id="mark">mark</string>
+    <string id="Mark">Mark</string>
+    <string id="NoMarkSet">no mark set</string>
+    <string id="OnBatteryWithParam">On battery $1$</string>
+    <string id="PressToPutMark">press to put mark</string>
+    <string id="MarkedWithParam">Marked $1$</string>
+    <string id="perHourWithParam">$1$/h</string>
+    <string id="MeasuringDot">measuring...</string>
+    <string id="shortDay">d</string>
+    <string id="shortHour">h</string>
+    <string id="DateTimeFormat">$1$.$2$ $3$:$4$</string>
 </strings>

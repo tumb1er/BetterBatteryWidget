@@ -81,9 +81,9 @@ class WidgetPage extends WatchUi.View {
 		var predicted = result.predictAvg(0.5);
 		if (predicted == null) {
 			if (stats.charging) {
-				predicted = "charging...";
+				predicted = loadResource(Rez.Strings.ChargingDot);
 			} else {
-				predicted = "measuring...";
+				predicted = loadResource(Rez.Strings.MeasuringDot);
 			}
 		} else {
 			predicted = formatInterval(predicted);

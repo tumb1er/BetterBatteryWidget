@@ -1,6 +1,6 @@
 using Toybox.Application;
 using Toybox.Graphics;
-using Toybox.Lang;
+import Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi;
@@ -10,14 +10,16 @@ using Toybox.WatchUi;
 Shows debug data in text
 */
 class InfoPage extends WatchUi.View {
-	var mState;
-	var mChargedText;
-	var mIntervalText;
-	var mMarkText;
-	var cx, sw, sh, mh, my;
-	var markDateOffset;
+	var mState as State;
 
-    function initialize(state) {
+	var mChargedText as TriText?;
+	var mIntervalText as TriText?;
+	var mMarkText as TriText?;
+	
+	var cx as Number = 0, sw as Number = 0, sh as Number = 0, mh as Number = 0, my as Number = 0;
+	var markDateOffset as Number = 0;
+
+    public function initialize(state as State) {
     	View.initialize();
 		mState = state;
 	}
@@ -27,92 +29,94 @@ class InfoPage extends WatchUi.View {
     	sw = dc.getWidth();
     	sh = dc.getHeight();
     	cx = (sw / 2).toNumber();
-    	mh = loadResource(RS.MarkButtonHeight).toNumber();
-    	my = loadResource(RS.MarkButtonY).toNumber();
-    	var sy = loadResource(RS.StatsY).toNumber();
-    	var ss = loadResource(RS.StatsSpacing).toNumber();
-    	markDateOffset = loadResource(RS.MarkDateOffset).toNumber();
+    	mh = loadNumberFromStringResource(RS.MarkButtonHeight);
+    	my = loadNumberFromStringResource(RS.MarkButtonY);
+    	var sy = loadNumberFromStringResource(RS.StatsY);
+    	var ss = loadNumberFromStringResource(RS.StatsSpacing);
+    	markDateOffset = loadNumberFromStringResource(RS.MarkDateOffset);
     	var params = {
     		:width => sw,
-    		:height => loadResource(RS.TriTextHeight).toNumber(),
+    		:height => loadNumberFromStringResource(RS.TriTextHeight),
     		:locX => 0,
     		:locY => sy,
-    		:color => 0xFFFFFF,
-    		:title => loadResource(RS.SinceCharged),
+    		:color => Graphics.COLOR_WHITE,
+    		:title => loadResource(RS.SinceCharged) as String,
     		:suffix => true,
-    		:text => loadResource(RS.NoChargeData)
+    		:text => loadResource(RS.NoChargeData) as String
     	};
     	mChargedText = new TriText(params);
-    	params.put(:title, loadResource(RS.Last30Min));
+    	params.put(:title, loadResource(RS.Last30Min) as String);
     	params.put(:locY, sy + ss);
-    	params.put(:text, loadResource(RS.NoIntervalData));
+    	params.put(:text, loadResource(RS.NoIntervalData) as String);
     	mIntervalText = new TriText(params);
-    	params.put(:title, loadResource(RS.mark));
+    	params.put(:title, loadResource(RS.mark) as String);
     	params.put(:locY, sy + 2 * ss);
-    	params.put(:text, loadResource(RS.NoMarkSet));
+    	params.put(:text, loadResource(RS.NoMarkSet) as String);
     	mMarkText = new TriText(params);
     	setLayout([mChargedText, mIntervalText, mMarkText] as Lang.Array<WatchUi.Drawable>);
     }
 	
-	function drawCharged(dc, ts, percent, charging) {
+	private function drawCharged(dc as Graphics.Dc, ts as Number, percent as Float, charging as Boolean) as Void {
 		var now = Time.now().value();
 		var data;
 		var RS = Rez.Strings;
 		if (charging){
-			data = loadResource(RS.Charging);
+			data = loadResource(RS.Charging) as String;
 		} else {
-			data = Lang.format(loadResource(RS.OnBatteryWithParam), [formatInterval(now - ts)]);
+			data = Lang.format(loadResource(RS.OnBatteryWithParam) as String, [formatInterval(now - ts)]);
 		}
-    	dc.drawText(cx, 40, 
-    			0, // Graphics.FONT_XTINY 
-				data,
-				5 // Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
+    	dc.drawText(
+			cx, 40, 
+			Graphics.FONT_XTINY,
+			data,
+			Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
 		);
 	}
 	
-	function drawMark(dc) {
+	private function drawMark(dc as Graphics.Dc) as Void {
 		var mark = mState.getMarkPoint();
 		var RS = Rez.Strings;
-		var percent = loadResource(RS.Mark);
-		var marked = loadResource(RS.PressToPutMark);
+		var percent = loadResource(RS.Mark) as String;
+		var marked = loadResource(RS.PressToPutMark) as String;
 		if (mark != null) {
 			marked = formatTimestamp(mark.getTS());
-			percent = Lang.format(loadResource(RS.MarkedWithParam), [formatPercent(mark.getValue())]);
+			percent = Lang.format(loadResource(RS.MarkedWithParam) as String, [formatPercent(mark.getValue())]);
 		}
-		dc.setColor(0xFF00FF, 0xFF00FF);
+		dc.setColor(Graphics.COLOR_PINK, Graphics.COLOR_PINK);
     	dc.fillRectangle(0, sh - mh, sw, sh);
-		dc.setColor(0xFFFFFF, -1); // Graphics.COLOR_TRANSPARENT
+		dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
 		dc.drawText(cx, my, 
-			3, // Graphics.FONT_MEDIUM
+			Graphics.FONT_MEDIUM,
 			percent,
-			1 // Graphics.TEXT_JUSTIFY_CENTER
+			Graphics.TEXT_JUSTIFY_CENTER
 		);
 		dc.drawText(cx, my + markDateOffset,
-			0, // Graphics.FONT_XTINY
+			Graphics.FONT_XTINY,
 			marked,
-			1 // Graphics.TEXT_JUSTIFY_CENTER
+			Graphics.TEXT_JUSTIFY_CENTER
 		);
 	}
 	
-	function setPredictValues(view as TriText, predict as BatteryPoint?) {
+	private function setPredictValues(view as TriText, predict as BatteryPoint?) as Void {
 		var speed = (predict != null)? predict.getValue(): null;
 		if (speed != null) {
-			view.value = formatInterval(predict.getTS());
-			view.desc = Lang.format(loadResource(Rez.Strings.perHourWithParam), [formatPercent(speed * 3600)]);
+			view.value = formatInterval((predict as BatteryPoint).getTS());
+			view.desc = Lang.format(loadResource(Rez.Strings.perHourWithParam) as String, [formatPercent(speed * 3600)]);
 		} else {
-			view.value = null;
+			view.value = "";
+			view.desc = "";
 		}
 	}
 	
-	function onUpdate(dc) {
+	public function onUpdate(dc as Graphics.Dc) as Void {
 		var result = new Result(mState);
 		var stats = System.getSystemStats();
 		result.predictCharged();
 		result.predictWindow();
 		result.predictMark();
-		setPredictValues(mChargedText, result.getChargedPredict());
-		setPredictValues(mIntervalText, result.getWindowPredict());
-		setPredictValues(mMarkText, result.getMarkPredict());
+		setPredictValues(mChargedText as TriText, result.getChargedPredict());
+		setPredictValues(mIntervalText as TriText, result.getWindowPredict());
+		setPredictValues(mMarkText as TriText, result.getMarkPredict());
 
 		var c = cx as Lang.Number;
     	
@@ -125,7 +129,7 @@ class InfoPage extends WatchUi.View {
 		drawMark(dc); 	
 	}
 	
-	function mark() {
+	public function mark() as Void {
 		mState.mark();
 		mState.save();
 		requestUpdate();
@@ -133,23 +137,22 @@ class InfoPage extends WatchUi.View {
 }
 
 class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
-	var mView;
+	var mView as InfoPage;
 	//var log;
 
-    function initialize(view) {
+    public function initialize(view as InfoPage) {
         InputDelegate.initialize();
         //log = new Log("InfoPageBehaviorDelegate");
         mView = view;
-        var s = System.getDeviceSettings();
     }
     
-    function onBack() {
+    public function onBack() as Boolean {
 		//log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
-    function onPreviousPage() {
+    public function onPreviousPage() as Boolean {
     	//log.msg("onPreviousPage");
 		var app = Application.getApp() as BetterBatteryWidgetApp;
 		var view = new GraphPage(app.mState);
@@ -157,12 +160,12 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
 		return true;
     }
     
-    function onSelect() {
+    public function onSelect() as Boolean {
 		mView.mark();
     	return true;
     }
        
-    function onTap(clickEvent) {
+    public function onTap(clickEvent as WatchUi.ClickEvent) as Boolean {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
     	//log.debug("onTap", [coords, type]);
@@ -172,7 +175,7 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
     	return true;
     }
         
-    function onKey(keyEvent) {
+    public function onKey(keyEvent as WatchUi.KeyEvent) as Boolean {
     	//log.debug("onKey", keyEvent.getKey());
     	switch(keyEvent.getKey()) {
 			case WatchUi.KEY_ENTER:
@@ -187,7 +190,7 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
 		}
     }
     
-    function onSwipe(swipeEvent) {
+    public function onSwipe(swipeEvent as WatchUi.SwipeEvent) as Boolean {
    		//log.debug("onSwipe", swipeEvent.getDirection());
    		switch (swipeEvent.getDirection()) {
    			case WatchUi.SWIPE_DOWN:
@@ -198,7 +201,6 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
    				return false;
    		}
    	}
-    
 }
 
 

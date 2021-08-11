@@ -1,8 +1,9 @@
 import Toybox.Lang;
+using Toybox.Graphics;
 using Toybox.WatchUi;
 
 
-function interpolate(min_from, max_from, current, min_to, max_to) as Double {
+function interpolate(min_from as Numeric, max_from as Numeric, current as Numeric, min_to as Numeric, max_to as Numeric) as Double {
 	var fraction = 0.5;
 	if (min_from != max_from) {
 		fraction = (current - min_from).toDouble() / (max_from - min_from).toDouble();
@@ -20,40 +21,57 @@ function interpolate(min_from, max_from, current, min_to, max_to) as Double {
 	return result;
 }
 
+typedef GraphParams as {
+	:width as Number,
+	:height as Number,
+	:x as Number,
+	:y as Number,
+	:border as Graphics.ColorValue,
+	:foreground as Graphics.ColorValue,
+	:background as Graphics.ColorValue,
+	:shade as Graphics.ColorValue?,
+	:interval as Number,
+	:scale as Float,
+};
+
+
+typedef GraphPoint as Array<Number>; // [x, y]
+typedef GraphPoints as Array<GraphPoint>;
+
 
 class GraphDrawable extends WatchUi.Drawable {
-	var w, h, x, y; // coordinates
-	var border, foreground, background, shade; // colors
-	var tick = 5;
-	var mPoints, mCoords, mData as Array<Array<Number or Float> >?;
-	var interval; // data interval
+	var w as Number, h as Number, x as Number, y as Number; // coordinates
+	var border as Graphics.ColorType, foreground as Graphics.ColorType, background as Graphics.ColorType, shade as Graphics.ColorType?; // colors
+	var tick as Number = 5;
+	var mData as StatePoints?;
+	var interval as Number; // data interval
 	var mExtremums as Array<Number or Float>?; // min/max points
-	var start, end; // x axis margins
-	var scale; // y scale for animation
-	var mShowExtremums; // show extremums flag
-	// var log;
+	var start as Number = 0, end as Number = 0; // x axis margins
+	var scale as Float; // y scale for animation
+	var mShowExtremums as Boolean; // show extremums flag
+	// var log as Log;
 			
-	function initialize(params) {
+	public function initialize(params as GraphParams) {
 		Drawable.initialize(params);
 		// log = new Log("GraphDrawable");
-		w = params.get(:width);
-		h = params.get(:height);
-		x = params.get(:x);
-		y = params.get(:y);
-		border = params.get(:border);
-		foreground = params.get(:foreground);
-		background = params.get(:background);
-		shade = params.get(:shade);
-		interval = params.get(:interval);
-		scale = params.get(:scale);
+		w = params.get(:width) as Number;
+		h = params.get(:height) as Number;
+		x = params.get(:x) as Number;
+		y = params.get(:y) as Number;
+		border = params.get(:border) as Graphics.ColorType;
+		foreground = params.get(:foreground) as Graphics.ColorType;
+		background = params.get(:background) as Graphics.ColorType;
+		shade = params.get(:shade) as Graphics.ColorType?;
+		interval = params.get(:interval) as Number;
+		scale = params.get(:scale) as Float;
 		mShowExtremums = true;
 	}
 	
-	public function setData(data as PointsIterator) {
-		//log.debug("setData", data.size());
+	public function setData(data as PointsIterator) as Void {
+		// log.debug("setData", data.size());
 		
 		// computing bounds for graph data
-		end = data.last().getTS();
+		end = (data.last() as BatteryPoint).getTS();
 		start = end - interval;
 
 		// get min/max coords
@@ -61,29 +79,21 @@ class GraphDrawable extends WatchUi.Drawable {
 		// cleanup memory;
 		mData = null;
 		mData = points(data);
-//
-//
-//		mPoints = new[data.size()];
-//		mCoords = new[data.size()];
-//		for (var i = 0; i < data.size(); i++) {
-//			mCoords[i] = data[i][0];
-//			mPoints[i] = data[i][1];
-//		}
-		//log.debug("setData extremums", mExtremums);
+		// log.debug("setData extremums", mExtremums);
 	}
 	
-	private function getTextJustify(tx) {
+	private function getTextJustify(tx as Number) as Graphics.TextJustification {
 		if (tx > x + 3 * w / 4) {
-			return 0; // Graphics.TEXT_JUSTIFY_RIGHT
+			return Graphics.TEXT_JUSTIFY_RIGHT;
 		}
 		if (tx < x + w / 4) {
-			return 2; // Graphics.TEXT_JUSTIFY_LEFT
+			return Graphics.TEXT_JUSTIFY_LEFT;
 		}
-		return 1; // Graphics.TEXT_JUSTIFY_CENTER
+		return Graphics.TEXT_JUSTIFY_CENTER;
 	}
 	
 	
-	public function draw(dc) {
+	public function draw(dc as Graphics.Dc) as Void {
 		drawFrame(dc);		
 		if (mExtremums != null) {
 			if (shade != null) {
@@ -97,7 +107,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		}
 	}
 			
-	private function drawFrame(dc) {
+	private function drawFrame(dc as Graphics.Dc) as Void {
 		dc.setColor(border, background);
 		dc.drawRectangle(x, y, w, h);
 		// ticks
@@ -126,6 +136,7 @@ class GraphDrawable extends WatchUi.Drawable {
 			if (point == null) {
 				break;
 			}
+			point = point as BatteryPoint;
 			var ts = point.getTS();
 			var value = point.getValue(); 
 			if (ts < start) {
@@ -144,24 +155,26 @@ class GraphDrawable extends WatchUi.Drawable {
 				}
 				continue;
 			}
+			minY = minY as Float;
+			maxY = maxY as Float;
 			if (minY > value) {minX = ts; minY = value;}
 			if (maxY < value) {maxX = ts; maxY = value;}
 		}
 		if (minY == maxY) {
 			// log.msg("extermums: minY == maxY");
-			return [data.last().getTS(), minY, maxX, maxY] as Array<Float>?;
+			return [(data.last() as BatteryPoint).getTS(), minY, maxX, maxY] as Array<Float>?;
 		}
 		// log.debug("extremums", [minX, minY, maxX, maxY]);
 		return [minX, minY, maxX, maxY] as Array<Float>?;		
 	}
 	
-	private function points(data as PointsIterator) {
+	private function points(data as PointsIterator) as GraphPoints? {
 		if (mExtremums == null) {
 			// log.msg("no extremums - no points");
 			return null;
 		}
-		var minY = mExtremums[1];
-		var maxY = mExtremums[3];
+		var minY = (mExtremums as Array<Float>)[1];
+		var maxY = (mExtremums as Array<Float>)[3];
 		var px = null, py = null;
 		var prevTs = null, prevValue = null;
 		var left = x, right = x + w - 2;
@@ -181,6 +194,7 @@ class GraphDrawable extends WatchUi.Drawable {
 				// log.debug("points", points);
 				break;
 			}
+			point = point as BatteryPoint;
 			var ts = point.getTS();
 			var value = point.getValue();
 			if (ts < start) {
@@ -197,12 +211,17 @@ class GraphDrawable extends WatchUi.Drawable {
 				} else {
 					// interpolate point at left graph border
 					px = x;
+					prevTs = prevTs as Number;
+					prevValue = prevValue as Float;
 					var v = interpolate(prevTs, ts, start, prevValue, value);
 					py = interpolate(minY, maxY, v, bottom, top);
 				}
 				if (i == data.size() - 1) {
 					// the only point withing graph boundaries, draw horizontal line
-					return [[left, py], [right, py]];
+					return [
+						[left, py.toNumber()] as GraphPoint, 
+						[right, py.toNumber()] as GraphPoint
+					] as GraphPoints;
 				}
 				points.add([px.toNumber(), py.toNumber()]);
 				continue;
@@ -210,82 +229,104 @@ class GraphDrawable extends WatchUi.Drawable {
 			// Next points on graph
 			var nx = interpolate(start, end, ts, left, right);
 			var ny = interpolate(minY, maxY, value, bottom, top);
+			px = px as Double;
+			py = py as Double;
 			points.add([px.toNumber(), py.toNumber()]);
 //			dc.drawLine(px, py, nx, ny);
 			px = nx;
 			py = ny;
 		}
+		px = px as Double;
+		py = py as Double;
 		points.add([px.toNumber(), py.toNumber()]);
-		return points;
+		return points as GraphPoints;
 	}
 	
-	private function drawGraphLine(dc) {
+	private function drawGraphLine(dc as Graphics.Dc) as Void {
+		// log.msg("drawGraphLine");
 		dc.setColor(foreground, background);
-		if (mData.size() < 2) {
+		var data = (mData as StatePoints);
+		if (data.size() < 2) {
 			return;
 		}
-		var p = mData[0];
+		var p = data[0] as StatePoint;
 		var b = y + h-2;
-		for (var i = 1; i < mData.size(); i++) {
-			var n = mData[i];
-			if (p != null) {
-				// Draw next line
-				dc.drawLine(p[0], b - scale * p[1], n[0], b - scale * n[1]);
-			}
+		for (var i = 1; i < data.size(); i++) {
+			var n = data[i] as StatePoint;
+			// Draw next line
+			dc.drawLine(
+				p[0] as Double, 
+				(b - scale * p[1]) as Double, 
+				n[0] as Double, 
+				(b - scale * n[1]) as Double
+			);
 			p = n;
 		}	
 	}
 	
-	private function drawGraphShade(dc) {
-		//log.msg("drawGraphShade");
+	private function drawGraphShade(dc as Graphics.Dc) as Void {
+		// log.msg("drawGraphShade");
 		dc.setColor(shade, background);
-		var s = mData.size();
+		var data = mData as StatePoints;
+		var s = data.size();
 		if (s < 2) {
-			//log.msg("skip draw, size too small");
+			// log.msg("skip draw, size too small");
 			return;
 		}
 		var start = 0;
 		var next = null;
 		while (start < s) {
-			//log.debug("start at", [start, s]);
-			var shadeCoords = [];
+			// log.debug("start at", [start, s]);
+			var shadeCoords = [] as GraphPoints;
 			var b = y + h - 2;
 			var p;
 			for (var i = start; i < s && i < start + 60; i++) {
-				p = mData[i];
-				shadeCoords.add([p[0], b - scale * p[1]]);
+				p = data[i] as StatePoint;
+				var px = p[0] as Number;
+				var py = ((b - scale * p[1]) as Float).toNumber();
+				shadeCoords.add([px, py] as GraphPoint);
 				next = i;
 			}
 			// Add two points for drawing bottom line of polygon,
 			// first bottom-right and then bottom-left point.
-			p = mData[next];
-			shadeCoords.add([p[0], b]);
-			p = mData[start];
-			shadeCoords.add([p[0], b]);
+			p = data[next] as StatePoint;
+			shadeCoords.add([p[0] as Number, b] as GraphPoint);
+			p = data[start] as StatePoint;
+			shadeCoords.add([p[0] as Number, b] as GraphPoint);
+			// log.debug("fp", shadeCoords);
 			dc.fillPolygon(shadeCoords);
 			// We need to overlap points to exclude holes in graph, but for last iteration it leads to 
 			// infinite loop. So we disable overlap for last iteration. 
-			start = (next == start)? next + 1: next;
+			start = (next == start)? (next as Number) + 1: next;
 		}
-		//log.msg("done drawGraphShade");		
+		// log.msg("done drawGraphShade");		
 	}
 	
-	private function drawExtremums(dc) {
-		var minX = mExtremums[0];
-		var minY = mExtremums[1];
-		var maxX = mExtremums[2];
-		var maxY = mExtremums[3];
+	private function drawExtremums(dc as Graphics.Dc) as Void {
+		var e = mExtremums as Array<Number or Float>;
+		var minX = e[0] as Number;
+		var minY = e[1] as Float;
+		var maxX = e[2] as Number;
+		var maxY = e[3] as Float;
 		dc.setColor(border, background);
-		var px = interpolate(start, end, minX, x, x + w - 1);
-		var py = (minY == maxY)? y + h / 2: y + h;
+		var px = interpolate(start, end, minX, x, x + w - 1).toNumber();
+		var py = ((minY == maxY)? y + h / 2: y + h).toNumber();
 		
-		dc.fillPolygon([[px, py], [px + 5, py - 5], [px - 5, py - 5]]);
-		dc.drawText(px, py - 25, 9, formatPercent(minY), getTextJustify(px));  // Graphics.FONT_SYSTEM_XTINY
+		dc.fillPolygon([
+			[px, py] as GraphPoint, 
+			[px + 5, py - 5] as GraphPoint, 
+			[px - 5, py - 5] as GraphPoint
+		] as GraphPoints);
+		dc.drawText(px, py - 25, Graphics.FONT_SYSTEM_XTINY, formatPercent(minY), getTextJustify(px));
 		
-		px = interpolate(start, end, maxX, x, x + w - 1);
-		py = (minY == maxY)? y + h / 2: y;
+		px = interpolate(start, end, maxX, x, x + w - 1).toNumber();
+		py = ((minY == maxY)? y + h / 2: y).toNumber();
 		
-		dc.fillPolygon([[px, py], [px + 5, py + 5], [px - 5, py + 5]]);
-		dc.drawText(px, py + 5, 9, formatPercent(maxY), getTextJustify(px));  // Graphics.FONT_SYSTEM_XTINY
+		dc.fillPolygon([
+			[px, py] as GraphPoint, 
+			[px + 5, py + 5] as GraphPoint, 
+			[px - 5, py + 5] as GraphPoint
+		] as GraphPoints);
+		dc.drawText(px, py + 5, Graphics.FONT_SYSTEM_XTINY, formatPercent(maxY), getTextJustify(px));
 	}
 }

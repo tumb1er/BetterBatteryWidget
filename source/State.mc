@@ -16,20 +16,23 @@ const KEY_ACTIVITY = "a";
 const KEY_MARK = "m";
 const MAX_POINTS = 5;
 
+typedef StateValues as StatePoint or StatePoints or Boolean;
+typedef StateData as Dictionary<String, StateValues>;
+
 (:background)
 class State {
-	private var mData as Array<Array<Number or Float> >;	
-	private var mPoints as Array<Array<Number or Float> >;
-	private var mCharged as Array<Number or Float>?;
-	private var mMark as Array<Number or Float>?;
+	private var mData as StatePoints;	
+	private var mPoints as StatePoints;
+	private var mCharged as StatePoint?;
+	private var mMark as StatePoint?;
 	private var mActivityRunning as Boolean;
 	//var log;
-	var mGraphDuration;
+	var mGraphDuration as Number?;
 	
-	public function initialize(data as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>?) {
+	public function initialize(data as StateData?) {
 		//log = new Log("State");
 		var app = Application.getApp() as BetterBatteryWidgetApp;
-		mGraphDuration = 3600 * app.mGraphDuration;
+		mGraphDuration = 3600 * (app.mGraphDuration as Number);
 		//log.debug("initialize: passed", data);
 		if (data == null) {
 			data = app.getProperty(STATE_PROPERTY) as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>?;		
@@ -59,17 +62,11 @@ class State {
 	}
 
 	public function getChargedPoint() as BatteryPoint? {
-		if (mCharged == null) {
-			return null;
-		}
-		return new BatteryPoint(mCharged[0], mCharged[1]);
+		return BatteryPoint.fromArray(mCharged);
 	}
 
 	public function getMarkPoint() as BatteryPoint? {
-		if (mMark == null) {
-			return null;
-		}
-		return new BatteryPoint(mMark[0], mMark[1]);
+		return BatteryPoint.fromArray(mMark);
 	}
 
 	(:debug)
@@ -78,42 +75,42 @@ class State {
 	}
 
 	(:debug)
-	public function setmActivityRunning(v as Boolean) {
+	public function setmActivityRunning(v as Boolean) as Void {
 		self.mActivityRunning = v;
 	}
 
 	(:debug)
-	public function getmData() {
+	public function getmData() as StatePoints {
 		return self.mData;
 	}
 
 	(:debug) 
-	public function setmData(data) {
+	public function setmData(data as StatePoints) as Void {
 		self.mData = data;
 	}
 
 	(:debug)
-	public function getmPoints() {
+	public function getmPoints() as StatePoints {
 		return self.mPoints;
 	}
 
 	(:debug)
-	public function setmPoints(points) {
+	public function setmPoints(points as StatePoints) as Void {
 		self.mPoints = points;
 	}
 	
-	public function getData() {
+	public function getData() as StateData {
 		return {
 			KEY_DATA => mData,
 			KEY_POINTS => mPoints,
 			KEY_CHARGED => mCharged,
 			KEY_ACTIVITY => mActivityRunning,
 			KEY_MARK => (mMark != null)?mMark:false
-		};
+		} as StateData;
 		
 	}
 	
-	public function save() {
+	public function save() as Void {
 		//log.debug("save", getData());
 		try {
 			Application.getApp().setProperty(STATE_PROPERTY, getData());
@@ -125,7 +122,7 @@ class State {
 	/**
 	Сохраняет отмеченное значение
 	*/
-	public function mark() {
+	public function mark() as Void {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
 		//log.debug("mark", stats.battery);
@@ -135,7 +132,7 @@ class State {
 	/**
 	Добавляет точки для графика. 
 	*/
-	private function pushPoint(ts, value) {
+	private function pushPoint(ts as Number, value as Float) as Void {
 		// Если массив пуст, добавляем точку без условий
 		if (mPoints.size() == 0) {
 			mPoints.add([ts, value] as Array<Number or Float>);
@@ -158,14 +155,14 @@ class State {
 		
 		// Храним точки не дольше N часов
 		var i;
-		for (i=0; mPoints[i][0] < ts - mGraphDuration; i++) {}
+		for (i=0; mPoints[i][0] < ts - (mGraphDuration as Number); i++) {}
 		if (i != 0) {
 			// Оставляем одну точку про запас для графика
 			mPoints = mPoints.slice(i - 1, null);
 		}
 	}
 	
-	public function measure() {
+	public function measure() as Void {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
 		//log.debug("values", [ts, stats.battery, mData]);	
@@ -174,50 +171,51 @@ class State {
 		//log.debug("handled", [ts, stats.battery, mData]);	
 	}
 	
-	public function handleMeasurements(ts, battery, charging) {		
+	public function handleMeasurements(ts as Number, battery as Float, charging as Boolean) as Void {		
 		// Точку на график добавляем всегда
 		pushPoint(ts, battery);
 		
 		// Если данные отсутствуют, просто добавляем одну точку.
 		if (mCharged == null) {
 			//log.debug("data is empty, initializing", battery);
-			return reset(ts, battery);
+			reset(ts, battery);
+			return;
 		}
 		
 		// На зарядке сбрасываем состояние
 		if (charging) {
 			//log.debug("charging, reset at", battery);
-			return reset(ts, battery);
+			reset(ts, battery);
+			return;
 		}
 			
 		// Добавляем точку для отслеживания показаний за последние полчаса.
-		return pushData(ts, battery);
+		pushData(ts, battery);
 	}
 	
 	/**
 	Resets prediction data if activity state changed
 	*/
-	public function checkActivityState(info, ts, value) {
+	public function checkActivityState(info as Activity.Info?, ts as Number, value as Float) as Void {
 		
 		// При изменении статуса активности сбрасываем состояние.
-		var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
+		var activityRunning = info != null && (info as Activity.Info).timerState != Activity.TIMER_STATE_OFF;
 		if (activityRunning != mActivityRunning) {
 			//log.debug("activity state changed, reset at", value);
 			mActivityRunning = activityRunning;
 			// Стираем только данные, отметка о последней зарядке остается на месте
-			mData = [[ts, value] as Array<Number or Float>] as Array<Array<Number or Float> >;
-			return;
+			mData = [[ts, value] as StatePoint] as StatePoints;
 		}
 		
 	}
 	/**
 	Добавляет новую точку для измерений
 	*/
-	private function pushData(ts, value) {
+	private function pushData(ts as Number, value as Float) as Void {
 		// Первую точку добавляем всегда.
 		//log.debug("pushData", mData);
 		if (mData.size() == 0) {
-			mData.add([ts, value] as Array<Number or Float>);
+			mData.add([ts, value] as StatePoint);
 			return;		
 		}
 
@@ -247,7 +245,7 @@ class State {
 	/**
 	Сбрасывает данные для измерений. 
 	*/
-	private function reset(ts, value) {
+	private function reset(ts as Number, value as Float) as Void {
 		mData = [[ts, value] as Array<Number or Float>] as Array<Array<Number or Float> >;
 		mCharged = [ts, value] as Array<Number or Float>?;
 		mMark = null;

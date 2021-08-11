@@ -34,7 +34,12 @@ class Result {
     * ts - estimated life time in seconds
     * value  discharge speed in percent per second
 	**/
-    private function predict(first as BatteryPoint, last as BatteryPoint) as BatteryPoint? {
+    private function predict(first as BatteryPoint?, last as BatteryPoint?) as BatteryPoint? {
+		if (first == null || last == null) {
+			return null;
+		}
+		first = first as BatteryPoint;
+		last = last as BatteryPoint;
 		var duration = (last.getTS() - first.getTS()).toDouble();
 		var delta = (last.getValue() - first.getValue()).abs();
 		if (delta == 0 || duration == 0) {
@@ -45,16 +50,17 @@ class Result {
 	}
 	
 	public function predictAvg(weight as Lang.Float) as Lang.Float {
-		if (windowPredict == null) {
-			return chargedPredict.getTS().toFloat();
+		if (windowPredict != null && chargedPredict != null) {
+			return (windowPredict as BatteryPoint).getTS() * weight + (chargedPredict as BatteryPoint).getTS() * (1.0 - weight);
+		} else if (chargedPredict != null) {
+			return (chargedPredict as BatteryPoint).getTS().toFloat();
+		} else if (windowPredict != null) {
+			return (windowPredict as BatteryPoint).getTS().toFloat();
 		}
-		if (chargedPredict == null) {
-			return windowPredict.getTS().toFloat();
-		}
-		return windowPredict.getTS() * weight + chargedPredict.getTS() * (1.0 - weight);
+		return 0.0;
 	}
 	
-	public function predictWindow() {
+	public function predictWindow() as Void {
 		self.windowPredict = null;
 		var data = mStats.getDataIterator();
 		if (data.size() < 2) {
@@ -65,7 +71,7 @@ class Result {
         // log.debug("windowPredict", self.windowPredict);
 	}
 	
-	public function predictCharged() {
+	public function predictCharged() as Void {
 		self.chargedPredict = null;
         if (self.chargedPoint == null || self.currentPoint == null) {
             return;
@@ -81,10 +87,10 @@ class Result {
         if (self.currentPoint == null) {
             return 0.0;
         }
-		return (self.currentPoint.getTS() - self.chargedPoint.getTS()).toFloat();
+		return ((self.currentPoint as BatteryPoint).getTS() - (self.chargedPoint as BatteryPoint).getTS()).toFloat();
 	}
 	
-	public function predictMark() {
+	public function predictMark() as Void {
 		markPredict = null;
 		var first = mStats.getMarkPoint();
 		if (first == null) {

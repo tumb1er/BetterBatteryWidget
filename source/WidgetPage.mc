@@ -1,6 +1,6 @@
 using Toybox.Application;
 using Toybox.Graphics;
-using Toybox.Lang;
+import Toybox.Lang;
 using Toybox.Math;
 using Toybox.System;
 using Toybox.Time;
@@ -9,13 +9,15 @@ using Toybox.WatchUi;
 	
 
 class WidgetPage extends WatchUi.View {
-	var mState;
+	var mState as State;
 	//var log;
-	var mGaugeDrawable, mPercentText, mPredictText;
+	var mGaugeDrawable as GaugeDrawable?;
+	var mPercentText as PercentText?;
+	var mPredictText as WatchUi.Text?;
 	
-	var percent, predicted;
+	var percent as Float = 0.0, predicted as String = "";
 
-    function initialize(state) {
+    public function initialize(state as State) {
         View.initialize();
         //log = new Log("WidgetPage");
     	//log.debug("initialize", state);
@@ -23,26 +25,26 @@ class WidgetPage extends WatchUi.View {
         mState.measure();
     }
 
-    function onLayout(dc) {
+    public function onLayout(dc as Graphics.Dc) as Void {
     	var w2 = dc.getWidth() / 2;
 
     	mGaugeDrawable = new GaugeDrawable({
 	    	:radius => w2,
-	    	:pen => loadResource(Rez.Strings.GaugePen).toNumber()
+	    	:pen => loadNumberFromStringResource(Rez.Strings.GaugePen)
     	});
     	
     	mPercentText = new PercentText({
     		:locX => w2,
     		:locY => w2,
-    		:color => 0xFFFFFF,
-    		:font => 16, // Graphics.FONT_SYSTEM_NUMBER_HOT
-    		:justification => 5 // Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
+    		:color => Graphics.COLOR_WHITE,
+    		:font => Graphics.FONT_SYSTEM_NUMBER_HOT,
+    		:justification => Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
     	});
     	
 		mPredictText = new WatchUi.Text({
     		:locX => w2,
     		:locY => 4 * w2 / 3,
-    		:color => 0xFFFFFF,
+    		:color => Graphics.COLOR_WHITE,
     		:font => Graphics.FONT_SMALL,
     		:justification => Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
 		});		
@@ -56,11 +58,12 @@ class WidgetPage extends WatchUi.View {
     	setLayout([mGaugeDrawable, mPercentText, bitmap, mPredictText] as Lang.Array<WatchUi.Drawable>);
     }
     
-    function onShow() {
+    public function onShow() as Void {
 		var stats = System.getSystemStats();
 		percent = stats.battery;
         predicted = computePredicted(stats);
-		mGaugeDrawable.color = colorize(percent);
+		var gd = (mGaugeDrawable as GaugeDrawable);
+		gd.color = colorize(percent);
 		try {
 			WatchUi.animate(mGaugeDrawable, :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
 			WatchUi.animate(mPercentText, :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);
@@ -69,29 +72,28 @@ class WidgetPage extends WatchUi.View {
 		}
     }
     
-    function onUpdate( dc ) {
-    	mPredictText.setText(predicted);
+    public function onUpdate(dc as Graphics.Dc) as Void {
+    	(mPredictText as PercentText).setText(predicted);
         View.onUpdate( dc );
 	}    
 	
-	function computePredicted(stats) {
+	private function computePredicted(stats as System.Stats) as String {
 		var result = new Result(mState);
 		result.predictWindow();
 		result.predictCharged();
 		var predicted = result.predictAvg(0.5);
 		if (predicted == null) {
 			if (stats.charging) {
-				predicted = loadResource(Rez.Strings.ChargingDot);
+				return loadResource(Rez.Strings.ChargingDot) as String;
 			} else {
-				predicted = loadResource(Rez.Strings.MeasuringDot);
+				return loadResource(Rez.Strings.MeasuringDot) as String;
 			}
 		} else {
-			predicted = formatInterval(predicted);
+			return formatInterval(predicted.toNumber());
 		}
-		return predicted;		
 	}
     
-    function updateState(state) {
+    public function updateState(state as State) as Void {
     	mState = state;
     }
 
@@ -100,12 +102,12 @@ class WidgetPage extends WatchUi.View {
 class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
 	//var log;
 
-    function initialize() {
+    public function initialize() {
         InputDelegate.initialize();
         //log = new Log("WidgetPageBehaviorDelegate");
     }
     
-    function enterWidget() {
+    private function enterWidget() as Boolean {
 		//log.msg("enterWidget");
 		var app = Application.getApp() as BetterBatteryWidgetApp;
 		var view = new GraphPage(app.mState);
@@ -114,7 +116,7 @@ class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
     	return true;
     }
     
-    function onKey(keyEvent) {
+    public function onKey(keyEvent as WatchUi.KeyEvent) as Boolean {
     	//log.debug("onKey", keyEvent.getKey());
     	if (keyEvent.getKey() == WatchUi.KEY_ENTER) {
     		return enterWidget();
@@ -122,11 +124,11 @@ class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
     	return false;
     }
     
-    function onTap(tapEvent) {
+    public function onTap(tapEvent as WatchUi.tapEvent) as Boolean {
    		//log.msg("onTap");
    		return enterWidget();
    	}
-   	function onSwipe(swipeEvent) {
+   	public function onSwipe(swipeEvent as WatchUi.SwipeEvent) as Boolean {
    		//log.msg("onSwipe");
    		return false;
    	}

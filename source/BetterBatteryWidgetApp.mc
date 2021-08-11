@@ -8,52 +8,52 @@ using Toybox.WatchUi;
 
 (:background :glance)
 class BetterBatteryWidgetApp extends Application.AppBase {
- 	//var log;
+ 	// var log as Log;
+    var mState as State;
 
-    var mWidgetPage;
-    var mState;
- 	var mMeasureInterval;
- 	var mGraphDuration;
- 	var mGraphMode;
+    var mWidgetPage as WidgetPage?;
+
+ 	var mMeasureInterval as Number?;
+ 	var mGraphDuration as Number?;
+ 	var mGraphMode as Number?;
     
-    function initialize() {
-    	AppBase.initialize();
-    	//log = new Log("App");
+    public function initialize() {
+    	// log = new Log("App");
+		AppBase.initialize();
     	loadSettings();
     	var data = Background.getBackgroundData() as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>;
     	mState = new State(data);
     }
 
-    function onBackgroundData(data) {
+    public function onBackgroundData(data as StateData?) as Void {
     	mState = new State(data);
-    	//log.debug("onBackgroundData: saving", data);
+    	// log.debug("onBackgroundData: saving", data as Dictionary);
     	mState.save();
-        if( mWidgetPage ) {
+        if( mWidgetPage != null ) {
 	    	//log.msg("onBackgroundData: calling WidgetPage.updateState");
-            mWidgetPage.updateState(mState);
+            (mWidgetPage as WidgetPage).updateState(mState);
         }
         WatchUi.requestUpdate();
     }
     
-    function onStart(state) {
+    public function onStart(state) as Void {
     	setBackgroundEvent();
-    	//log.msg("app started");
+    	// log.msg("app started");
     }
 
     // This method runs each time the main application starts.
-    function getInitialView() {
+    public function getInitialView() {
         mWidgetPage = new WidgetPage(mState);
         var inputDelegate = new WidgetPageBehaviorDelegate();
 		return [ mWidgetPage, inputDelegate ] as Array<WidgetPage or WidgetPageBehaviorDelegate>;
     }
 
     // This method runs each time the background process starts.
-    function getServiceDelegate(){
+    public function getServiceDelegate() {
         return [new BackgroundServiceDelegate()] as Array<BackgroundServiceDelegate>;
     }
     
-        
-    private function setBackgroundEvent() {    	
+    private function setBackgroundEvent() as Void {    	
     	var time = Background.getLastTemporalEventTime();
     	//log.debug("setBackgroundEvent lastTime", time);
 		time = Background.getTemporalEventRegisteredTime();
@@ -61,7 +61,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 			//log.debug("setBackgroundEvent regDuration", time);
 			return;
 		}
-		var interval = new Time.Duration(mMeasureInterval * 60);
+		var interval = new Time.Duration((mMeasureInterval as Number) * 60);
        	//log.debug("setBackgroundEvent scheduling", interval);
 		try {
 	 	    Background.registerForTemporalEvent(interval);
@@ -69,19 +69,19 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 	        //log.error("setBackgroundEvent error", e);
         }
     }
-   
-    function deleteBackgroundEvent() {
-    	//log.msg("deleteBackgroundEvent");
-        Background.deleteTemporalEvent();
-    }  
     
-    function onSettingsChanged() {
+    public function onSettingsChanged() as Void {
     	//log.msg("onSettingsChanged");
     	loadSettings();
         WatchUi.requestUpdate();
     }
+   
+    private function deleteBackgroundEvent() as Void {
+    	//log.msg("deleteBackgroundEvent");
+        Background.deleteTemporalEvent();
+    }  
     
-    private function loadSettings() {
+    private function loadSettings() as Void {
     	mMeasureInterval = getProperty("MeasurePeriod");
     	mGraphDuration = getProperty("GraphDuration");
     	mGraphMode = getProperty("GraphMode");
@@ -93,13 +93,13 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 (:background)
 class BackgroundServiceDelegate extends System.ServiceDelegate {
 	//var log;
-    function initialize() {
+    public function initialize() {
         ServiceDelegate.initialize();
         //log = new Log("BackgroundServiceDelegate");
     }
 
-    function onTemporalEvent() {
-    	var data = Background.getBackgroundData();
+    public function onTemporalEvent() as Void {
+    	var data = Background.getBackgroundData() as StateData?;
 		//log.debug("onTemporalEvent bgData", data); 
     	var state = new State(data);
     	//log.debug("onTemporalEvent measure", state.mData);
@@ -107,7 +107,7 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
 		var ret = state.getData();
 		//log.debug("onTemporalEvent ret", ret); 
 		try {
-			Background.exit(ret);
+			Background.exit(ret as Dictionary<String, Application.PropertyValueType>);
 		} catch (e instanceof Background.ExitDataSizeLimitException) {
 			throw new LogException("ExitDataSizeLimitException");
 		} catch (e) {

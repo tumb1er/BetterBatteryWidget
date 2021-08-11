@@ -1,12 +1,15 @@
 import Toybox.Lang;
 
-class PointsIterator {
-    private var mPoints as Array<Array<Number or Float> >;
-    private var mPosition;
+typedef StatePoint as Array<Number or Float>; // [ts, percent]
+typedef StatePoints as Array<StatePoint>;
 
-    public function initialize(points as Array<Array<Number or Float> >) {
+
+class PointsIterator {
+    private var mPoints as StatePoints;
+    private var mPosition as Number = 0;
+
+    public function initialize(points as StatePoints) {
         mPoints = points;
-        mPosition = 0;
     }
 
     public function size() as Number {
@@ -17,27 +20,28 @@ class PointsIterator {
         if (mPoints.size() == 0) {
             return null;
         }
-        var point = mPoints[mPoints.size() - 1] as Array<Number or Float>;
-        return new BatteryPoint(point[0], point[1]);
+        var point = mPoints[mPoints.size() - 1] as StatePoint;
+        return new BatteryPoint(point[0] as Number, point[1] as Float);
     }
 
     public function first() as BatteryPoint? {
         if (mPoints.size() == 0) {
             return null;
         }
-        var point = mPoints[0] as Array<Number or Float>;
-        return new BatteryPoint(point[0], point[1]);
+        var point = mPoints[0] as StatePoint;
+        return new BatteryPoint(point[0] as Number, point[1] as Float);
     }
 
-    public function reset() {
+    public function reset() as Void {
         self.mPosition = 0;
     }
+
     public function next() as BatteryPoint? {
         if (mPosition >= mPoints.size()) {
             return null;
         }
-        var res = mPoints[mPosition];
+        var res = mPoints[mPosition] as StatePoint;
         mPosition += 1;
-        return new BatteryPoint(res[0], res[1]);
+        return new BatteryPoint(res[0] as Number, res[1] as Float);
     }
 }

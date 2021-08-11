@@ -9,76 +9,82 @@ using Toybox.WatchUi;
 Shows discharge graph
 */
 class GraphPage extends WatchUi.View {
-	var mState;
-	var mTriText;
-	var mMode;
-	var mGraph;
-	var mGraphDuration;
-	var mGraphMode;
-	//var log;
-	var mx, my, offset;
+	var mState as State;
+	var mTriText as TriText?;
+	var mGraph as GraphDrawable?;
 
-    function initialize(state) {
+	var mMode as Number;
+	var mGraphDuration as Number;
+	var mGraphMode as Number;
+	//var log;
+	var mx as Number = 0, my as Number = 0, offset as Number = 0;
+
+    public function initialize(state as State) {
     	View.initialize();
 		//log = new Log("GraphPage");
 		mState = state;
 		mMode = 0;
-		var app = Application.getApp() as BetterBatteryWidgetApp;
-		mGraphDuration = 3600 * app.mGraphDuration;
-		mGraphMode = app.mGraphMode;
+		var app = Application.getApp() as BetterBatteryWidgetApp;  // FIXME: Use BBWA and override return type
+		mGraphDuration = 3600 * (app.mGraphDuration as Number);  // FIXME: private variable + getter
+		mGraphMode = (app.mGraphMode as Number);  // FIXME: private variable + getter
 	}
 	
-    function onLayout( dc ) {
+    public function onLayout(dc as Graphics.Dc ) as Void {
     	var w = dc.getWidth();
     	var h = dc.getHeight();
     	
     	var RS = Rez.Strings;
 		var RJ = Rez.JsonData;
     	
-    	var gw = loadResource(RS.GraphWidth).toNumber();
-    	var gh = loadResource(RS.GraphHeight).toNumber();
-    	var th = loadResource(RS.GraphStatusHeight).toNumber();
-    	var ty = loadResource(RS.GraphStatusY).toNumber();
-    	offset = loadResource(RS.GraphIntervalOffset).toNumber();
+    	var gw = loadNumberFromStringResource(RS.GraphWidth);
+    	var gh = loadNumberFromStringResource(RS.GraphHeight);
+    	var th = loadNumberFromStringResource(RS.GraphStatusHeight);
+    	var ty = loadNumberFromStringResource(RS.GraphStatusY);
+    	offset = loadNumberFromStringResource(RS.GraphIntervalOffset);
     	mx = w / 2;
     	my = h - 10;
     	var graphMargin = (w - gw) / 2;
-    	mGraph = new GraphDrawable({
+
+    	var graph = new GraphDrawable({
 	    	:width => gw,
 	    	:height => gh,
 	    	:x => graphMargin,
 	    	:y => h / 2 - graphMargin,
-	    	:border => 0xFFFFFF,
-	    	:background => -1, // Graphics.COLOR_TRANSPARENT
-	    	:shade => (mGraphMode == 1)? 0xAAAAAA: null,
-	    	:foreground => 0xFF0000,
-	    	:interval => mGraphDuration,
-	    	:scale => 0
+	    	:border => Graphics.COLOR_WHITE,
+	    	:foreground => Graphics.COLOR_RED,
+	    	:background => Graphics.COLOR_TRANSPARENT,
+	    	:shade => (mGraphMode == 1)? Graphics.COLOR_LT_GRAY: null,
+	    	:interval => mGraphDuration as Number,
+	    	:scale => 0.0
     	});
-    	mGraph.mShowExtremums = false;
+    	graph.mShowExtremums = false;
     	//log.debug("setData", mState.mPoints);
-    	mGraph.setData(mState.getPointsIterator());
+    	graph.setData(mState.getPointsIterator());
+
+		mGraph = graph;
     	mTriText = new TriText({
     		:width => w,
     		:height => th,
     		:locX => 0,
     		:locY => ty,
-    		:color => 0xFFFFFF,
+    		:color => Graphics.COLOR_WHITE,
     		:suffix => true,
-    		:text => loadResource(Rez.Strings.Computing)
+    		:text => loadResource(Rez.Strings.Computing) as String
     	});
     	setLayout([mGraph, mTriText] as Array<GraphDrawable or TriText>);
     }
     
-    function onShow() {
+    public function onShow() as Void {
 		WatchUi.animate(mGraph, :scale, WatchUi.ANIM_TYPE_EASE_OUT, 0, 1, 0.2, method(:onAnimateEnd));
     }
-    function onAnimateEnd() as Void {
-    	mGraph.mShowExtremums = true;
+
+    public function onAnimateEnd() as Void {
+		var g = (mGraph as GraphDrawable);
+    	g.mShowExtremums = true;
     	requestUpdate();
     }
     
-    function getPredictions() as Array<Float or Null or Array<String or Null or Boolean> > {
+    private function getPredictions() as Array<Float or Null or Array<String or Null or Boolean> > {
     	var result = new Result(mState);
 		result.predictCharged();
 		result.predictWindow();
@@ -103,40 +109,42 @@ class GraphPage extends WatchUi.View {
 		return [percent, text[0], text[1], text[2]] as Array<Float or Null or Array<String or Null or Boolean> >;  
     }
     
-    function drawPredictions(dc) {
+    private function drawPredictions(dc as Graphics.Dc) as Void {
     	dc.setColor(0x00AAFF, 0x00AAFF);
-    	dc.fillRectangle(0, 0, mTriText.width, mTriText.height);
+		var tt = mTriText as TriText;
+    	dc.fillRectangle(0, 0, tt.width, tt.height);
 		var predictions = getPredictions();
 		var stats = System.getSystemStats();
     	//log.debug("drawPredictions", predictions[0]);
 		if (predictions[0] != null) {
 			if (predictions[3] as Boolean) {
-				mTriText.value = formatInterval(predictions[0]);				
+				tt.value = formatInterval(predictions[0] as Number);				
 			} else { 
-				mTriText.value = formatPercent(predictions[0]);				
+				tt.value = formatPercent(predictions[0]);				
 			}
-			mTriText.title = predictions[1];
-			mTriText.desc = predictions[2];
+			tt.title = predictions[1] as String;
+			tt.desc = predictions[2] as String;
 			
 		} else {
-			mTriText.value = null;
+			tt.value = "";
 			if (stats.charging) {
-				mTriText.text = loadResource(Rez.Strings.ChargingDot);
+				tt.text = loadResource(Rez.Strings.ChargingDot) as String;
 			} else {
-				mTriText.text = loadResource(Rez.Strings.ComputingDot);
+				tt.text = loadResource(Rez.Strings.ComputingDot) as String;
 			}
 		}
-		mTriText.draw(dc);	
+		tt.draw(dc);	
     }
 	
-	function onUpdate(dc) {
+	public function onUpdate(dc as Graphics.Dc) as Void {
 		dc.setColor(0xFFFFFF, 0x000000);
 		dc.setPenWidth(1);
 		dc.clear();
 		
 		drawPredictions(dc);
+		var g = mGraph as GraphDrawable;
 		
-		mGraph.draw(dc);
+		g.draw(dc);
 
 		dc.fillPolygon([
 			[mx, my + 5] as Array<Number>, 
@@ -147,18 +155,19 @@ class GraphPage extends WatchUi.View {
 		dc.drawText(
 			mx, my-offset, 
 			Graphics.FONT_XTINY,
-			formatInterval(mGraph.interval), 
+			formatInterval(g.interval), 
 			Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
 		);
 	}
 	
 	
-    function updateState(state) {
+    private function updateState(state as State) as Void {
     	mState = state;
-    	mGraph.setData(mState.mPoints);
+		var g = mGraph as GraphDrawable;
+    	g.setData(state.getPointsIterator());
     }
     
-    function nextMode() {
+    public function nextMode() as Void {
     	mMode = (mMode + 1) % 2;
     	requestUpdate();
     }
@@ -166,23 +175,23 @@ class GraphPage extends WatchUi.View {
 
 
 class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
-	var mView;
+	var mView as GraphPage;
 	//var log;
 
-    function initialize(view) {
+    public function initialize(view as GraphPage) {
         InputDelegate.initialize();
         //log = new Log("GraphPageBehaviorDelegate");
         mView = view;
         var s = System.getDeviceSettings();
     }
     
-    function onBack() {
+    public function onBack() as Boolean {
 		//log.msg("onBack");
         popView(WatchUi.SLIDE_RIGHT);
         return true;
     }
     
-    function onNextPage() {
+    public function onNextPage() as Boolean {
     	//log.msg("onNextPage");
 		var app = Application.getApp() as BetterBatteryWidgetApp;
 		var infoPage = new InfoPage(app.mState);
@@ -190,13 +199,13 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 		return true;
 	}
 
-	function onSelect() {
+	public function onSelect() as Boolean {
 		//log.msg("onSelect");
 		mView.nextMode();
 		return true;
     }
     
-    function onTap(clickEvent) {
+    public function onTap(clickEvent) as Boolean {
     	var coords = clickEvent.getCoordinates();
     	var type = clickEvent.getType();
     	//log.debug("onTap", [coords, type]);
@@ -208,7 +217,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
     }
     
         
-    function onKey(keyEvent) {
+    public function onKey(keyEvent as WatchUi.KeyEvent) as Boolean {
     	//log.debug("onKey", keyEvent.getKey());
     	switch(keyEvent.getKey()) {
 			case WatchUi.KEY_ENTER:
@@ -223,7 +232,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
     	}
     }
     
-    function onSwipe(swipeEvent) {
+    public function onSwipe(swipeEvent as WatchUi.SwipeEvent) as Boolean {
    		//log.debug("onSwipe", swipeEvent.getDirection());
    		switch (swipeEvent.getDirection()) {
    			case WatchUi.SWIPE_UP:
@@ -234,7 +243,6 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
    				return false;
    		}
    	}
-    
 }
 
 

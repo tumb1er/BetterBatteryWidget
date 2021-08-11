@@ -16,118 +16,17 @@ const KEY_ACTIVITY = "a";
 const KEY_MARK = "m";
 const MAX_POINTS = 5;
 
-class Result {
-	var mStats;
-	var chargedTs, chargedPercent;
-	var chargedSpeed, chargedPredict;
-	var windowSpeed, windowPredict;
-	var markSpeed, markPredict;
-	var avgSpeed, avgPredict;
-	
-	function initialize(stats) {
-		mStats = stats;
-		if (mStats.mCharged != null) { 
-			chargedTs = mStats.mCharged[0];
-			chargedPercent = mStats.mCharged[1];
-		}
-	}
-	
-	function predict(first, last) {
-		var duration = (last[0] - first[0]).toDouble();
-		var delta = (last[1] - first[1]).abs();
-		if (delta == 0 || duration == 0) {
-			return [null, null];
-		}
-		var speed = delta / duration;
-		return [speed, last[1] / speed];		
-	}
-	
-	function predictAvg(weight) {
-		if (windowPredict == null) {
-			return chargedPredict;
-		}
-		if (chargedPredict == null) {
-			return windowPredict;
-		}
-		return windowPredict * weight + chargedPredict * (1.0 - weight);
-	}
-	
-	function predictWindow() {
-		windowSpeed = null;
-		windowPredict = null;
-		var data = mStats.mData;
-		if (data.size() < 2) {
-			return;
-		}
-		var first = data[0];
-		var last = data[data.size() - 1];
-		var result = predict(first, last);
-		windowSpeed = result[0];
-		windowPredict = result[1];
-	}
-	
-	function predictCharged() {
-		chargedSpeed = null;
-		chargedPredict = null;
-		var first = mStats.mCharged;
-		if (first == null) {
-			return;
-		}
-		var data = mStats.mData;
-		if (data.size() == 0) {
-			return;
-		}
-		var last = data[data.size() - 1];
-		var result = predict(first, last);
-		chargedSpeed = result[0];
-		chargedPredict = result[1];
-	}
-	
-	function chargedDuration() {
-		var first = mStats.mCharged;
-		if (first == null) {
-			return 0;
-		}
-		var data = mStats.mData;
-		if (data.size() == 0) {
-			return 0;
-		}
-		var last = data[data.size() - 1];
-		var duration = (last[0] - first[0]).toDouble();
-		return duration;
-	}
-	
-	function predictMark() {
-		markSpeed = null;
-		markPredict = null;
-		var first = mStats.mMark;
-		if (first == null) {
-			return;
-		}
-		var data = mStats.mData;
-		if (data.size() == 0) {
-			return;
-		}
-		var last = data[data.size() - 1];
-		var result = predict(first, last);
-		markSpeed = result[0];
-		markPredict = result[1];
-	}
-	
-}
-
-
 (:background)
 class State {
-	var mData;	
-	var mPoints;
-	var mCharged;
-	var mMark;
-	var mActivityRunning;
+	private var mData;	
+	private var mPoints;
+	private var mCharged;
+	private var mMark;
+	private var mActivityRunning;
 	//var log;
 	var mGraphDuration;
 	
-	function initialize(data) {
+	public function initialize(data) {
 		//log = new Log("State");
 		var app = Application.getApp();
 		mGraphDuration = 3600 * app.mGraphDuration;
@@ -152,6 +51,58 @@ class State {
 			mActivityRunning = data[KEY_ACTIVITY];
 		}
 		//log.debug("initialize: data", mData);
+	}
+
+	public function getPointsIterator() as PointsIterator {
+		return new PointsIterator(mPoints);
+	}
+
+	public function getDataIterator() as PointsIterator {
+		return new PointsIterator(mData);
+	}
+
+	public function getChargedPoint() as BatteryPoint? {
+		if (mCharged == null) {
+			return null;
+		}
+		return new BatteryPoint(mCharged[0], mCharged[1]);
+	}
+
+	public function getMarkPoint() as BatteryPoint? {
+		if (mMark == null) {
+			return null;
+		}
+		return new BatteryPoint(mMark[0], mMark[1]);
+	}
+
+	(:debug)
+	public function getmActivityRunning() as Boolean {
+		return self.mActivityRunning;
+	}
+
+	(:debug)
+	public function setmActivityRunning(v as Boolean) {
+		self.mActivityRunning = v;
+	}
+
+	(:debug)
+	public function getmData() {
+		return self.mData;
+	}
+
+	(:debug) 
+	public function setmData(data) {
+		self.mData = data;
+	}
+
+	(:debug)
+	public function getmPoints() {
+		return self.mPoints;
+	}
+
+	(:debug)
+	public function setmPoints(points) {
+		self.mPoints = points;
 	}
 	
 	public function getData() {
@@ -249,7 +200,7 @@ class State {
 	/**
 	Resets prediction data if activity state changed
 	*/
-	function checkActivityState(info, ts, value) {
+	public function checkActivityState(info, ts, value) {
 		
 		// При изменении статуса активности сбрасываем состояние.
 		var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
@@ -313,32 +264,33 @@ function testCheckActivityState(logger) {
 	var ts = Time.now().value();
 	var value = 75.1;
 	
-	state.mActivityRunning = true;
+	state.setmActivityRunning(true);
 	
 	// activity not registered
 	state.checkActivityState(null, ts, value);
 	
-	Test.assertEqualMessage(state.mActivityRunning, false, "mActivityRunning not updated");
-	Test.assertEqualMessage(state.mData.size(), 1, "mData not reset");
-	
-	state.mData.add([ts, value]);
+	Test.assertEqualMessage(state.getmActivityRunning(), false, "mActivityRunning not updated");
+	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
+
+	var d = state.getmData();
+	d.add([ts, value]);
 	var info = new Activity.Info();
 	info.timerState = Activity.TIMER_STATE_ON;
 	
 	// activity started
 	state.checkActivityState(info, ts, value);
 	
-	Test.assertEqualMessage(state.mActivityRunning, true, "mActivityRunning not updated");
-	Test.assertEqualMessage(state.mData.size(), 1, "mData not reset");
+	Test.assertEqualMessage(state.getmActivityRunning(), true, "mActivityRunning not updated");
+	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
 	
-	state.mData.add([ts, value]);
+	d.add([ts, value]);
 	info.timerState = Activity.TIMER_STATE_OFF;
 	
 	// activity stopped
 	state.checkActivityState(info, ts, value);
 	
-	Test.assertEqualMessage(state.mActivityRunning, false, "mActivityRunning not updated");
-	Test.assertEqualMessage(state.mData.size(), 1, "mData not reset");
+	Test.assertEqualMessage(state.getmActivityRunning(), false, "mActivityRunning not updated");
+	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
 	return true;
 } 
 
@@ -346,12 +298,12 @@ function testCheckActivityState(logger) {
 function testMeasureSmoke(logger) {
 	var app = Application.getApp();
 	var state = app.mState;
-	state.mPoints = [];
-	state.mData = [];
+	state.setmPoints([]);
+	state.setmData([]);
 	
 	state.measure();
 	
-	Test.assertEqualMessage(state.mPoints.size(), 1, "mPoints not updated");
-	Test.assertEqualMessage(state.mData.size(), 1, "mData not updated");
+	Test.assertEqualMessage(state.getmPoints().size(), 1, "mPoints not updated");
+	Test.assertEqualMessage(state.getmData().size(), 1, "mData not updated");
 	return true;
 }

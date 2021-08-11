@@ -71,13 +71,13 @@ class InfoPage extends WatchUi.View {
 	}
 	
 	function drawMark(dc) {
-		var mark = mState.mMark;
+		var mark = mState.getMarkPoint();
 		var RS = Rez.Strings;
 		var percent = loadResource(RS.Mark);
 		var marked = loadResource(RS.PressToPutMark);
 		if (mark != null) {
-			marked = formatTimestamp(mark[0]);
-			percent = Lang.format(loadResource(RS.MarkedWithParam), [formatPercent(mark[1])]);
+			marked = formatTimestamp(mark.getTS());
+			percent = Lang.format(loadResource(RS.MarkedWithParam), [formatPercent(mark.getValue())]);
 		}
 		dc.setColor(0xFF00FF, 0xFF00FF);
     	dc.fillRectangle(0, sh - mh, sw, sh);
@@ -94,9 +94,10 @@ class InfoPage extends WatchUi.View {
 		);
 	}
 	
-	function setPredictValues(view, speed, remaining) {
+	function setPredictValues(view as TriText, predict as BatteryPoint?) {
+		var speed = (predict != null)? predict.getValue(): null;
 		if (speed != null) {
-			view.value = formatInterval(remaining);
+			view.value = formatInterval(predict.getTS());
 			view.desc = Lang.format(loadResource(Rez.Strings.perHourWithParam), [formatPercent(speed * 3600)]);
 		} else {
 			view.value = null;
@@ -109,9 +110,9 @@ class InfoPage extends WatchUi.View {
 		result.predictCharged();
 		result.predictWindow();
 		result.predictMark();
-		setPredictValues(mChargedText, result.chargedSpeed, result.chargedPredict);
-		setPredictValues(mIntervalText, result.windowSpeed, result.windowPredict);
-		setPredictValues(mMarkText, result.markSpeed, result.markPredict);
+		setPredictValues(mChargedText, result.getChargedPredict());
+		setPredictValues(mIntervalText, result.getWindowPredict());
+		setPredictValues(mMarkText, result.getMarkPredict());
     	
 		View.onUpdate(dc);	
 		dc.fillPolygon([[cx, 5], [cx + 5, 10], [cx - 5, 10]]);   

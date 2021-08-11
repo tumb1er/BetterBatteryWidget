@@ -33,6 +33,7 @@ class GraphPage extends WatchUi.View {
     	var h = dc.getHeight();
     	
     	var RS = Rez.Strings;
+		var RJ = Rez.JsonData;
     	
     	var gw = loadResource(RS.GraphWidth).toNumber();
     	var gh = loadResource(RS.GraphHeight).toNumber();
@@ -56,7 +57,7 @@ class GraphPage extends WatchUi.View {
     	});
     	mGraph.mShowExtremums = false;
     	//log.debug("setData", mState.mPoints);
-    	mGraph.setData(mState.mPoints);
+    	mGraph.setData(mState.getPointsIterator());
     	mTriText = new TriText({
     		:width => w,
     		:height => th,
@@ -82,7 +83,9 @@ class GraphPage extends WatchUi.View {
 		result.predictCharged();
 		result.predictWindow();
 		var RS = Rez.Strings;
-		var predictions = [result.chargedDuration(), (result.windowSpeed != null)? result.windowSpeed * 3600: null];
+		var windowPredict = result.getWindowPredict();
+		var windowSpeed = (windowPredict != null)? windowPredict.getValue() * 3600: null;
+		var predictions = [result.chargedDuration(), windowSpeed];
 		var texts = [[loadResource(RS.Since), loadResource(RS.Charged), true], 
 					 [loadResource(RS.OverLast), loadResource(RS.Minutes30), false]];
 		var percent = null;

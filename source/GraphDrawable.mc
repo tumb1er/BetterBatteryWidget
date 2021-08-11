@@ -30,11 +30,11 @@ class GraphDrawable extends WatchUi.Drawable {
 	var start, end; // x axis margins
 	var scale; // y scale for animation
 	var mShowExtremums; // show extremums flag
-	//var log;
+	// var log;
 			
 	function initialize(params) {
 		Drawable.initialize(params);
-		//log = new Log("GraphDrawable");
+		// log = new Log("GraphDrawable");
 		w = params.get(:width);
 		h = params.get(:height);
 		x = params.get(:x);
@@ -48,11 +48,11 @@ class GraphDrawable extends WatchUi.Drawable {
 		mShowExtremums = true;
 	}
 	
-	public function setData(data) {
+	public function setData(data as PointsIterator) {
 		//log.debug("setData", data.size());
 		
 		// computing bounds for graph data
-		end = data[data.size() - 1][0];
+		end = data.last().getTS();
 		start = end - interval;
 
 		// get min/max coords
@@ -107,27 +107,37 @@ class GraphDrawable extends WatchUi.Drawable {
 		}
 	}
 	
-	private function extremums(data) {
+	private function extremums(data as PointsIterator) as Array<Float> {
 		if (data.size() < 2) {
-			//log.msg("not enough extremums points");
+			// log.msg("not enough extremums points");
 			return null;
 		}
+		
 		var minX = null, maxX = null;
 		var minY = null, maxY = null;
-		for (var i = 0; i < data.size(); i++) {
-			var ts = data[i][0];
-			var value = data[i][1]; 
+		var point = null;
+		var prev = null;
+		
+		data.reset();
+		while (true) {
+			prev = point;
+			point = data.next();
+			if (point == null) {
+				break;
+			}
+			var ts = point.getTS();
+			var value = point.getValue(); 
 			if (ts < start) {
 				// Пропускаем точки, находящиеся левее границы графика
 				continue;
 			}
 			if (minX == null || maxX == null) {
 				// Если есть точки левее графика, интерполируем их.
-				if (i == 0) {
+				if (prev == null) {
 					minX = ts; minY = value;
 					maxX = ts; maxY = value;
 				} else {
-					value = interpolate(data[i - 1][0], ts, start, data[i - 1][1], value);
+					value = interpolate(prev.getTS(), ts, start, prev.getValue(), value);
 					minX = start; minY = value;
 					maxX = start; maxY = value;
 				}
@@ -137,14 +147,16 @@ class GraphDrawable extends WatchUi.Drawable {
 			if (maxY < value) {maxX = ts; maxY = value;}
 		}
 		if (minY == maxY) {
-			//log.msg("extermums: minY == maxY");
-			return [data[data.size() - 1][0], minY, maxX, maxY];
+			// log.msg("extermums: minY == maxY");
+			return [data.last().getTS(), minY, maxX, maxY];
 		}
+		// log.debug("extremums", [minX, minY, maxX, maxY]);
 		return [minX, minY, maxX, maxY];		
 	}
 	
-	private function points(data) {
+	private function points(data as PointsIterator) {
 		if (mExtremums == null) {
+			// log.msg("no extremums - no points");
 			return null;
 		}
 		var minY = mExtremums[1];
@@ -155,14 +167,21 @@ class GraphDrawable extends WatchUi.Drawable {
 //		var top = y, bottom = y + h - 1;
 		var top = h - 2, bottom = 0;
 		var points = [];
-		
-		
-		for (var i = 0; i < data.size(); i++) {
-			var ts = data[i][0];
-			var value = data[i][1];
-			if (value == null) {
-				new Log("points").debug("value is null", [i, data[i]]);
+		var point = null;
+		var prev = null;
+		var i = -1;
+		data.reset();
+		while (true) {
+			prev = point;
+			point = data.next();
+			// log.debug("point", point);
+			i += 1;
+			if (point == null) {
+				// log.debug("points", points);
+				break;
 			}
+			var ts = point.getTS();
+			var value = point.getValue();
 			if (ts < start) {
 				// skip points out of left bound
 				prevTs = ts;
@@ -170,7 +189,7 @@ class GraphDrawable extends WatchUi.Drawable {
 				continue;
 			}
 			if (px == null || py == null) {
-				if (i == 0) {
+				if (prev == null) {
 					// initial points
 					px = interpolate(start, end, ts, left, right);
 					py = interpolate(minY, maxY, value, bottom, top);

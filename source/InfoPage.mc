@@ -26,7 +26,7 @@ class InfoPage extends WatchUi.View {
     	var RS = Rez.Strings;
     	sw = dc.getWidth();
     	sh = dc.getHeight();
-    	cx = sw / 2;
+    	cx = (sw / 2).toNumber();
     	mh = loadResource(RS.MarkButtonHeight).toNumber();
     	my = loadResource(RS.MarkButtonY).toNumber();
     	var sy = loadResource(RS.StatsY).toNumber();
@@ -51,7 +51,7 @@ class InfoPage extends WatchUi.View {
     	params.put(:locY, sy + 2 * ss);
     	params.put(:text, loadResource(RS.NoMarkSet));
     	mMarkText = new TriText(params);
-    	setLayout([mChargedText, mIntervalText, mMarkText]);
+    	setLayout([mChargedText, mIntervalText, mMarkText] as Lang.Array<WatchUi.Drawable>);
     }
 	
 	function drawCharged(dc, ts, percent, charging) {
@@ -113,9 +113,15 @@ class InfoPage extends WatchUi.View {
 		setPredictValues(mChargedText, result.getChargedPredict());
 		setPredictValues(mIntervalText, result.getWindowPredict());
 		setPredictValues(mMarkText, result.getMarkPredict());
+
+		var c = cx as Lang.Number;
     	
 		View.onUpdate(dc);	
-		dc.fillPolygon([[cx, 5], [cx + 5, 10], [cx - 5, 10]]);   
+		dc.fillPolygon([
+			[c, 5] as Lang.Array<Lang.Numeric>, 
+			[c + 5, 10] as Lang.Array<Lang.Numeric>, 
+			[c - 5, 10] as Lang.Array<Lang.Numeric>
+		] as Lang.Array<Lang.Array<Lang.Numeric> >);   
 		drawMark(dc); 	
 	}
 	
@@ -145,7 +151,7 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
     
     function onPreviousPage() {
     	//log.msg("onPreviousPage");
-		var app = Application.getApp();
+		var app = Application.getApp() as BetterBatteryWidgetApp;
 		var view = new GraphPage(app.mState);
 		switchToView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_DOWN);    
 		return true;

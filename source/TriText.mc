@@ -25,9 +25,9 @@ class TriText extends WatchUi.Text {
 		if (value == null) {
 			dc.drawText(
 				gcx, top, 
-				4, // Graphics.FONT_LARGE
+				Graphics.FONT_LARGE,
 				text, 
-				1 // Graphics.TEXT_JUSTIFY_CENTER
+				Graphics.TEXT_JUSTIFY_CENTER
 			);
 			return;
 		}
@@ -35,15 +35,15 @@ class TriText extends WatchUi.Text {
 		var pos = gcx - centerOffset;
 		dc.drawText(
 			pos - 10, top, 
-			0, // Graphics.FONT_XTINY
+			Graphics.FONT_XTINY,
 			title, 
-			0 // Graphics.TEXT_JUSTIFY_RIGHT
+			Graphics.TEXT_JUSTIFY_RIGHT
 		);
 		dc.drawText(
 			pos - 10, top + descOffset, 
-			0, // Graphics.FONT_XTINY
+			Graphics.FONT_XTINY,
 			desc, 
-			0 // Graphics.TEXT_JUSTIFY_RIGHT
+			Graphics.TEXT_JUSTIFY_RIGHT
 		);
 		if (suffix) {
 			var sd = loadResource(Rez.Strings.shortDay);
@@ -53,23 +53,23 @@ class TriText extends WatchUi.Text {
 			var sfx = value.substring(value.length() - sfx_len, value.length());
 			dc.drawText(
 				pos, top  - numberOffset, 
-				6, // Graphics.FONT_NUMBER_MEDIUM
+				Graphics.FONT_NUMBER_MEDIUM,
 				val, 
-				2 // Graphics.TEXT_JUSTIFY_LEFT
+				Graphics.TEXT_JUSTIFY_LEFT
 			);
-			pos += dc.getTextWidthInPixels(val, 6) + 4; // Graphics.FONT_NUMBER_MEDIUM
+			pos += dc.getTextWidthInPixels(val, Graphics.FONT_NUMBER_MEDIUM) + 4;
 			dc.drawText(
 				pos, top + 8, 
-				3, // Graphics.FONT_LARGE 
+				Graphics.FONT_LARGE,
 				sfx, 
-				2 // Graphics.TEXT_JUSTIFY_LEFT
+				Graphics.TEXT_JUSTIFY_LEFT
 			);
 		} else {
 			dc.drawText(
 				pos, top - numberOffset, 
-				6, // Graphics.FONT_NUMBER_MEDIUM
+				Graphics.FONT_NUMBER_MEDIUM,
 				value, 
-				2 // Graphics.TEXT_JUSTIFY_LEFT
+				Graphics.TEXT_JUSTIFY_LEFT
 			);
 		}
 		

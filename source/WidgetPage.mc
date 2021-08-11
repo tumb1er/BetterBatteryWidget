@@ -43,8 +43,8 @@ class WidgetPage extends WatchUi.View {
     		:locX => w2,
     		:locY => 4 * w2 / 3,
     		:color => 0xFFFFFF,
-    		:font => 2, // Graphics.FONT_SMALL
-    		:justification => 5 // Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
+    		:font => Graphics.FONT_SMALL,
+    		:justification => Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER
 		});		
     	
     	var bitmap = new WatchUi.Bitmap({
@@ -53,7 +53,7 @@ class WidgetPage extends WatchUi.View {
     	var s = bitmap.getDimensions();
     	bitmap.setLocation(w2 - s[0] / 2, 7 * w2 / 12  - s[1] / 2);
     	
-    	setLayout([mGaugeDrawable, mPercentText, bitmap, mPredictText]);
+    	setLayout([mGaugeDrawable, mPercentText, bitmap, mPredictText] as Lang.Array<WatchUi.Drawable>);
     }
     
     function onShow() {
@@ -65,7 +65,7 @@ class WidgetPage extends WatchUi.View {
 			WatchUi.animate(mGaugeDrawable, :value, WatchUi.ANIM_TYPE_EASE_OUT, 0, percent, 0.5, null);
 			WatchUi.animate(mPercentText, :percent, WatchUi.ANIM_TYPE_LINEAR, 0, percent, 0.5, null);
 		} catch (e instanceof Lang.InvalidValueException) {
-			throw new Lang.Exception(Lang.format("Invalid value $1$: $2$", [percent, e.msg]));
+			throw new LogException(Lang.format("Invalid value $1$: $2$", [percent, e.getErrorMessage()]));
 		}
     }
     
@@ -107,7 +107,7 @@ class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
     
     function enterWidget() {
 		//log.msg("enterWidget");
-		var app = Application.getApp();
+		var app = Application.getApp() as BetterBatteryWidgetApp;
 		var view = new GraphPage(app.mState);
 		pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);   
 		//log.msg("enterWidget done"); 

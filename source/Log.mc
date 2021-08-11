@@ -1,3 +1,4 @@
+using Toybox.Lang;
 using Toybox.Time;
 
 (:background)
@@ -28,4 +29,18 @@ class Log {
 		ex.printStackTrace();
 	}
 	
+}
+
+
+(:background)
+class LogException extends Lang.Exception {
+	var msg;
+	public function initialize(msg as Lang.String) {
+		Exception.initialize();
+		self.msg = msg;
+	}
+
+	public function toString() as Lang.String {
+		return self.msg;
+	}
 }

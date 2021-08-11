@@ -1,6 +1,6 @@
 using Toybox.Application;
 using Toybox.Graphics;
-using Toybox.Lang;
+import Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi;
@@ -23,7 +23,7 @@ class GraphPage extends WatchUi.View {
 		//log = new Log("GraphPage");
 		mState = state;
 		mMode = 0;
-		var app = Application.getApp();
+		var app = Application.getApp() as BetterBatteryWidgetApp;
 		mGraphDuration = 3600 * app.mGraphDuration;
 		mGraphMode = app.mGraphMode;
 	}
@@ -67,40 +67,40 @@ class GraphPage extends WatchUi.View {
     		:suffix => true,
     		:text => loadResource(Rez.Strings.Computing)
     	});
-    	setLayout([mGraph, mTriText]);
+    	setLayout([mGraph, mTriText] as Array<GraphDrawable or TriText>);
     }
     
     function onShow() {
 		WatchUi.animate(mGraph, :scale, WatchUi.ANIM_TYPE_EASE_OUT, 0, 1, 0.2, method(:onAnimateEnd));
     }
-    function onAnimateEnd() {
+    function onAnimateEnd() as Void {
     	mGraph.mShowExtremums = true;
     	requestUpdate();
     }
     
-    function getPredictions() {
+    function getPredictions() as Array<Float or Null or Array<String or Null or Boolean> > {
     	var result = new Result(mState);
 		result.predictCharged();
 		result.predictWindow();
 		var RS = Rez.Strings;
 		var windowPredict = result.getWindowPredict();
 		var windowSpeed = (windowPredict != null)? windowPredict.getValue() * 3600: null;
-		var predictions = [result.chargedDuration(), windowSpeed];
+		var predictions = [result.chargedDuration(), windowSpeed] as Array<Float>;
 		var texts = [[loadResource(RS.Since), loadResource(RS.Charged), true], 
 					 [loadResource(RS.OverLast), loadResource(RS.Minutes30), false]];
 		var percent = null;
-		var text = [null, null];
+		var text = [null, null, false] as Array<String or Null or Boolean>;
 		
 		var i = 0;
 		for (var j = mMode; i < 2; j=(j + 1) % 2) {
 			i++;
 			if (predictions[j] != null) {
 				percent = predictions[j];
-				text = texts[j];
+				text = texts[j] as Array<String or Null or Boolean>;
 				break;
 			}
 		}
-		return [percent, text[0], text[1], text[2]];  
+		return [percent, text[0], text[1], text[2]] as Array<Float or Null or Array<String or Null or Boolean> >;  
     }
     
     function drawPredictions(dc) {
@@ -110,7 +110,7 @@ class GraphPage extends WatchUi.View {
 		var stats = System.getSystemStats();
     	//log.debug("drawPredictions", predictions[0]);
 		if (predictions[0] != null) {
-			if (predictions[3]) {
+			if (predictions[3] as Boolean) {
 				mTriText.value = formatInterval(predictions[0]);				
 			} else { 
 				mTriText.value = formatPercent(predictions[0]);				
@@ -138,13 +138,17 @@ class GraphPage extends WatchUi.View {
 		
 		mGraph.draw(dc);
 
-		dc.fillPolygon([[mx, my + 5], [mx + 5, my], [mx - 5, my]]);
+		dc.fillPolygon([
+			[mx, my + 5] as Array<Number>, 
+			[mx + 5, my] as Array<Number>, 
+			[mx - 5, my] as Array<Number>
+		] as Array<Array<Number> >);
 		
 		dc.drawText(
 			mx, my-offset, 
-			0, // FONT_XTINY
+			Graphics.FONT_XTINY,
 			formatInterval(mGraph.interval), 
-			5 // TEXT_JUSTIFY_CENTER | TEXT_JUSTIFY_VCENTER
+			Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
 		);
 	}
 	
@@ -180,7 +184,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
     
     function onNextPage() {
     	//log.msg("onNextPage");
-		var app = Application.getApp();
+		var app = Application.getApp() as BetterBatteryWidgetApp;
 		var infoPage = new InfoPage(app.mState);
 		switchToView(infoPage, new InfoPageBehaviorDelegate(infoPage), WatchUi.SLIDE_UP);    
 		return true;

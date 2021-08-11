@@ -3,7 +3,7 @@ State describes current state of battery widget
 */
 using Toybox.Activity;
 using Toybox.Application;
-using Toybox.Lang;
+import Toybox.Lang;
 using Toybox.System;
 using Toybox.Test;
 using Toybox.Time;
@@ -18,37 +18,34 @@ const MAX_POINTS = 5;
 
 (:background)
 class State {
-	private var mData;	
-	private var mPoints;
-	private var mCharged;
-	private var mMark;
-	private var mActivityRunning;
+	private var mData as Array<Array<Number or Float> >;	
+	private var mPoints as Array<Array<Number or Float> >;
+	private var mCharged as Array<Number or Float>?;
+	private var mMark as Array<Number or Float>?;
+	private var mActivityRunning as Boolean;
 	//var log;
 	var mGraphDuration;
 	
-	public function initialize(data) {
+	public function initialize(data as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>?) {
 		//log = new Log("State");
-		var app = Application.getApp();
+		var app = Application.getApp() as BetterBatteryWidgetApp;
 		mGraphDuration = 3600 * app.mGraphDuration;
 		//log.debug("initialize: passed", data);
 		if (data == null) {
-			data = app.getProperty(STATE_PROPERTY);		
+			data = app.getProperty(STATE_PROPERTY) as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>?;		
 		}
 		if (data == null) {
-			mData = [];
+			mData = [] as Array<Array<Number or Float> >;
+			mPoints = [] as Array<Array<Number or Float> >;
 			mCharged = null;
-			mActivityRunning = false;
-			mPoints = [];
 			mMark = null;
+			mActivityRunning = false;
 		} else {
-			mData = data[KEY_DATA];
-			mPoints = data[KEY_POINTS];
-			mCharged = data[KEY_CHARGED];
-			mMark = data[KEY_MARK];
-			if (mMark == false) {
-				mMark = null;
-			}
-			mActivityRunning = data[KEY_ACTIVITY];
+			mData = data[KEY_DATA] as Array<Array<Number or Float> >;
+			mPoints = data[KEY_POINTS] as Array<Array<Number or Float> >;
+			mCharged = ((data[KEY_CHARGED])? data[KEY_CHARGED]: null) as Array<Number or Float>?;
+			mMark = ((data[KEY_MARK])? data[KEY_MARK]: null) as Array<Number or Float>?;
+			mActivityRunning = data[KEY_ACTIVITY] as Boolean;
 		}
 		//log.debug("initialize: data", mData);
 	}
@@ -132,7 +129,7 @@ class State {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
 		//log.debug("mark", stats.battery);
-		mMark = [ts, stats.battery];
+		mMark = [ts, stats.battery] as Array<Number or Float>?;
 	}
 	
 	/**
@@ -141,7 +138,7 @@ class State {
 	private function pushPoint(ts, value) {
 		// Если массив пуст, добавляем точку без условий
 		if (mPoints.size() == 0) {
-			mPoints.add([ts, value]);
+			mPoints.add([ts, value] as Array<Number or Float>);
 			return;
 		}
 		// Не добавляем точку, если интервал времени между ними слишком мал
@@ -157,7 +154,7 @@ class State {
 			return;
 		}
 		
-		mPoints.add([ts, value]);
+		mPoints.add([ts, value] as Array<Number or Float>);
 		
 		// Храним точки не дольше N часов
 		var i;
@@ -208,7 +205,7 @@ class State {
 			//log.debug("activity state changed, reset at", value);
 			mActivityRunning = activityRunning;
 			// Стираем только данные, отметка о последней зарядке остается на месте
-			mData = [[ts, value]];
+			mData = [[ts, value] as Array<Number or Float>] as Array<Array<Number or Float> >;
 			return;
 		}
 		
@@ -220,7 +217,7 @@ class State {
 		// Первую точку добавляем всегда.
 		//log.debug("pushData", mData);
 		if (mData.size() == 0) {
-			mData.add([ts, value]);
+			mData.add([ts, value] as Array<Number or Float>);
 			return;		
 		}
 
@@ -239,7 +236,7 @@ class State {
 		}
 
 		// Добавляем точку и удаляем устаревшие
-		mData.add([ts, value]);
+		mData.add([ts, value] as Array<Number or Float>);
 		if (mData.size() > MAX_POINTS) {
 			mData = mData.slice(1, null);
 		}
@@ -251,8 +248,8 @@ class State {
 	Сбрасывает данные для измерений. 
 	*/
 	private function reset(ts, value) {
-		mData = [[ts, value]];
-		mCharged = [ts, value];
+		mData = [[ts, value] as Array<Number or Float>] as Array<Array<Number or Float> >;
+		mCharged = [ts, value] as Array<Number or Float>?;
 		mMark = null;
 	}
 }

@@ -1,6 +1,6 @@
 using Toybox.Application;
 using Toybox.Background;
-using Toybox.Lang;
+import Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi;
@@ -20,7 +20,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     	AppBase.initialize();
     	//log = new Log("App");
     	loadSettings();
-    	var data = Background.getBackgroundData();
+    	var data = Background.getBackgroundData() as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>;
     	mState = new State(data);
     }
 
@@ -44,12 +44,12 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     function getInitialView() {
         mWidgetPage = new WidgetPage(mState);
         var inputDelegate = new WidgetPageBehaviorDelegate();
-        return [ mWidgetPage, inputDelegate ];
+		return [ mWidgetPage, inputDelegate ] as Array<WidgetPage or WidgetPageBehaviorDelegate>;
     }
 
     // This method runs each time the background process starts.
     function getServiceDelegate(){
-        return [new BackgroundServiceDelegate()];
+        return [new BackgroundServiceDelegate()] as Array<BackgroundServiceDelegate>;
     }
     
         
@@ -109,9 +109,9 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
 		try {
 			Background.exit(ret);
 		} catch (e instanceof Background.ExitDataSizeLimitException) {
-			throw new Lang.Exception("ExitDataSizeLimitException");
+			throw new LogException("ExitDataSizeLimitException");
 		} catch (e) {
-			throw new Lang.Exception(Lang.format("Unknown error $1$", [e]));
+			throw new LogException(format("Unknown error $1$", [e]));
 		}
     }
 }

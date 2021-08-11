@@ -1,3 +1,5 @@
+using Toybox.Lang;
+
 
 class Result {
     // var log;
@@ -42,12 +44,12 @@ class Result {
 		return new BatteryPoint((last.getValue() / speed).toNumber(), speed.toFloat());		
 	}
 	
-	public function predictAvg(weight) as Float {
+	public function predictAvg(weight as Lang.Float) as Lang.Float {
 		if (windowPredict == null) {
-			return chargedPredict.getTS();
+			return chargedPredict.getTS().toFloat();
 		}
 		if (chargedPredict == null) {
-			return windowPredict.getTS();
+			return windowPredict.getTS().toFloat();
 		}
 		return windowPredict.getTS() * weight + chargedPredict.getTS() * (1.0 - weight);
 	}
@@ -72,15 +74,14 @@ class Result {
         // log.debug("chargedPredict", self.chargedPredict);
 	}
 	
-	public function chargedDuration() as Double {
+	public function chargedDuration() as Lang.Float {
 		if (self.chargedPoint == null) {
-			return 0;
+			return 0.0;
 		}
         if (self.currentPoint == null) {
-            return 0;
+            return 0.0;
         }
-		var duration = (self.currentPoint.getTS() - self.chargedPoint.getTS()).toDouble();
-		return duration;
+		return (self.currentPoint.getTS() - self.chargedPoint.getTS()).toFloat();
 	}
 	
 	public function predictMark() {

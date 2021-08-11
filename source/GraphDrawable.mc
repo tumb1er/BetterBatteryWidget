@@ -1,14 +1,15 @@
+import Toybox.Lang;
 using Toybox.WatchUi;
 
 
-function interpolate(min_from, max_from, current, min_to, max_to) {
+function interpolate(min_from, max_from, current, min_to, max_to) as Double {
 	var fraction = 0.5;
 	if (min_from != max_from) {
 		fraction = (current - min_from).toDouble() / (max_from - min_from).toDouble();
 	}
+	var result = 0.0d;
 	try {
-		var result = (min_to + (max_to - min_to).toDouble() * fraction);
-		return result;
+		 result = (min_to + (max_to - min_to).toDouble() * fraction);
 		
 	} catch (ex) {
 		var log = new Log("interpolate");
@@ -16,7 +17,7 @@ function interpolate(min_from, max_from, current, min_to, max_to) {
 		log.error("interpolate error", ex);
 		throw ex;
 	}
-	return null;
+	return result;
 }
 
 
@@ -24,9 +25,9 @@ class GraphDrawable extends WatchUi.Drawable {
 	var w, h, x, y; // coordinates
 	var border, foreground, background, shade; // colors
 	var tick = 5;
-	var mPoints, mCoords, mData;
+	var mPoints, mCoords, mData as Array<Array<Number or Float> >?;
 	var interval; // data interval
-	var mExtremums; // min/max points
+	var mExtremums as Array<Number or Float>?; // min/max points
 	var start, end; // x axis margins
 	var scale; // y scale for animation
 	var mShowExtremums; // show extremums flag
@@ -107,7 +108,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		}
 	}
 	
-	private function extremums(data as PointsIterator) as Array<Float> {
+	private function extremums(data as PointsIterator) as Array<Float>? {
 		if (data.size() < 2) {
 			// log.msg("not enough extremums points");
 			return null;
@@ -137,7 +138,7 @@ class GraphDrawable extends WatchUi.Drawable {
 					minX = ts; minY = value;
 					maxX = ts; maxY = value;
 				} else {
-					value = interpolate(prev.getTS(), ts, start, prev.getValue(), value);
+					value = interpolate((prev as BatteryPoint).getTS(), ts, start, (prev as BatteryPoint).getValue(), value);
 					minX = start; minY = value;
 					maxX = start; maxY = value;
 				}
@@ -148,10 +149,10 @@ class GraphDrawable extends WatchUi.Drawable {
 		}
 		if (minY == maxY) {
 			// log.msg("extermums: minY == maxY");
-			return [data.last().getTS(), minY, maxX, maxY];
+			return [data.last().getTS(), minY, maxX, maxY] as Array<Float>?;
 		}
 		// log.debug("extremums", [minX, minY, maxX, maxY]);
-		return [minX, minY, maxX, maxY];		
+		return [minX, minY, maxX, maxY] as Array<Float>?;		
 	}
 	
 	private function points(data as PointsIterator) {

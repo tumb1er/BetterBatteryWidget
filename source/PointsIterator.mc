@@ -1,8 +1,10 @@
+import Toybox.Lang;
+
 class PointsIterator {
-    private var mPoints;
+    private var mPoints as Array<Array<Number or Float> >;
     private var mPosition;
 
-    public function initialize(points) {
+    public function initialize(points as Array<Array<Number or Float> >) {
         mPoints = points;
         mPosition = 0;
     }
@@ -15,7 +17,7 @@ class PointsIterator {
         if (mPoints.size() == 0) {
             return null;
         }
-        var point = mPoints[mPoints.size() - 1];
+        var point = mPoints[mPoints.size() - 1] as Array<Number or Float>;
         return new BatteryPoint(point[0], point[1]);
     }
 
@@ -23,7 +25,7 @@ class PointsIterator {
         if (mPoints.size() == 0) {
             return null;
         }
-        var point = mPoints[0];
+        var point = mPoints[0] as Array<Number or Float>;
         return new BatteryPoint(point[0], point[1]);
     }
 

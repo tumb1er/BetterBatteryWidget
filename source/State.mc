@@ -256,7 +256,7 @@ class State {
 
 (:test)
 function testCheckActivityState(logger) {
-	var app = Application.getApp();
+	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var state = app.mState;
 	var ts = Time.now().value();
 	var value = 75.1;
@@ -293,7 +293,7 @@ function testCheckActivityState(logger) {
 
 (:test)
 function testMeasureSmoke(logger) {
-	var app = Application.getApp();
+	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var state = app.mState;
 	state.setmPoints([]);
 	state.setmData([]);

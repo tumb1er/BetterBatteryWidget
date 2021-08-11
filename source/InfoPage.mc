@@ -204,7 +204,7 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
 
 (:test)
 function testInfoPageSmoke(logger) {
-	var app = Application.getApp();
+	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var page = new InfoPage(app.mState);
 	assertViewDraw(logger, page);
 	return true;

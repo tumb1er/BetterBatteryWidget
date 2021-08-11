@@ -240,7 +240,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 
 (:test)
 function testGraphPageSmoke(logger) {
-	var app = Application.getApp();
+	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var page = new GraphPage(app.mState);
 	var dc = assertViewDraw(logger, page);
 	logger.debug("onAnimateEnd");
@@ -250,7 +250,7 @@ function testGraphPageSmoke(logger) {
 
 (:test)
 function testGraphPageEmptyData(logger) {
-	var app = Application.getApp();
+	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var page = new GraphPage(app.mState);
 	var ts = Time.now().value();
 	app.mState.handleMeasurements(ts, 75.5, true);

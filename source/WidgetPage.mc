@@ -5,6 +5,7 @@ using Toybox.Math;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.Time.Gregorian;
+import Toybox.Test;
 using Toybox.WatchUi;
 	
 
@@ -135,7 +136,7 @@ class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
 }
 
 (:test)
-function testWidgetPageSmoke(logger) {
+function testWidgetPageSmoke(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var page = new WidgetPage(app.mState);
 	assertViewDraw(logger, page);

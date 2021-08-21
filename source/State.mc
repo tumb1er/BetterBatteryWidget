@@ -5,7 +5,7 @@ using Toybox.Activity;
 using Toybox.Application;
 import Toybox.Lang;
 using Toybox.System;
-using Toybox.Test;
+import Toybox.Test;
 using Toybox.Time;
 
 const STATE_PROPERTY = "s";
@@ -253,7 +253,7 @@ class State {
 }
 
 (:test)
-function testCheckActivityState(logger) {
+function testCheckActivityState(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var state = app.mState;
 	var ts = Time.now().value();
@@ -268,7 +268,7 @@ function testCheckActivityState(logger) {
 	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
 
 	var d = state.getmData();
-	d.add([ts, value]);
+	d.add([ts, value] as StatePoint);
 	var info = new Activity.Info();
 	info.timerState = Activity.TIMER_STATE_ON;
 	
@@ -278,7 +278,7 @@ function testCheckActivityState(logger) {
 	Test.assertEqualMessage(state.getmActivityRunning(), true, "mActivityRunning not updated");
 	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
 	
-	d.add([ts, value]);
+	d.add([ts, value] as StatePoint);
 	info.timerState = Activity.TIMER_STATE_OFF;
 	
 	// activity stopped
@@ -290,11 +290,11 @@ function testCheckActivityState(logger) {
 } 
 
 (:test)
-function testMeasureSmoke(logger) {
+function testMeasureSmoke(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var state = app.mState;
-	state.setmPoints([]);
-	state.setmData([]);
+	state.setmPoints([] as StatePoints);
+	state.setmData([] as StatePoints);
 	
 	state.measure();
 	

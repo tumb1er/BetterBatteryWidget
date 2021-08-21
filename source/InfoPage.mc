@@ -4,7 +4,7 @@ import Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi;
-
+import Toybox.Test;
 
 /**
 Shows debug data in text
@@ -205,7 +205,7 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
 
 
 (:test)
-function testInfoPageSmoke(logger) {
+function testInfoPageSmoke(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var page = new InfoPage(app.mState);
 	assertViewDraw(logger, page);

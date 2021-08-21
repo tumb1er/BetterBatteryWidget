@@ -191,7 +191,7 @@ class GraphDrawable extends WatchUi.Drawable {
 			// log.debug("point", point);
 			i += 1;
 			if (point == null) {
-				// log.debug("points", points);
+				// log.debug("points", [points, i]);
 				break;
 			}
 			point = point as BatteryPoint;
@@ -201,6 +201,7 @@ class GraphDrawable extends WatchUi.Drawable {
 				// skip points out of left bound
 				prevTs = ts;
 				prevValue = value;
+				// log.debug("continue", [ts, start]);
 				continue;
 			}
 			if (px == null || py == null) {

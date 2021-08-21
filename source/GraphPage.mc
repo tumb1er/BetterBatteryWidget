@@ -3,6 +3,7 @@ using Toybox.Graphics;
 import Toybox.Lang;
 using Toybox.System;
 using Toybox.Time;
+import Toybox.Test;
 using Toybox.WatchUi;
 
 /**
@@ -247,7 +248,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 
 
 (:test)
-function testGraphPageSmoke(logger) {
+function testGraphPageSmoke(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var page = new GraphPage(app.mState);
 	var dc = assertViewDraw(logger, page);
@@ -257,7 +258,7 @@ function testGraphPageSmoke(logger) {
 }
 
 (:test)
-function testGraphPageEmptyData(logger) {
+function testGraphPageEmptyData(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var page = new GraphPage(app.mState);
 	var ts = Time.now().value();

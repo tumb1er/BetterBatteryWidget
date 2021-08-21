@@ -8,6 +8,8 @@ typedef StatePoints as Array<StatePoint>;
 const MAX_TS = 1 << 22;
 const MAX_VALUE = 1 << 10;  // right 10 bits
 const INT32_MASK = 1l << 32;
+const LOW_MASK = INT32_MASK - 1;
+const HIGH_MASK = LOW_MASK << 32;
 
 
 class PointsIterator {
@@ -28,7 +30,17 @@ class PointsIterator {
     private var mSize as Number; // unpacked size
     private var mStart as Number;  // iterator start timestamp
     private var mPosition as Number = 0;
-    // private var log as Log;
+    private var log as Log;
+
+    private static function validate(ts as Number, value as Number) as Long {
+        if (ts > MAX_TS) {
+            throw new Lang.InvalidValueException("too long points vector");
+        }
+        if (value > 1000 || value < 0) {
+            throw new Lang.InvalidValueException("value out of range");
+        }
+        return (ts << 10 + value).toLong();
+    }
 
     public static function FromPoints(points as StatePoints) as PointsIterator {
         var size = points.size();
@@ -38,23 +50,14 @@ class PointsIterator {
         var start = points[0][0] as Number;
         var values = new [(size + 1) / 2 + 1] as Array<Long>;
         values[(size + 1) / 2] = start.toLong() << 32 + size;
-        var point = 0l;
         for (var i=0; i<size; i++) {
-            
             var ts = (points[i][0] - start) as Number;
-            if (ts > MAX_TS) {
-                throw new Lang.InvalidValueException("too long points vector");
-            }
             var value = (points[i][1] * 10).toNumber();
-            if (value > 1000 || value < 0) {
-                throw new Lang.InvalidValueException("value out of range");
-            }
+            var point = PointsIterator.validate(ts, value);
             if (i % 2 == 0) {
-                point = (ts << 10 + value).toLong();
                 values[i / 2] = point;
             } else {
-                values[i / 2] = point + (ts << 10 + value).toLong() << 32;
-                point = 0l;
+                values[i / 2] += point << 32;
             }
         }
         return new PointsIterator(values);
@@ -65,7 +68,7 @@ class PointsIterator {
     all previous are packed points.
     */
     public function initialize(points as Array<Long>) {
-        // log = new Log("PI");
+        log = new Log("PI");
         var size = points.size();
         if (size == 0) {
             points = new [0l] as Array<Long>;
@@ -100,6 +103,57 @@ class PointsIterator {
         return new BatteryPoint(ts as Number, value as Float);
     }
 
+    public function add(ts as Number, value as Float) as Void {
+        if (mSize == 0) {
+            mStart = ts;
+        }
+        var delta = ts - mStart;
+        var v = (value * 10).toNumber();
+        var point = PointsIterator.validate(delta, v);
+        if (mSize % 2 == 0) {
+            // moving start/size info to the right;
+            mPoints.add(mPoints[mSize / 2]);
+            // setting low bits with clear high bits to that place;
+            mPoints[mSize / 2] = point;
+        } else {
+            mPoints[mSize / 2] += point << 32;
+        }
+        mSize += 1;
+    }
+
+    public function set(i as Number, ts as Number, value as Float) as Void {
+        var delta = (ts - mStart);
+        // TODO: normalize delta for i==0
+        // log.debug("delta", delta);
+        // if (i == 0 && mStart != ts) {
+        //     var shift = (delta.toLong() << 32 + delta.toLong()) << 10;
+        //     log.debug("shift", shift);
+        //     mStart = ts;
+        //     for (var j = 0; j < mPoints.size() - 1; j++) {
+        //         log.debug("before", mPoints[j]);
+        //         mPoints[j] -= shift;
+        //         if (j == 0) {
+        //             // restore zero delta for first point
+        //             mPoints[j] += delta;
+        //         }
+        //         log.debug("after", mPoints[j]);
+        //     }
+        //     delta = 0;
+        // }
+        var v = (value * 10).toNumber();
+        var point = PointsIterator.validate(delta, v);
+        if (i % 2 == 0) {
+            // clear low bits
+            mPoints[i / 2] &= HIGH_MASK;
+            mPoints[i / 2] |= point;
+        } else {
+            // clear high bits
+            mPoints[i / 2] &= LOW_MASK;
+            mPoints[i / 2] |= point << 32;
+        }
+        log.debug("set", [i, point, mPoints[i / 2]]);
+    }
+
     public function last() as BatteryPoint? {
         if (mSize == 0) {
             return null;
@@ -114,8 +168,8 @@ class PointsIterator {
         return get(0);
     }
 
-    public function reset() as Void {
-        self.mPosition = 0;
+    public function start() as Void {
+        mPosition = 0;
     }
 
     public function next() as BatteryPoint? {
@@ -222,4 +276,60 @@ function testPointsIteratorInitializeTriple(logger as Logger) as Boolean {
     Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
 
     return true;
+}
+
+(:test)
+function testPointsIteratorAdd(logger as Logger) as Boolean {
+    var pi = PointsIterator.FromPoints([] as StatePoints);
+
+    pi.add(123, 55.5);
+
+    Test.assertEqualMessage(pi.size(), 1, "unexpected size");
+    Test.assertEqualMessage(pi.getStart(), 123, "unexpected start $1$");
+    var points = pi.getPoints();
+    Test.assertEqualMessage(points.size(), 2, "unexpected packed length");
+    var expected = (0 << 10 + 555).toLong();
+    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
+
+    pi.add(125, 77.7);
+
+    Test.assertEqualMessage(pi.size(), 2, Lang.format("unexpected size $1$", [pi.size()]));
+    points = pi.getPoints();
+    Test.assertEqualMessage(points.size(), 2, "unexpected length");
+    expected = (0l << 10 + 555l + ((125 - 123) << 10 + 777l) << 32).toLong();
+    Test.assertEqualMessage(points[0], expected, "unexpected packed long");
+
+    pi.add(126, 88.8);
+
+	Test.assertEqualMessage(pi.size(), 3, "unexpected size");
+    points = pi.getPoints();
+    Test.assertEqualMessage(points.size(), 3, "unexpected length");
+    expected = (126 - 123).toLong() << 10 + 888;
+    Test.assertEqualMessage(points[1], expected, "unexpected packed long");
+
+    return true;
+}
+
+(:test)
+function testPointsIteratorSet(logger as Logger) as Boolean {
+    var pi = PointsIterator.FromPoints([
+        [123, 55.5] as StatePoint, 
+        [125, 77.7] as StatePoint,
+    ] as StatePoints);
+    
+    pi.set(0, 124, 33.3);
+    
+    var points = pi.getPoints();
+    Test.assertEqualMessage(points.size(), 2, "unexpected length");
+    var expected = ((124 - 123).toLong() << 10 + 333l + ((125 - 123) << 10 + 777l) << 32).toLong();
+    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ $2$", [points[0], expected]));
+
+    pi.set(1, 127, 99.9);
+
+    points = pi.getPoints();
+    Test.assertEqualMessage(points.size(), 2, "unexpected length");
+    expected = ((124 - 123).toLong() << 10 + 333l + ((127 - 123) << 10 + 999l) << 32).toLong();
+    Test.assertEqualMessage(points[0], expected, "unexpected packed long");
+
+    return true;    
 }

@@ -16,21 +16,21 @@ const KEY_ACTIVITY = "a";
 const KEY_MARK = "m";
 const MAX_POINTS = 5;
 
-typedef StateValues as StatePoint or StatePoints or Boolean;
+typedef StateValues as StatePoint or StatePoints or Boolean or Array<Long>;
 typedef StateData as Dictionary<String, StateValues>;
 
 (:background)
 class State {
 	private var mData as StatePoints;	
-	private var mPoints as StatePoints;
+	private var mPoints as PointsIterator;
 	private var mCharged as StatePoint?;
 	private var mMark as StatePoint?;
 	private var mActivityRunning as Boolean;
-	//var log;
+	var log as Log;
 	var mGraphDuration as Number?;
 	
 	public function initialize(data as StateData?) {
-		//log = new Log("State");
+		log = new Log("State");
 		var app = Application.getApp() as BetterBatteryWidgetApp;
 		mGraphDuration = 3600 * (app.mGraphDuration as Number);
 		//log.debug("initialize: passed", data);
@@ -39,13 +39,13 @@ class State {
 		}
 		if (data == null) {
 			mData = [] as Array<Array<Number or Float> >;
-			mPoints = [] as Array<Array<Number or Float> >;
+			mPoints = PointsIterator.FromPoints([] as StatePoints);
 			mCharged = null;
 			mMark = null;
 			mActivityRunning = false;
 		} else {
 			mData = data[KEY_DATA] as Array<Array<Number or Float> >;
-			mPoints = data[KEY_POINTS] as Array<Array<Number or Float> >;
+			mPoints = PointsIterator.FromPoints(data[KEY_POINTS] as Array<Array<Number or Float> >);
 			mCharged = ((data[KEY_CHARGED])? data[KEY_CHARGED]: null) as Array<Number or Float>?;
 			mMark = ((data[KEY_MARK])? data[KEY_MARK]: null) as Array<Number or Float>?;
 			mActivityRunning = data[KEY_ACTIVITY] as Boolean;
@@ -54,7 +54,7 @@ class State {
 	}
 
 	public function getPointsIterator() as PointsIterator {
-		return PointsIterator.FromPoints(mPoints);
+		return mPoints;
 	}
 
 	public function getDataIterator() as PointsIterator {
@@ -91,18 +91,25 @@ class State {
 
 	(:debug)
 	public function getmPoints() as StatePoints {
-		return self.mPoints;
+		var s = mPoints.size();
+		var points = new [s] as StatePoints;
+		mPoints.start();
+		for (var i = 0; i < s; i++) {
+			var p = mPoints.next() as BatteryPoint;
+			points[i] = [p.getTS(), p.getValue()] as StatePoint;
+		}
+		return points;
 	}
 
 	(:debug)
 	public function setmPoints(points as StatePoints) as Void {
-		self.mPoints = points;
+		self.mPoints = PointsIterator.FromPoints(points);
 	}
 	
 	public function getData() as StateData {
 		return {
 			KEY_DATA => mData,
-			KEY_POINTS => mPoints,
+			KEY_POINTS => mPoints.serialize(),
 			KEY_CHARGED => mCharged,
 			KEY_ACTIVITY => mActivityRunning,
 			KEY_MARK => (mMark != null)?mMark:false
@@ -135,31 +142,32 @@ class State {
 	private function pushPoint(ts as Number, value as Float) as Void {
 		// Если массив пуст, добавляем точку без условий
 		if (mPoints.size() == 0) {
-			mPoints.add([ts, value] as Array<Number or Float>);
+			mPoints.add(ts, value);
 			return;
 		}
 		// Не добавляем точку, если интервал времени между ними слишком мал
-		var prev = mPoints[mPoints.size() - 1];
-		if (ts - prev[0] < 1) {
+		var prev = mPoints.last() as BatteryPoint;
+		if (ts - prev.getTS() < 1) {
 			return;
 		}
 		// Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
-		if (value == prev[1]) {
+		if (value == prev.getValue()) {
 			if (mPoints.size() > 1) {
-				prev[0] = ts;
+				mPoints.set(mPoints.size() - 1, ts, value);
 			}
 			return;
 		}
 		
-		mPoints.add([ts, value] as Array<Number or Float>);
+		mPoints.add(ts, value);
 		
-		// Храним точки не дольше N часов
-		var i;
-		for (i=0; mPoints[i][0] < ts - (mGraphDuration as Number); i++) {}
-		if (i != 0) {
-			// Оставляем одну точку про запас для графика
-			mPoints = mPoints.slice(i - 1, null);
-		}
+		// TODO: rotate
+		// // Храним точки не дольше N часов
+		// var i;
+		// for (i=0; mPoints[i][0] < ts - (mGraphDuration as Number); i++) {}
+		// if (i != 0) {
+		// 	// Оставляем одну точку про запас для графика
+		// 	mPoints = mPoints.slice(i - 1, null);
+		// }
 	}
 	
 	public function measure() as Void {

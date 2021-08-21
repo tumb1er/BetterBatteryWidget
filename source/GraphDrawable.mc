@@ -129,7 +129,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		var point = null;
 		var prev = null;
 		
-		data.reset();
+		data.start();
 		while (true) {
 			prev = point;
 			point = data.next();
@@ -184,7 +184,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		var point = null;
 		var prev = null;
 		var i = -1;
-		data.reset();
+		data.start();
 		while (true) {
 			prev = point;
 			point = data.next();

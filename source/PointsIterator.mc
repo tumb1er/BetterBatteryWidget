@@ -24,26 +24,24 @@ class PointsIterator {
     * value accuracy is 0.1%
 
     */
-    private var mStart as Number;  // iterator start timestamp
     private var mPoints as Array<Long>;  // packed int32 values
     private var mSize as Number; // unpacked size
+    private var mStart as Number;  // iterator start timestamp
     private var mPosition as Number = 0;
     // private var log as Log;
 
-    public function initialize(points as StatePoints) {
-        // log = new Log("PI");
-        mSize = points.size();
-        if (mSize == 0) {
-            mStart = 0;
-            mPoints = [] as Array<Long>;
-            return;
+    public static function FromPoints(points as StatePoints) as PointsIterator {
+        var size = points.size();
+        if (size == 0) {
+            return new PointsIterator([0l] as Array<Long>);
         }
-        mStart = points[0][0] as Number;
-        mPoints = new [(mSize + 1) / 2] as Array<Long>;
+        var start = points[0][0] as Number;
+        var values = new [(size + 1) / 2 + 1] as Array<Long>;
+        values[(size + 1) / 2] = start.toLong() << 32 + size;
         var point = 0l;
-        for (var i=0; i<mSize; i++) {
+        for (var i=0; i<size; i++) {
             
-            var ts = (points[i][0] - mStart) as Number;
+            var ts = (points[i][0] - start) as Number;
             if (ts > MAX_TS) {
                 throw new Lang.InvalidValueException("too long points vector");
             }
@@ -53,12 +51,35 @@ class PointsIterator {
             }
             if (i % 2 == 0) {
                 point = (ts << 10 + value).toLong();
-                mPoints[i / 2] = point;
+                values[i / 2] = point;
             } else {
-                mPoints[i / 2] = point + (ts << 10 + value).toLong() << 32;
+                values[i / 2] = point + (ts << 10 + value).toLong() << 32;
                 point = 0l;
             }
         }
+        return new PointsIterator(values);
+    }
+
+    /*
+    Accepts an array where last element is packed start timestamp + points count, and
+    all previous are packed points.
+    */
+    public function initialize(points as Array<Long>) {
+        // log = new Log("PI");
+        var size = points.size();
+        if (size == 0) {
+            points = new [0l] as Array<Long>;
+        }
+        var init = points[size - 1];
+        mStart = (init / INT32_MASK).toNumber();
+        mSize = (init % INT32_MASK).toNumber();
+        mPoints = points;
+    }
+
+    public function serialize() as Array<Long> {
+        // sync size and start values
+        mPoints[mPoints.size() - 1] = mStart.toLong() << 32 + mSize;
+        return mPoints;
     }
 
     public function size() as Number {
@@ -119,50 +140,66 @@ class PointsIterator {
 
 (:test)
 function testPointsIteratorInitializeZero(logger as Logger) as Boolean {
-    var pi = new PointsIterator([] as StatePoints);
+    var pi = PointsIterator.FromPoints([] as StatePoints);
 	Test.assertEqualMessage(pi.size(), 0, "unexpected size");
     Test.assertEqualMessage(pi.getStart(), 0, "unexpected start");
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 0, "unexpected length");
+    Test.assertEqualMessage(points.size(), 1, "unexpected packed length");
+    var data = pi.serialize();
+    Test.assertEqualMessage(data.size(), 1, "unexpected serialized length");
+    var expected = 0l << 32 + 0;  // unknown start + zero size
+    Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
 	return true;
 }
 
 (:test)
 function testPointsIteratorInitializeSingle(logger as Logger) as Boolean {
-    var pi = new PointsIterator([[123, 55.5] as StatePoint] as StatePoints);
+    var pi = PointsIterator.FromPoints([[123, 55.5] as StatePoint] as StatePoints);
 
 	Test.assertEqualMessage(pi.size(), 1, "unexpected size");
     Test.assertEqualMessage(pi.getStart(), 123, "unexpected start");
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 1, "unexpected length");
+    Test.assertEqualMessage(points.size(), 2, "unexpected packed length");
     var expected = (0 << 10 + 555).toLong();
     Test.assertEqualMessage(points[0], expected, "unexpected packed long");
     var p = pi.last() as BatteryPoint;
     Test.assertEqualMessage(p.getTS(), 123, "invalid ts");
-    Test.assertEqualMessage(p.getValue(), 55.5, Lang.format("invalid value $1$ != $2$", [p.getValue(), 55.5]));
+    Test.assertEqualMessage(p.getValue(), 55.5, "invalid value");
+    var data = pi.serialize();
+    Test.assertEqualMessage(data.size(), 2, "unexpected serialized length");
+    expected = 123l << 32 + 1;  // start + size
+    Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
+
     return true;
 }
 
 (:test)
 function testPointsIteratorInitializeDouble(logger as Logger) as Boolean {
-    var pi = new PointsIterator([[123, 55.5] as StatePoint, [125, 77.7] as StatePoint] as StatePoints);
+    var pi = PointsIterator.FromPoints([
+        [123, 55.5] as StatePoint, 
+        [125, 77.7] as StatePoint,
+    ] as StatePoints);
 
-	Test.assertEqualMessage(pi.size(), 2, "unexpected size");
+	Test.assertEqualMessage(pi.size(), 2, Lang.format("unexpected size $1$", [pi.size()]));
     Test.assertEqualMessage(pi.getStart(), 123, "unexpected start");
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 1, "unexpected length");
+    Test.assertEqualMessage(points.size(), 2, "unexpected length");
     var expected = (0l << 10 + 555l + ((125 - 123) << 10 + 777l) << 32).toLong();
     Test.assertEqualMessage(points[0], expected, "unexpected packed long");
     var p = pi.last() as BatteryPoint;
     Test.assertEqualMessage(p.getTS(), 125, "invalid ts");
     Test.assertEqualMessage(p.getValue(), 77.7, "invalid value");
+    var data = pi.serialize();
+    Test.assertEqualMessage(data.size(), 2, "unexpected serialized length");
+    expected = 123l << 32 + 2;  // start + size
+    Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
 
     return true;
 }
 
 (:test)
 function testPointsIteratorInitializeTriple(logger as Logger) as Boolean {
-    var pi = new PointsIterator([
+    var pi = PointsIterator.FromPoints([
         [123, 55.5] as StatePoint,
         [125, 77.7] as StatePoint,
         [126, 88.8] as StatePoint,
@@ -171,15 +208,18 @@ function testPointsIteratorInitializeTriple(logger as Logger) as Boolean {
 	Test.assertEqualMessage(pi.size(), 3, "unexpected size");
     Test.assertEqualMessage(pi.getStart(), 123, "unexpected start");
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 2, "unexpected length");
+    Test.assertEqualMessage(points.size(), 3, "unexpected length");
     var expected = (0l << 10 + 555l + ((125 - 123) << 10 + 777l) << 32).toLong();
     Test.assertEqualMessage(points[0], expected, "unexpected packed long 1");
     expected = ((126 - 123) << 10 + 888).toLong();
     Test.assertEqualMessage(points[1], expected, "unexpected packed long 2");
-    
     var p = pi.last() as BatteryPoint;
     Test.assertEqualMessage(p.getTS(), 126, "invalid ts");
     Test.assertEqualMessage(p.getValue(), 88.8, "invalid value");
+    var data = pi.serialize();
+    Test.assertEqualMessage(data.size(), 3, "unexpected serialized length");
+    expected = 123l << 32 + 3;  // start + size
+    Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
 
     return true;
 }

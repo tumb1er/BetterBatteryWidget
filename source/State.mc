@@ -54,11 +54,11 @@ class State {
 	}
 
 	public function getPointsIterator() as PointsIterator {
-		return new PointsIterator(mPoints);
+		return PointsIterator.FromPoints(mPoints);
 	}
 
 	public function getDataIterator() as PointsIterator {
-		return new PointsIterator(mData);
+		return PointsIterator.FromPoints(mData);
 	}
 
 	public function getChargedPoint() as BatteryPoint? {

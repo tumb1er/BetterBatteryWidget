@@ -67,7 +67,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		mShowExtremums = true;
 	}
 	
-	public function setData(data as PointsIterator) as Void {
+	public function setData(data as TimeSeries) as Void {
 		// log.debug("setData", data.size());
 		
 		// computing bounds for graph data
@@ -118,7 +118,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		}
 	}
 	
-	private function extremums(data as PointsIterator) as Array<Float>? {
+	private function extremums(data as TimeSeries) as Array<Float>? {
 		if (data.size() < 2) {
 			// log.msg("not enough extremums points");
 			return null;
@@ -168,7 +168,7 @@ class GraphDrawable extends WatchUi.Drawable {
 		return [minX, minY, maxX, maxY] as Array<Float>?;		
 	}
 	
-	private function points(data as PointsIterator) as GraphPoints? {
+	private function points(data as TimeSeries) as GraphPoints? {
 		if (mExtremums == null) {
 			// log.msg("no extremums - no points");
 			return null;

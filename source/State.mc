@@ -21,7 +21,7 @@ typedef StateData as Dictionary<String, StateValues>;
 
 (:background)
 class State {
-	private var mPoints as PointsIterator;
+	private var mPoints as TimeSeries;
 	private var mCharged as StatePoint?;
 	private var mMark as StatePoint?;
 	private var mActivityRunning as Boolean;
@@ -40,13 +40,13 @@ class State {
 		}
 		if (data == null) {
 			log.debug("before empty", data);
-			mPoints = PointsIterator.Empty();
+			mPoints = TimeSeries.Empty();
 			mCharged = null;
 			mMark = null;
 			mActivityTS = null;
 			mActivityRunning = false;
 		} else {
-			mPoints = new PointsIterator(data[KEY_POINTS] as Array<Long>);
+			mPoints = new TimeSeries(data[KEY_POINTS] as Array<Long>);
 			mCharged = ((data[KEY_CHARGED])? data[KEY_CHARGED]: null) as Array<Number or Float>?;
 			mMark = ((data[KEY_MARK])? data[KEY_MARK]: null) as Array<Number or Float>?;
 			mActivityTS = data[KEY_ACTIVITY_TS] as Number?;
@@ -55,11 +55,11 @@ class State {
 		//log.debug("initialize: data", mData);
 	}
 
-	public function getPointsIterator() as PointsIterator {
+	public function getPointsIterator() as TimeSeries {
 		return mPoints;
 	}
 
-	public function getWindowIterator() as PointsIterator {
+	public function getWindowIterator() as TimeSeries {
 		var position = 0;
 		if (mPoints.size() > MAX_POINTS) {
 			position = mPoints.size() - MAX_POINTS;
@@ -92,12 +92,12 @@ class State {
 	}
 
 	(:debug)
-	public function getmPoints() as PointsIterator {
+	public function getmPoints() as TimeSeries {
 		return mPoints;
 	}
 
 	(:debug)
-	public function setmPoints(points as PointsIterator) as Void {
+	public function setmPoints(points as TimeSeries) as Void {
 		self.mPoints = points;
 	}
 
@@ -267,7 +267,7 @@ function testCheckActivityState(logger as Logger) as Boolean {
 function testMeasureSmoke(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var state = app.mState;
-	state.setmPoints(PointsIterator.Empty());
+	state.setmPoints(TimeSeries.Empty());
 	
 	state.measure();
 	

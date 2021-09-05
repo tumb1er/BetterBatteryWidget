@@ -13,7 +13,7 @@ const HIGH_MASK = LOW_MASK << 32;
 
 
 (:background)
-class PointsIterator {
+class TimeSeries {
     /*
     long packing format: <odd int32><even in32>
 
@@ -45,14 +45,15 @@ class PointsIterator {
         return (ts << 10 + value).toLong();
     }
 
-    public static function Empty() as PointsIterator {
-        return new PointsIterator([0l] as Array<Long>);
+    public static function Empty() as TimeSeries {
+        return new TimeSeries([0l] as Array<Long>);
     }
 
-    public static function FromPoints(points as StatePoints) as PointsIterator {
+    (:debug)
+    public static function FromPoints(points as StatePoints) as TimeSeries {
         var size = points.size();
         if (size == 0) {
-            return PointsIterator.Empty();
+            return TimeSeries.Empty();
         }
         var start = points[0][0] as Number;
         var values = new [(size + 1) / 2 + 1] as Array<Long>;
@@ -60,14 +61,14 @@ class PointsIterator {
         for (var i=0; i<size; i++) {
             var ts = (points[i][0] - start) as Number;
             var value = (points[i][1] * 10).toNumber();
-            var point = PointsIterator.validate(ts, value);
+            var point = TimeSeries.validate(ts, value);
             if (i % 2 == 0) {
                 values[i / 2] = point;
             } else {
                 values[i / 2] += point << 32;
             }
         }
-        return new PointsIterator(values);
+        return new TimeSeries(values);
     }
 
     /*
@@ -86,7 +87,7 @@ class PointsIterator {
         mPoints = points;
     }
 
-    public function at(i as Number) as PointsIterator {
+    public function at(i as Number) as TimeSeries {
         self.mPosition = i;
         return self;
     }
@@ -121,7 +122,7 @@ class PointsIterator {
         }
         var delta = ts - mStart;
         var v = (value * 10).toNumber();
-        var point = PointsIterator.validate(delta, v);
+        var point = TimeSeries.validate(delta, v);
         if (mSize % 2 == 0) {
             // moving start/size info to the right;
             mPoints.add(mPoints[mSize / 2]);
@@ -161,7 +162,7 @@ class PointsIterator {
             delta = 0;
         }
         var v = (value * 10).toNumber();
-        var point = PointsIterator.validate(delta, v);
+        var point = TimeSeries.validate(delta, v);
         if (i % 2 == 0) {
             // clear low bits
             mPoints[i / 2] &= HIGH_MASK;
@@ -217,8 +218,8 @@ class PointsIterator {
 }
 
 (:test)
-function testPointsIteratorInitializeZero(logger as Logger) as Boolean {
-    var pi = PointsIterator.FromPoints([] as StatePoints);
+function testTimeSeriesInitializeZero(logger as Logger) as Boolean {
+    var pi = TimeSeries.FromPoints([] as StatePoints);
 	Test.assertEqualMessage(pi.size(), 0, "unexpected size");
     Test.assertEqualMessage(pi.getStart(), 0, "unexpected start");
     var points = pi.getPoints();
@@ -231,8 +232,8 @@ function testPointsIteratorInitializeZero(logger as Logger) as Boolean {
 }
 
 (:test)
-function testPointsIteratorInitializeSingle(logger as Logger) as Boolean {
-    var pi = PointsIterator.FromPoints([[123, 55.5] as StatePoint] as StatePoints);
+function testTimeSeriesInitializeSingle(logger as Logger) as Boolean {
+    var pi = TimeSeries.FromPoints([[123, 55.5] as StatePoint] as StatePoints);
 
 	Test.assertEqualMessage(pi.size(), 1, "unexpected size");
     Test.assertEqualMessage(pi.getStart(), 123, "unexpected start");
@@ -252,8 +253,8 @@ function testPointsIteratorInitializeSingle(logger as Logger) as Boolean {
 }
 
 (:test)
-function testPointsIteratorInitializeDouble(logger as Logger) as Boolean {
-    var pi = PointsIterator.FromPoints([
+function testTimeSeriesInitializeDouble(logger as Logger) as Boolean {
+    var pi = TimeSeries.FromPoints([
         [123, 55.5] as StatePoint, 
         [125, 77.7] as StatePoint,
     ] as StatePoints);
@@ -276,8 +277,8 @@ function testPointsIteratorInitializeDouble(logger as Logger) as Boolean {
 }
 
 (:test)
-function testPointsIteratorInitializeTriple(logger as Logger) as Boolean {
-    var pi = PointsIterator.FromPoints([
+function testTimeSeriesInitializeTriple(logger as Logger) as Boolean {
+    var pi = TimeSeries.FromPoints([
         [123, 55.5] as StatePoint,
         [125, 77.7] as StatePoint,
         [126, 88.8] as StatePoint,
@@ -303,8 +304,8 @@ function testPointsIteratorInitializeTriple(logger as Logger) as Boolean {
 }
 
 (:test)
-function testPointsIteratorAdd(logger as Logger) as Boolean {
-    var pi = PointsIterator.FromPoints([] as StatePoints);
+function testTimeSeriesAdd(logger as Logger) as Boolean {
+    var pi = TimeSeries.FromPoints([] as StatePoints);
 
     pi.add(123, 55.5);
 
@@ -335,8 +336,8 @@ function testPointsIteratorAdd(logger as Logger) as Boolean {
 }
 
 (:test)
-function testPointsIteratorSet(logger as Logger) as Boolean {
-    var pi = PointsIterator.FromPoints([
+function testTimeSeriesSet(logger as Logger) as Boolean {
+    var pi = TimeSeries.FromPoints([
         [123, 55.5] as StatePoint, 
         [125, 77.7] as StatePoint,
     ] as StatePoints);
@@ -359,8 +360,8 @@ function testPointsIteratorSet(logger as Logger) as Boolean {
 }
 
 (:test) 
-function testPointsIteratorEmpty(logger as Logger) as Boolean {
-    var pi = PointsIterator.Empty();
+function testTimeSeriesEmpty(logger as Logger) as Boolean {
+    var pi = TimeSeries.Empty();
     Test.assertEqualMessage(pi.size(), 0, "unexpected length");
 
     return true;

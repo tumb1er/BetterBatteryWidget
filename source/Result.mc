@@ -14,7 +14,7 @@ class Result {
 		// log = new Log("Result");
         mStats = stats;
         self.chargedPoint = stats.getChargedPoint();
-        self.currentPoint = stats.getDataIterator().last();
+        self.currentPoint = stats.getPointsIterator().last();
 	}
 
     public function getChargedPredict() as BatteryPoint? {
@@ -62,7 +62,7 @@ class Result {
 	
 	public function predictWindow() as Void {
 		self.windowPredict = null;
-		var data = mStats.getDataIterator();
+		var data = mStats.getWindowIterator();
 		if (data.size() < 2) {
 			return;
 		}
@@ -96,7 +96,7 @@ class Result {
 		if (first == null) {
 			return;
 		}
-		var data = mStats.getDataIterator();
+		var data = mStats.getPointsIterator();
 		if (data.size() == 0) {
 			return;
 		}

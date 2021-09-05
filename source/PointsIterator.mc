@@ -46,7 +46,6 @@ class PointsIterator {
     }
 
     public static function Empty() as PointsIterator {
-        System.println("xxx");
         return new PointsIterator([0l] as Array<Long>);
     }
 
@@ -85,6 +84,11 @@ class PointsIterator {
         mStart = (init / INT32_MASK).toNumber();
         mSize = (init % INT32_MASK).toNumber();
         mPoints = points;
+    }
+
+    public function at(i as Number) as PointsIterator {
+        self.mPosition = i;
+        return self;
     }
 
     public function serialize() as Array<Long> {
@@ -195,6 +199,10 @@ class PointsIterator {
         var res = get(mPosition);
         mPosition += 1;
         return res;
+    }
+
+    public function current() as BatteryPoint {
+        return get(mPosition);
     }
 
     (:debug)

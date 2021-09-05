@@ -9,23 +9,23 @@ import Toybox.Test;
 using Toybox.Time;
 
 const STATE_PROPERTY = "s";
-const KEY_DATA = "d";
 const KEY_POINTS = "p";
 const KEY_CHARGED = "c";
 const KEY_ACTIVITY = "a";
+const KEY_ACTIVITY_TS = "t";
 const KEY_MARK = "m";
 const MAX_POINTS = 5;
 
-typedef StateValues as StatePoint or StatePoints or Boolean or Array<Long>;
+typedef StateValues as StatePoint or StatePoints or Boolean or Array<Long> or Number or Null;
 typedef StateData as Dictionary<String, StateValues>;
 
 (:background)
 class State {
-	private var mData as PointsIterator;	
 	private var mPoints as PointsIterator;
 	private var mCharged as StatePoint?;
 	private var mMark as StatePoint?;
 	private var mActivityRunning as Boolean;
+	private var mActivityTS as Number?;
 	var log as Log;
 	var mGraphDuration as Number?;
 	
@@ -40,16 +40,16 @@ class State {
 		}
 		if (data == null) {
 			log.debug("before empty", data);
-			mData = PointsIterator.Empty();
 			mPoints = PointsIterator.Empty();
 			mCharged = null;
 			mMark = null;
+			mActivityTS = null;
 			mActivityRunning = false;
 		} else {
-			mData = new PointsIterator(data[KEY_DATA] as Array<Long>);
 			mPoints = new PointsIterator(data[KEY_POINTS] as Array<Long>);
 			mCharged = ((data[KEY_CHARGED])? data[KEY_CHARGED]: null) as Array<Number or Float>?;
 			mMark = ((data[KEY_MARK])? data[KEY_MARK]: null) as Array<Number or Float>?;
+			mActivityTS = data[KEY_ACTIVITY_TS] as Number?;
 			mActivityRunning = data[KEY_ACTIVITY] as Boolean;
 		}
 		//log.debug("initialize: data", mData);
@@ -59,8 +59,18 @@ class State {
 		return mPoints;
 	}
 
-	public function getDataIterator() as PointsIterator {
-		return mData;
+	public function getWindowIterator() as PointsIterator {
+		var position = 0;
+		if (mPoints.size() > MAX_POINTS) {
+			position = mPoints.size() - MAX_POINTS;
+		}
+		var iterator = mPoints.at(position);
+		if (mActivityTS != null) {
+			while (iterator.current().getTS() < mActivityTS as Number) {
+				iterator.next();
+			}
+		}
+		return iterator;
 	}
 
 	public function getChargedPoint() as BatteryPoint? {
@@ -82,16 +92,6 @@ class State {
 	}
 
 	(:debug)
-	public function getmData() as PointsIterator {
-		return mData;
-	}
-
-	(:debug) 
-	public function setmData(data as PointsIterator) as Void {
-		self.mData = data;
-	}
-
-	(:debug)
 	public function getmPoints() as PointsIterator {
 		return mPoints;
 	}
@@ -100,13 +100,18 @@ class State {
 	public function setmPoints(points as PointsIterator) as Void {
 		self.mPoints = points;
 	}
+
+	(:debug)
+	public function getmActivityTS() as Number? {
+		return self.mActivityTS;
+	}
 	
 	public function getData() as StateData {
 		return {
-			KEY_DATA => mData.serialize(),
 			KEY_POINTS => mPoints.serialize(),
 			KEY_CHARGED => mCharged,
 			KEY_ACTIVITY => mActivityRunning,
+			KEY_ACTIVITY_TS => mActivityTS,
 			KEY_MARK => (mMark != null)?mMark:false
 		} as StateData;
 		
@@ -191,9 +196,8 @@ class State {
 			reset(ts, battery);
 			return;
 		}
-			
-		// Добавляем точку для отслеживания показаний за последние полчаса.
-		pushData(ts, battery);
+
+		return;
 	}
 	
 	/**
@@ -206,51 +210,18 @@ class State {
 		if (activityRunning != mActivityRunning) {
 			//log.debug("activity state changed, reset at", value);
 			mActivityRunning = activityRunning;
-			// Стираем только данные, отметка о последней зарядке остается на месте
-			mData = PointsIterator.FromPoints([[ts, value] as StatePoint] as StatePoints);
+			// Сбрасываем точку изменения активности
+			mActivityTS = ts;
 		}
 		
 	}
-	/**
-	Добавляет новую точку для измерений
-	*/
-	private function pushData(ts as Number, value as Float) as Void {
-		// Первую точку добавляем всегда.
-		//log.debug("pushData", mData);
-		if (mData.size() == 0) {
-			mData.add(ts, value);
-			return;		
-		}
 
-		var prev = (mData.last() as BatteryPoint).getValue();
-			
-		// Одинаковые значения не добавляем
-		if (prev == value) {
-			//log.debug("same value, skip", [value, prev]);
-			return;
-		}	
-		// Слишком быстрый рост заряда - это показатель пропущенных данных, сбрасываем.
-		if (value > prev + 1.0) {
-			//log.debug("value increase, reset at", [value, prev]);
-			reset(ts, value);
-			return;
-		}
-
-		// Добавляем точку и удаляем устаревшие
-		mData.add(ts, value);
-		// TODO: rotate
-		// if (mData.size() > MAX_POINTS) {
-		// 	mData = mData.slice(1, null);
-		// }
-		return;
-	}
-	
 	
 	/**
 	Сбрасывает данные для измерений. 
 	*/
 	private function reset(ts as Number, value as Float) as Void {
-		mData = PointsIterator.FromPoints([[ts, value] as Array<Number or Float>] as Array<Array<Number or Float> >);
+		mActivityTS = ts;
 		mCharged = [ts, value] as Array<Number or Float>?;
 		mMark = null;
 	}
@@ -260,7 +231,7 @@ class State {
 function testCheckActivityState(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var state = app.mState;
-	var ts = Time.now().value();
+	var ts = Time.now().value() as Number;
 	var value = 75.1;
 	
 	state.setmActivityRunning(true);
@@ -269,27 +240,26 @@ function testCheckActivityState(logger as Logger) as Boolean {
 	state.checkActivityState(null, ts, value);
 	
 	Test.assertEqualMessage(state.getmActivityRunning(), false, "mActivityRunning not updated");
-	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
+	Test.assertEqualMessage(state.getmActivityTS() as Object, ts, "mActivityTS not reset");
 
-	var d = state.getmData();
-	d.add(ts, value);
 	var info = new Activity.Info();
 	info.timerState = Activity.TIMER_STATE_ON;
+	ts += 1;
 	
 	// activity started
 	state.checkActivityState(info, ts, value);
 	
 	Test.assertEqualMessage(state.getmActivityRunning(), true, "mActivityRunning not updated");
-	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
-	
-	d.add(ts, value);
+	Test.assertEqualMessage(state.getmActivityTS() as Object, ts, "mActivityTS not reset");
+
 	info.timerState = Activity.TIMER_STATE_OFF;
+	ts += 1;
 	
 	// activity stopped
 	state.checkActivityState(info, ts, value);
 	
 	Test.assertEqualMessage(state.getmActivityRunning(), false, "mActivityRunning not updated");
-	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
+	Test.assertEqualMessage(state.getmActivityTS() as Object, ts, "mActivityTS not reset");
 	return true;
 } 
 
@@ -298,11 +268,9 @@ function testMeasureSmoke(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var state = app.mState;
 	state.setmPoints(PointsIterator.Empty());
-	state.setmData(PointsIterator.Empty());
 	
 	state.measure();
 	
 	Test.assertEqualMessage(state.getmPoints().size(), 1, "mPoints not updated");
-	Test.assertEqualMessage(state.getmData().size(), 1, "mData not updated");
 	return true;
 }

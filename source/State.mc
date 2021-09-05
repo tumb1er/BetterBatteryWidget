@@ -80,37 +80,23 @@ class State {
 	}
 
 	(:debug)
-	public function getmData() as StatePoints {
-		var s = mData.size();
-		var points = new [s] as StatePoints;
-		mData.start();
-		for (var i = 0; i < s; i++) {
-			var p = mData.next() as BatteryPoint;
-			points[i] = [p.getTS(), p.getValue()] as StatePoint;
-		}
-		return points;
+	public function getmData() as PointsIterator {
+		return mData;
 	}
 
 	(:debug) 
-	public function setmData(data as StatePoints) as Void {
-		self.mData = PointsIterator.FromPoints(data);
+	public function setmData(data as PointsIterator) as Void {
+		self.mData = data;
 	}
 
 	(:debug)
-	public function getmPoints() as StatePoints {
-		var s = mPoints.size();
-		var points = new [s] as StatePoints;
-		mPoints.start();
-		for (var i = 0; i < s; i++) {
-			var p = mPoints.next() as BatteryPoint;
-			points[i] = [p.getTS(), p.getValue()] as StatePoint;
-		}
-		return points;
+	public function getmPoints() as PointsIterator {
+		return mPoints;
 	}
 
 	(:debug)
-	public function setmPoints(points as StatePoints) as Void {
-		self.mPoints = PointsIterator.FromPoints(points);
+	public function setmPoints(points as PointsIterator) as Void {
+		self.mPoints = points;
 	}
 	
 	public function getData() as StateData {
@@ -284,7 +270,7 @@ function testCheckActivityState(logger as Logger) as Boolean {
 	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
 
 	var d = state.getmData();
-	d.add([ts, value] as StatePoint);
+	d.add(ts, value);
 	var info = new Activity.Info();
 	info.timerState = Activity.TIMER_STATE_ON;
 	
@@ -294,7 +280,7 @@ function testCheckActivityState(logger as Logger) as Boolean {
 	Test.assertEqualMessage(state.getmActivityRunning(), true, "mActivityRunning not updated");
 	Test.assertEqualMessage(state.getDataIterator().size(), 1, "mData not reset");
 	
-	d.add([ts, value] as StatePoint);
+	d.add(ts, value);
 	info.timerState = Activity.TIMER_STATE_OFF;
 	
 	// activity stopped
@@ -309,8 +295,8 @@ function testCheckActivityState(logger as Logger) as Boolean {
 function testMeasureSmoke(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var state = app.mState;
-	state.setmPoints([] as StatePoints);
-	state.setmData([] as StatePoints);
+	state.setmPoints(PointsIterator.Empty());
+	state.setmData(PointsIterator.Empty());
 	
 	state.measure();
 	

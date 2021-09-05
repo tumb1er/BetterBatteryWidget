@@ -121,25 +121,33 @@ class PointsIterator {
         mSize += 1;
     }
 
+    private function align(ts as Number) as Void {
+        var delta = (ts - mStart).toLong();
+        var lowShift = delta << 10;
+        var highShift = lowShift << 32;
+        for (var i = 0; i < mSize; i++) {
+            if (i == 0) {
+                // zero point has always offset 0, just skip it
+                continue;
+            }
+            if (i % 2 == 0) {
+                // low part align
+                mPoints[i / 2] -= lowShift;
+            } else {
+                // high part align
+                mPoints[i / 2] -= highShift;
+            }
+        }
+        mStart = ts;
+    }
+
     public function set(i as Number, ts as Number, value as Float) as Void {
-        var delta = (ts - mStart);
-        // TODO: normalize delta for i==0
+        var delta = ts - mStart;
         // log.debug("delta", delta);
-        // if (i == 0 && mStart != ts) {
-        //     var shift = (delta.toLong() << 32 + delta.toLong()) << 10;
-        //     log.debug("shift", shift);
-        //     mStart = ts;
-        //     for (var j = 0; j < mPoints.size() - 1; j++) {
-        //         log.debug("before", mPoints[j]);
-        //         mPoints[j] -= shift;
-        //         if (j == 0) {
-        //             // restore zero delta for first point
-        //             mPoints[j] += delta;
-        //         }
-        //         log.debug("after", mPoints[j]);
-        //     }
-        //     delta = 0;
-        // }
+        if (i == 0 && mStart != ts) {
+            self.align(ts);
+            delta = 0;
+        }
         var v = (value * 10).toNumber();
         var point = PointsIterator.validate(delta, v);
         if (i % 2 == 0) {
@@ -321,14 +329,14 @@ function testPointsIteratorSet(logger as Logger) as Boolean {
     
     var points = pi.getPoints();
     Test.assertEqualMessage(points.size(), 2, "unexpected length");
-    var expected = ((124 - 123).toLong() << 10 + 333l + ((125 - 123) << 10 + 777l) << 32).toLong();
+    var expected = ((124 - 124).toLong() << 10 + 333l + ((125 - 124) << 10 + 777l) << 32).toLong();
     Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ $2$", [points[0], expected]));
 
     pi.set(1, 127, 99.9);
 
     points = pi.getPoints();
     Test.assertEqualMessage(points.size(), 2, "unexpected length");
-    expected = ((124 - 123).toLong() << 10 + 333l + ((127 - 123) << 10 + 999l) << 32).toLong();
+    expected = ((124 - 124).toLong() << 10 + 333l + ((127 - 124) << 10 + 999l) << 32).toLong();
     Test.assertEqualMessage(points[0], expected, "unexpected packed long");
 
     return true;    

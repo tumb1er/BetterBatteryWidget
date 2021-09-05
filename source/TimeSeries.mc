@@ -32,7 +32,6 @@ class TimeSeries {
     private var mPoints as Array<Long>;  // packed int32 values
     private var mSize as Number; // unpacked size
     private var mStart as Number;  // iterator start timestamp
-    private var mPosition as Number = 0;
     private var log as Log;
 
     private static function validate(ts as Number, value as Number) as Long {
@@ -87,11 +86,6 @@ class TimeSeries {
         mPoints = points;
     }
 
-    public function at(i as Number) as TimeSeries {
-        self.mPosition = i;
-        return self;
-    }
-
     public function serialize() as Array<Long> {
         // sync size and start values
         mPoints[mPoints.size() - 1] = mStart.toLong() << 32 + mSize;
@@ -102,7 +96,7 @@ class TimeSeries {
         return mSize;
     }
 
-    private function get(idx as Number) as BatteryPoint {
+    public function get(idx as Number) as BatteryPoint {
         var point = mPoints[idx / 2];
         if (idx % 2 == 1) {
             // high bits needed for even indices
@@ -187,23 +181,6 @@ class TimeSeries {
             return null;
         }
         return get(0);
-    }
-
-    public function start() as Void {
-        mPosition = 0;
-    }
-
-    public function next() as BatteryPoint? {
-        if (mPosition >= mPoints.size()) {
-            return null;
-        }
-        var res = get(mPosition);
-        mPosition += 1;
-        return res;
-    }
-
-    public function current() as BatteryPoint {
-        return get(mPosition);
     }
 
     (:debug)

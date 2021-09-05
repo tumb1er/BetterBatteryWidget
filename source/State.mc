@@ -55,19 +55,23 @@ class State {
 		//log.debug("initialize: data", mData);
 	}
 
-	public function getPointsIterator() as TimeSeries {
-		return mPoints;
+	public function getPointsIterator() as PointsIterator {
+		return new PointsIterator(mPoints, 0);
 	}
 
-	public function getWindowIterator() as TimeSeries {
+	public function getWindowIterator() as PointsIterator {
 		var position = 0;
 		if (mPoints.size() > MAX_POINTS) {
 			position = mPoints.size() - MAX_POINTS;
 		}
-		var iterator = mPoints.at(position);
+		var iterator = new PointsIterator(mPoints, position);
 		if (mActivityTS != null) {
-			while (iterator.current().getTS() < mActivityTS as Number) {
-				iterator.next();
+			var c = iterator.current();
+			while (c != null) {
+				if ((c as BatteryPoint).getTS() < mActivityTS as Number) {
+					iterator.next();
+					c = iterator.current();
+				}
 			}
 		}
 		return iterator;

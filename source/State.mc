@@ -33,19 +33,21 @@ class State {
 		log = new Log("State");
 		var app = Application.getApp() as BetterBatteryWidgetApp;
 		mGraphDuration = 3600 * (app.mGraphDuration as Number);
-		//log.debug("initialize: passed", data);
+		log.debug("initialize: passed", data);
 		if (data == null) {
-			data = app.getProperty(STATE_PROPERTY) as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>?;		
+			data = app.getProperty(STATE_PROPERTY) as Dictionary<String, Array<Number or Float> or Boolean>?;		
+		log.debug("initialize: got", data);
 		}
 		if (data == null) {
+			log.debug("before empty", data);
 			mData = PointsIterator.Empty();
 			mPoints = PointsIterator.Empty();
 			mCharged = null;
 			mMark = null;
 			mActivityRunning = false;
 		} else {
-			mData = PointsIterator.FromPoints(data[KEY_DATA] as Array<Array<Number or Float> >);
-			mPoints = PointsIterator.FromPoints(data[KEY_POINTS] as Array<Array<Number or Float> >);
+			mData = new PointsIterator(data[KEY_DATA] as Array<Long>);
+			mPoints = new PointsIterator(data[KEY_POINTS] as Array<Long>);
 			mCharged = ((data[KEY_CHARGED])? data[KEY_CHARGED]: null) as Array<Number or Float>?;
 			mMark = ((data[KEY_MARK])? data[KEY_MARK]: null) as Array<Number or Float>?;
 			mActivityRunning = data[KEY_ACTIVITY] as Boolean;

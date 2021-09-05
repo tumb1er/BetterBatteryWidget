@@ -2,7 +2,7 @@ import Toybox.Lang;
 using Toybox.Time;
 
 
-typedef LoggedValue as String or Numeric or Array or Dictionary;
+typedef LoggedValue as Null or String or Numeric or Array or Dictionary;
 
 
 (:background)
@@ -11,8 +11,7 @@ class Log {
 	
 	public function initialize(tag as String) {
 		self.tag = tag;
-	}
-	
+	}	
 	(:debug)
 	function debug(msg as String, arg as LoggedValue) as Void {
 		if (arg instanceof Time.Moment) {

@@ -12,6 +12,7 @@ const LOW_MASK = INT32_MASK - 1;
 const HIGH_MASK = LOW_MASK << 32;
 
 
+(:background)
 class PointsIterator {
     /*
     long packing format: <odd int32><even in32>
@@ -45,6 +46,7 @@ class PointsIterator {
     }
 
     public static function Empty() as PointsIterator {
+        System.println("xxx");
         return new PointsIterator([0l] as Array<Long>);
     }
 
@@ -346,4 +348,12 @@ function testPointsIteratorSet(logger as Logger) as Boolean {
     Test.assertEqualMessage(points[0], expected, "unexpected packed long");
 
     return true;    
+}
+
+(:test) 
+function testPointsIteratorEmpty(logger as Logger) as Boolean {
+    var pi = PointsIterator.Empty();
+    Test.assertEqualMessage(pi.size(), 0, "unexpected length");
+
+    return true;
 }

@@ -1,6 +1,7 @@
 import Toybox.Lang;
 
 
+(:background)
 class BatteryPoint {
     private var ts as Number = 0;
     private var value as Float = 0.0;

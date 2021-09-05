@@ -21,7 +21,7 @@ typedef StateData as Dictionary<String, StateValues>;
 
 (:background)
 class State {
-	private var mData as StatePoints;	
+	private var mData as PointsIterator;	
 	private var mPoints as PointsIterator;
 	private var mCharged as StatePoint?;
 	private var mMark as StatePoint?;
@@ -38,13 +38,13 @@ class State {
 			data = app.getProperty(STATE_PROPERTY) as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>?;		
 		}
 		if (data == null) {
-			mData = [] as Array<Array<Number or Float> >;
-			mPoints = PointsIterator.FromPoints([] as StatePoints);
+			mData = PointsIterator.Empty();
+			mPoints = PointsIterator.Empty();
 			mCharged = null;
 			mMark = null;
 			mActivityRunning = false;
 		} else {
-			mData = data[KEY_DATA] as Array<Array<Number or Float> >;
+			mData = PointsIterator.FromPoints(data[KEY_DATA] as Array<Array<Number or Float> >);
 			mPoints = PointsIterator.FromPoints(data[KEY_POINTS] as Array<Array<Number or Float> >);
 			mCharged = ((data[KEY_CHARGED])? data[KEY_CHARGED]: null) as Array<Number or Float>?;
 			mMark = ((data[KEY_MARK])? data[KEY_MARK]: null) as Array<Number or Float>?;
@@ -58,7 +58,7 @@ class State {
 	}
 
 	public function getDataIterator() as PointsIterator {
-		return PointsIterator.FromPoints(mData);
+		return mData;
 	}
 
 	public function getChargedPoint() as BatteryPoint? {
@@ -81,12 +81,19 @@ class State {
 
 	(:debug)
 	public function getmData() as StatePoints {
-		return self.mData;
+		var s = mData.size();
+		var points = new [s] as StatePoints;
+		mData.start();
+		for (var i = 0; i < s; i++) {
+			var p = mData.next() as BatteryPoint;
+			points[i] = [p.getTS(), p.getValue()] as StatePoint;
+		}
+		return points;
 	}
 
 	(:debug) 
 	public function setmData(data as StatePoints) as Void {
-		self.mData = data;
+		self.mData = PointsIterator.FromPoints(data);
 	}
 
 	(:debug)
@@ -108,7 +115,7 @@ class State {
 	
 	public function getData() as StateData {
 		return {
-			KEY_DATA => mData,
+			KEY_DATA => mData.serialize(),
 			KEY_POINTS => mPoints.serialize(),
 			KEY_CHARGED => mCharged,
 			KEY_ACTIVITY => mActivityRunning,
@@ -212,7 +219,7 @@ class State {
 			//log.debug("activity state changed, reset at", value);
 			mActivityRunning = activityRunning;
 			// Стираем только данные, отметка о последней зарядке остается на месте
-			mData = [[ts, value] as StatePoint] as StatePoints;
+			mData = PointsIterator.FromPoints([[ts, value] as StatePoint] as StatePoints);
 		}
 		
 	}
@@ -223,11 +230,11 @@ class State {
 		// Первую точку добавляем всегда.
 		//log.debug("pushData", mData);
 		if (mData.size() == 0) {
-			mData.add([ts, value] as StatePoint);
+			mData.add(ts, value);
 			return;		
 		}
 
-		var prev = mData[mData.size() - 1][1];
+		var prev = (mData.last() as BatteryPoint).getValue();
 			
 		// Одинаковые значения не добавляем
 		if (prev == value) {
@@ -242,10 +249,11 @@ class State {
 		}
 
 		// Добавляем точку и удаляем устаревшие
-		mData.add([ts, value] as Array<Number or Float>);
-		if (mData.size() > MAX_POINTS) {
-			mData = mData.slice(1, null);
-		}
+		mData.add(ts, value);
+		// TODO: rotate
+		// if (mData.size() > MAX_POINTS) {
+		// 	mData = mData.slice(1, null);
+		// }
 		return;
 	}
 	
@@ -254,7 +262,7 @@ class State {
 	Сбрасывает данные для измерений. 
 	*/
 	private function reset(ts as Number, value as Float) as Void {
-		mData = [[ts, value] as Array<Number or Float>] as Array<Array<Number or Float> >;
+		mData = PointsIterator.FromPoints([[ts, value] as Array<Number or Float>] as Array<Array<Number or Float> >);
 		mCharged = [ts, value] as Array<Number or Float>?;
 		mMark = null;
 	}

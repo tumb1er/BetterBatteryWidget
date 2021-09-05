@@ -16,7 +16,7 @@ class PointsIterator {
     /*
     long packing format: <odd int32><even in32>
 
-    * first two points are stored as (first << 32) | second
+    * first two points are stored as (second << 32) | first
 
     int32 format:
     <ts 22 bit as offset in seconds><value 10 bit as battery ppm>
@@ -24,6 +24,8 @@ class PointsIterator {
     * 48 days vector duration (2^22 seconds)
     * ts is stored as offset from start
     * value accuracy is 0.1%
+
+    last array value contains: (start ts) << 32 | size
 
     */
     private var mPoints as Array<Long>;  // packed int32 values
@@ -42,10 +44,14 @@ class PointsIterator {
         return (ts << 10 + value).toLong();
     }
 
+    public static function Empty() as PointsIterator {
+        return new PointsIterator([0l] as Array<Long>);
+    }
+
     public static function FromPoints(points as StatePoints) as PointsIterator {
         var size = points.size();
         if (size == 0) {
-            return new PointsIterator([0l] as Array<Long>);
+            return PointsIterator.Empty();
         }
         var start = points[0][0] as Number;
         var values = new [(size + 1) / 2 + 1] as Array<Long>;

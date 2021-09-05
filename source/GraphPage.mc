@@ -17,12 +17,12 @@ class GraphPage extends WatchUi.View {
 	var mMode as Number;
 	var mGraphDuration as Number;
 	var mGraphMode as Number;
-	//var log;
+	// var log as Log;
 	var mx as Number = 0, my as Number = 0, offset as Number = 0;
 
     public function initialize(state as State) {
     	View.initialize();
-		//log = new Log("GraphPage");
+		// log = new Log("GraphPage");
 		mState = state;
 		mMode = 0;
 		var app = Application.getApp() as BetterBatteryWidgetApp;  // FIXME: Use BBWA and override return type
@@ -144,7 +144,6 @@ class GraphPage extends WatchUi.View {
 		
 		drawPredictions(dc);
 		var g = mGraph as GraphDrawable;
-		
 		g.draw(dc);
 
 		dc.fillPolygon([

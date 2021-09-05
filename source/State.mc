@@ -71,6 +71,8 @@ class State {
 				if ((c as BatteryPoint).getTS() < mActivityTS as Number) {
 					iterator.next();
 					c = iterator.current();
+				} else {
+					break;
 				}
 			}
 		}

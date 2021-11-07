@@ -148,6 +148,7 @@ class TimeSeries {
             mPoints[idx] += point << 32;
         }
         mSize += 1;
+        log.debug("add", [mPoints, mOffset]);
     }
 
     private function align(ts as Number) as Void {
@@ -213,6 +214,11 @@ class TimeSeries {
     (:debug)
     public function getStart() as Number {
         return mStart;
+    }
+
+    (:debug)
+    public function getOffset() as Number {
+        return mOffset;
     }
 }
 
@@ -306,30 +312,60 @@ function testTimeSeriesInitializeTriple(logger as Logger) as Boolean {
 function testTimeSeriesAdd(logger as Logger) as Boolean {
     var pi = new TimeSeries([0l, 0l, 0l, 0l] as Array<Long>);
 
-    pi.add(123, 55.5);
+    pi.add(123, 11.1);
 
     Test.assertEqualMessage(pi.size(), 1, "unexpected size");
     Test.assertEqualMessage(pi.getStart(), 123, "unexpected start $1$");
     var points = pi.getPoints();
     Test.assertEqualMessage(points.size(), 4, "unexpected packed length");
-    var expected = (0 << 10 + 555).toLong();
+    var expected = (0 << 10 + 111).toLong();
     Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
 
-    pi.add(125, 77.7);
+    pi.add(125, 22.2);
 
     Test.assertEqualMessage(pi.size(), 2, Lang.format("unexpected size $1$", [pi.size()]));
     points = pi.getPoints();
     Test.assertEqualMessage(points.size(), 4, "unexpected length");
-    expected = (0l << 10 + 555l + ((125 - 123) << 10 + 777l) << 32).toLong();
+    expected = (0l << 10 + 111l + ((125 - 123) << 10 + 222l) << 32).toLong();
     Test.assertEqualMessage(points[0], expected, "unexpected packed long");
 
-    pi.add(126, 88.8);
+    pi.add(126, 33.3);
 
 	Test.assertEqualMessage(pi.size(), 3, "unexpected size");
     points = pi.getPoints();
     Test.assertEqualMessage(points.size(), 4, "unexpected length");
-    expected = (126 - 123).toLong() << 10 + 888;
+    expected = (126 - 123).toLong() << 10 + 333l;
     Test.assertEqualMessage(points[1], expected, "unexpected packed long");
+
+    pi.add(127, 44.4);
+    pi.add(128, 55.5);
+    pi.add(129, 66.6);  // here array is full;
+    Test.assertEqualMessage(pi.getOffset(), 0, "unexpected offset");
+
+    pi.add(130, 77.7);
+    
+    Test.assertEqualMessage(pi.size(), 6 - 2 + 1, "unexpected size");
+    Test.assertEqualMessage(pi.getStart(), 123, "unexpected start $1$");
+    Test.assertEqualMessage(pi.getOffset(), 1, "unexpected offset");
+    points = pi.getPoints();
+    Test.assertEqualMessage(points.size(), 4, "unexpected packed length");
+    expected = ((130 - 123) << 10 + 777).toLong();
+    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
+
+    pi.add(131, 88.8);
+
+    points = pi.getPoints();
+    expected = ((130 - 123) << 10 + 777 + ((131 - 123) << 10 + 888l) << 32).toLong();
+    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
+    Test.assertEqualMessage(pi.getOffset(), 1, "unexpected offset");
+
+    pi.add(132, 99.9);
+
+    Test.assertEqualMessage(pi.getOffset(), 2, "unexpected offset");
+    points = pi.getPoints();
+    Test.assertEqualMessage(points.size(), 4, "unexpected packed length");
+    expected = ((132 - 123) << 10 + 999).toLong();
+    Test.assertEqualMessage(points[1], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
 
     return true;
 }

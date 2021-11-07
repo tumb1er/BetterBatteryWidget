@@ -15,6 +15,7 @@ const KEY_ACTIVITY = "a";
 const KEY_ACTIVITY_TS = "t";
 const KEY_MARK = "m";
 const MAX_POINTS = 5;
+const CAPACITY = 100;  // TODO: from resources depending on screen size
 
 typedef StateValues as StatePoint or StatePoints or Boolean or Array<Long> or Number or Null;
 typedef StateData as Dictionary<String, StateValues>;
@@ -40,7 +41,7 @@ class State {
 		}
 		if (data == null) {
 			log.debug("before empty", data);
-			mPoints = TimeSeries.Empty();
+			mPoints = TimeSeries.Empty(CAPACITY);
 			mCharged = null;
 			mMark = null;
 			mActivityTS = null;
@@ -273,7 +274,7 @@ function testCheckActivityState(logger as Logger) as Boolean {
 function testMeasureSmoke(logger as Logger) as Boolean {
 	var app = Application.getApp() as BetterBatteryWidgetApp;
 	var state = app.mState;
-	state.setmPoints(TimeSeries.Empty());
+	state.setmPoints(TimeSeries.Empty(CAPACITY));
 	
 	state.measure();
 	

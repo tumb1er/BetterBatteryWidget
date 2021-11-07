@@ -8,6 +8,7 @@ typedef StatePoints as Array<StatePoint>;
 const MAX_TS = 1 << 22;
 const MAX_VALUE = 1 << 10;  // right 10 bits
 const INT32_MASK = 1l << 32;
+const INT16_MASK = 1l << 16;
 const LOW_MASK = INT32_MASK - 1;
 const HIGH_MASK = LOW_MASK << 32;
 
@@ -26,12 +27,14 @@ class TimeSeries {
     * ts is stored as offset from start
     * value accuracy is 0.1%
 
-    last array value contains: (start ts) << 32 | size
+    last array value contains: (start ts) << 32 | size << 16 | offset
 
     */
     private var mPoints as Array<Long>;  // packed int32 values
     private var mSize as Number; // unpacked size
     private var mStart as Number;  // iterator start timestamp
+    private var mOffset as Number; // zero element offset
+    private var mCapacity as Number; // max memory for points array in int64 values
     private var log as Log;
 
     private static function validate(ts as Number, value as Number) as Long {
@@ -44,19 +47,23 @@ class TimeSeries {
         return (ts << 10 + value).toLong();
     }
 
-    public static function Empty() as TimeSeries {
-        return new TimeSeries([0l] as Array<Long>);
+    public static function Empty(capacity as Number) as TimeSeries {
+        var points = new [capacity + 1] as Array<Long>;
+        for (var i = 0; i <= capacity; i++) {
+            points[i] = 0l;
+        }
+        return new TimeSeries(points);
     }
 
     (:debug)
     public static function FromPoints(points as StatePoints) as TimeSeries {
         var size = points.size();
         if (size == 0) {
-            return TimeSeries.Empty();
+            return TimeSeries.Empty(0);
         }
         var start = points[0][0] as Number;
         var values = new [(size + 1) / 2 + 1] as Array<Long>;
-        values[(size + 1) / 2] = start.toLong() << 32 + size;
+        values[(size + 1) / 2] = start.toLong() << 32 + size << 16;
         for (var i=0; i<size; i++) {
             var ts = (points[i][0] - start) as Number;
             var value = (points[i][1] * 10).toNumber();
@@ -78,17 +85,20 @@ class TimeSeries {
         log = new Log("PI");
         var size = points.size();
         if (size == 0) {
+            size = 1;
             points = new [0l] as Array<Long>;
         }
         var init = points[size - 1];
         mStart = (init / INT32_MASK).toNumber();
-        mSize = (init % INT32_MASK).toNumber();
+        mOffset = (init % INT16_MASK).toNumber();
+        mSize = ((init % INT32_MASK) / INT16_MASK).toNumber();
+        mCapacity = size - 1;
         mPoints = points;
     }
 
     public function serialize() as Array<Long> {
-        // sync size and start values
-        mPoints[mPoints.size() - 1] = mStart.toLong() << 32 + mSize;
+        // sync size, offset and start values
+        mPoints[mCapacity] = mStart.toLong() << 32 + mSize << 16 + mOffset;
         return mPoints;
     }
 
@@ -97,7 +107,7 @@ class TimeSeries {
     }
 
     public function get(idx as Number) as BatteryPoint {
-        var point = mPoints[idx / 2];
+        var point = mPoints[(idx / 2 + mOffset) % mCapacity];
         if (idx % 2 == 1) {
             // high bits needed for even indices
             point /= INT32_MASK;
@@ -117,13 +127,25 @@ class TimeSeries {
         var delta = ts - mStart;
         var v = (value * 10).toNumber();
         var point = TimeSeries.validate(delta, v);
+        if (mSize == mCapacity * 2) {
+            // points array is full, removing oldest element
+            log.debug("xxx", [mPoints, mOffset, mCapacity]);
+            var prev = mPoints[mOffset] % INT32_MASK;
+            // shifting starting timestamp to popped value
+            mStart += (prev >> 10).toNumber();
+            // cleanup
+            mPoints[mOffset] = 0l;
+            // move offset to next element
+            mOffset = (mOffset + 1) % mCapacity;
+            // lower size value
+            mSize -= 2;
+        }
+        var idx = (mSize / 2 + mOffset) % mCapacity;
         if (mSize % 2 == 0) {
-            // moving start/size info to the right;
-            mPoints.add(mPoints[mSize / 2]);
             // setting low bits with clear high bits to that place;
-            mPoints[mSize / 2] = point;
+            mPoints[idx] = point;
         } else {
-            mPoints[mSize / 2] += point << 32;
+            mPoints[idx] += point << 32;
         }
         mSize += 1;
     }
@@ -157,16 +179,16 @@ class TimeSeries {
         }
         var v = (value * 10).toNumber();
         var point = TimeSeries.validate(delta, v);
+        var idx = ((i / 2) + mOffset) % mCapacity;
         if (i % 2 == 0) {
             // clear low bits
-            mPoints[i / 2] &= HIGH_MASK;
-            mPoints[i / 2] |= point;
+            mPoints[idx] &= HIGH_MASK;
+            mPoints[idx] |= point;
         } else {
             // clear high bits
-            mPoints[i / 2] &= LOW_MASK;
-            mPoints[i / 2] |= point << 32;
+            mPoints[idx] &= LOW_MASK;
+            mPoints[idx] |= point << 32;
         }
-        log.debug("set", [i, point, mPoints[i / 2]]);
     }
 
     public function last() as BatteryPoint? {
@@ -223,7 +245,7 @@ function testTimeSeriesInitializeSingle(logger as Logger) as Boolean {
     Test.assertEqualMessage(p.getValue(), 55.5, "invalid value");
     var data = pi.serialize();
     Test.assertEqualMessage(data.size(), 2, "unexpected serialized length");
-    expected = 123l << 32 + 1;  // start + size
+    expected = 123l << 32 + 1 << 16;  // start + size
     Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
 
     return true;
@@ -247,7 +269,7 @@ function testTimeSeriesInitializeDouble(logger as Logger) as Boolean {
     Test.assertEqualMessage(p.getValue(), 77.7, "invalid value");
     var data = pi.serialize();
     Test.assertEqualMessage(data.size(), 2, "unexpected serialized length");
-    expected = 123l << 32 + 2;  // start + size
+    expected = 123l << 32 + 2 << 16;  // start + size
     Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
 
     return true;
@@ -274,7 +296,7 @@ function testTimeSeriesInitializeTriple(logger as Logger) as Boolean {
     Test.assertEqualMessage(p.getValue(), 88.8, "invalid value");
     var data = pi.serialize();
     Test.assertEqualMessage(data.size(), 3, "unexpected serialized length");
-    expected = 123l << 32 + 3;  // start + size
+    expected = 123l << 32 + 3 << 16;  // start + size
     Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
 
     return true;
@@ -282,14 +304,14 @@ function testTimeSeriesInitializeTriple(logger as Logger) as Boolean {
 
 (:test)
 function testTimeSeriesAdd(logger as Logger) as Boolean {
-    var pi = TimeSeries.FromPoints([] as StatePoints);
+    var pi = new TimeSeries([0l, 0l, 0l, 0l] as Array<Long>);
 
     pi.add(123, 55.5);
 
     Test.assertEqualMessage(pi.size(), 1, "unexpected size");
     Test.assertEqualMessage(pi.getStart(), 123, "unexpected start $1$");
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 2, "unexpected packed length");
+    Test.assertEqualMessage(points.size(), 4, "unexpected packed length");
     var expected = (0 << 10 + 555).toLong();
     Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
 
@@ -297,7 +319,7 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
 
     Test.assertEqualMessage(pi.size(), 2, Lang.format("unexpected size $1$", [pi.size()]));
     points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 2, "unexpected length");
+    Test.assertEqualMessage(points.size(), 4, "unexpected length");
     expected = (0l << 10 + 555l + ((125 - 123) << 10 + 777l) << 32).toLong();
     Test.assertEqualMessage(points[0], expected, "unexpected packed long");
 
@@ -305,7 +327,7 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
 
 	Test.assertEqualMessage(pi.size(), 3, "unexpected size");
     points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 3, "unexpected length");
+    Test.assertEqualMessage(points.size(), 4, "unexpected length");
     expected = (126 - 123).toLong() << 10 + 888;
     Test.assertEqualMessage(points[1], expected, "unexpected packed long");
 
@@ -338,7 +360,7 @@ function testTimeSeriesSet(logger as Logger) as Boolean {
 
 (:test) 
 function testTimeSeriesEmpty(logger as Logger) as Boolean {
-    var pi = TimeSeries.Empty();
+    var pi = TimeSeries.Empty(6);
     Test.assertEqualMessage(pi.size(), 0, "unexpected length");
 
     return true;

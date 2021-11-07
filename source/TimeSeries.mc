@@ -367,6 +367,15 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
     expected = ((132 - 123) << 10 + 999).toLong();
     Test.assertEqualMessage(points[1], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
 
+    pi.serialize();
+    // mStart rotated
+    expected = 126l << 32 + 5 << 16 + 2;  // start + size + offset
+    Test.assertEqualMessage(points[points.size() - 1], expected,
+                            Lang.format("unexpected serialized value $1$ != $2$", [points[points.size() - 1], expected]));
+
+    var p = pi.get(0);
+    Test.assertEqualMessage(p.getTS(), 128, "unexpected first ts");
+    Test.assertEqualMessage(p.getValue(), 55.5, "unexpected first value");
     return true;
 }
 

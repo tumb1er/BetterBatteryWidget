@@ -5,16 +5,17 @@ using Toybox.System;
 typedef StatePoint as Array<Number or Float>; // [ts, percent]
 typedef StatePoints as Array<StatePoint>;
 
-const MAX_TS = 1 << 22;
-const MAX_VALUE = 1 << 10;  // right 10 bits
-const INT32_MASK = 1l << 32;
-const INT16_MASK = 1l << 16;
-const LOW_MASK = INT32_MASK - 1;
-const HIGH_MASK = LOW_MASK << 32;
-
 
 (:background)
 class TimeSeries {
+
+    static const MAX_TS = 1 << 22;
+    const MAX_VALUE = 1 << 10;  // right 10 bits
+    const INT32_MASK = 1l << 32;
+    const INT16_MASK = 1l << 16;
+    const LOW_MASK = INT32_MASK - 1;
+    const HIGH_MASK = LOW_MASK << 32;
+
     /*
     long packing format: <odd int32><even in32>
 
@@ -125,21 +126,25 @@ class TimeSeries {
             mStart = ts;
         }
         var delta = ts - mStart;
-        var v = (value * 10).toNumber();
-        var point = TimeSeries.validate(delta, v);
         if (mSize == mCapacity * 2) {
             // points array is full, removing oldest element
             log.debug("xxx", [mPoints, mOffset, mCapacity]);
-            var prev = mPoints[mOffset] % INT32_MASK;
-            // shifting starting timestamp to popped value
-            mStart += (prev >> 10).toNumber();
             // cleanup
             mPoints[mOffset] = 0l;
             // move offset to next element
             mOffset = (mOffset + 1) % mCapacity;
+            if (mOffset == 0) {
+                // align values to first TS
+                var start = mStart + (mPoints[0] % INT32_MASK).toNumber() >> 10;
+                log.debug("align", start);
+                align(start);
+                delta = ts - mStart;
+            }
             // lower size value
             mSize -= 2;
         }
+        var v = (value * 10).toNumber();
+        var point = TimeSeries.validate(delta, v);
         var idx = (mSize / 2 + mOffset) % mCapacity;
         if (mSize % 2 == 0) {
             // setting low bits with clear high bits to that place;
@@ -153,31 +158,27 @@ class TimeSeries {
 
     private function align(ts as Number) as Void {
         var delta = (ts - mStart).toLong();
+        log.debug("align to ", [ts, delta]);
+        log.debug("before", mPoints);
         var lowShift = delta << 10;
         var highShift = lowShift << 32;
         for (var i = 0; i < mSize; i++) {
-            if (i == 0) {
-                // zero point has always offset 0, just skip it
-                continue;
-            }
+            var idx = (i / 2 + mOffset) % mCapacity;
             if (i % 2 == 0) {
                 // low part align
-                mPoints[i / 2] -= lowShift;
+                mPoints[idx] -= lowShift;
             } else {
                 // high part align
-                mPoints[i / 2] -= highShift;
+                mPoints[idx] -= highShift;
             }
         }
+        log.debug("after", mPoints);
         mStart = ts;
     }
 
     public function set(i as Number, ts as Number, value as Float) as Void {
         var delta = ts - mStart;
         // log.debug("delta", delta);
-        if (i == 0 && mStart != ts) {
-            self.align(ts);
-            delta = 0;
-        }
         var v = (value * 10).toNumber();
         var point = TimeSeries.validate(delta, v);
         var idx = ((i / 2) + mOffset) % mCapacity;
@@ -189,6 +190,9 @@ class TimeSeries {
             // clear high bits
             mPoints[idx] &= LOW_MASK;
             mPoints[idx] |= point << 32;
+        }
+        if (i == 0 && mStart != ts) {
+            self.align(ts);
         }
     }
 
@@ -345,7 +349,7 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
     pi.add(130, 77.7);
     
     Test.assertEqualMessage(pi.size(), 6 - 2 + 1, "unexpected size");
-    Test.assertEqualMessage(pi.getStart(), 123, "unexpected start $1$");
+    Test.assertEqualMessage(pi.getStart(), 123, Lang.format("unexpected start $1$", [pi.getStart()]));
     Test.assertEqualMessage(pi.getOffset(), 1, "unexpected offset");
     points = pi.getPoints();
     Test.assertEqualMessage(points.size(), 4, "unexpected packed length");
@@ -366,16 +370,33 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
     Test.assertEqualMessage(points.size(), 4, "unexpected packed length");
     expected = ((132 - 123) << 10 + 999).toLong();
     Test.assertEqualMessage(points[1], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
-
     pi.serialize();
-    // mStart rotated
-    expected = 126l << 32 + 5 << 16 + 2;  // start + size + offset
+    expected = 123l << 32 + 5 << 16 + 2;  // start + size + offset
     Test.assertEqualMessage(points[points.size() - 1], expected,
                             Lang.format("unexpected serialized value $1$ != $2$", [points[points.size() - 1], expected]));
-
+    Test.assertEqualMessage(pi.getOffset(), 2, "unexpected offset");
+    Test.assertEqualMessage(pi.getStart(), 123, Lang.format("unexpected start $1$", [pi.getStart()]));
     var p = pi.get(0);
-    Test.assertEqualMessage(p.getTS(), 128, "unexpected first ts");
+    Test.assertEqualMessage(p.getTS(), 128, Lang.format("unexpected first ts $1$ $2$", [p.getTS(), pi.getPoints()]));
     Test.assertEqualMessage(p.getValue(), 55.5, "unexpected first value");
+
+    // overwriting previous items while rotated again to zero offset
+    pi.add(133, 11.2);
+
+    pi.add(134, 22.3);
+
+    Test.assertEqualMessage(pi.getOffset(), 0, "unexpected offset");
+    points = pi.getPoints();
+    pi.serialize();
+    expected = 130l << 32 + 5 << 16 + 0;  // start + size + offset
+    Test.assertEqualMessage(points[points.size() - 1], expected, 
+        Lang.format("unexpected serialized value $1$ != $2$", [points[points.size() - 1], expected]));
+    expected = ((130 - 130) << 10 + 777 + ((131-130) << 10 + 888l) << 32).toLong();
+    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
+    expected = ((134 - 130) << 10 + 223).toLong();
+    Test.assertEqualMessage(points[2], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
+
+
     return true;
 }
 

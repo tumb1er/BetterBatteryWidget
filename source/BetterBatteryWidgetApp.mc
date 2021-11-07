@@ -6,7 +6,7 @@ using Toybox.Time;
 using Toybox.WatchUi;
 
 
-(:background :glance)
+(:typecheck(disableBackgroundCheck) :background :glance)
 class BetterBatteryWidgetApp extends Application.AppBase {
  	// var log as Log;
     var mState as State;

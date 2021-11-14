@@ -1,5 +1,25 @@
 using Toybox.Lang;
 
+/**
+predict returns a BatteryPoint with values:
+* ts - estimated life time in seconds
+* value  discharge speed in percent per second
+**/
+(:glance)
+function predict(first as BatteryPoint?, last as BatteryPoint?) as BatteryPoint? {
+	if (first == null || last == null) {
+		return null;
+	}
+	first = first as BatteryPoint;
+	last = last as BatteryPoint;
+	var duration = (last.getTS() - first.getTS()).toDouble();
+	var delta = (last.getValue() - first.getValue()).abs();
+	if (delta == 0 || duration == 0) {
+		return null;
+	}
+	var speed = delta / duration;
+	return new BatteryPoint((last.getValue() / speed).toNumber(), speed.toFloat());		
+}
 
 class Result {
     // var log;
@@ -28,27 +48,7 @@ class Result {
     public function getMarkPredict() as BatteryPoint? {
         return self.markPredict;
     }
-	
-    /**
-    predict returns a BatteryPoint with values:
-    * ts - estimated life time in seconds
-    * value  discharge speed in percent per second
-	**/
-    private function predict(first as BatteryPoint?, last as BatteryPoint?) as BatteryPoint? {
-		if (first == null || last == null) {
-			return null;
-		}
-		first = first as BatteryPoint;
-		last = last as BatteryPoint;
-		var duration = (last.getTS() - first.getTS()).toDouble();
-		var delta = (last.getValue() - first.getValue()).abs();
-		if (delta == 0 || duration == 0) {
-			return null;
-		}
-		var speed = delta / duration;
-		return new BatteryPoint((last.getValue() / speed).toNumber(), speed.toFloat());		
-	}
-	
+		
 	public function predictAvg(weight as Lang.Float) as Lang.Float {
 		if (windowPredict != null && chargedPredict != null) {
 			return (windowPredict as BatteryPoint).getTS() * weight + (chargedPredict as BatteryPoint).getTS() * (1.0 - weight);

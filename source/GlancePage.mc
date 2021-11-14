@@ -6,12 +6,12 @@ using Toybox.WatchUi;
 (:glance)
 class GlancePage extends WatchUi.GlanceView {
 	var mState as State;
-    var log as Log;
+    // var log as Log;
     var mBattery as Lang.String?;
 
     public function initialize(state as State) {
-        log = new Log("GlancePage");
-        log.debug("init", [state]);
+        // log = new Log("GlancePage");
+        // log.debug("init", [state]);
     	GlanceView.initialize();
 		mState = state;
 	}
@@ -22,7 +22,7 @@ class GlancePage extends WatchUi.GlanceView {
     }
 	
     public function onUpdate( dc ) {
-        log.msg("onUpdate");
+        // log.msg("onUpdate");
         var w = dc.getWidth();
         var h = dc.getHeight();
         var state = System.getSystemStats();

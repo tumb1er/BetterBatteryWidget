@@ -8,27 +8,27 @@ using Toybox.System;
 import Toybox.Test;
 using Toybox.Time;
 
-(:background)
+(:background :glance)
 const STATE_PROPERTY = "s1";
-(:background)
+(:background :glance)
 const KEY_POINTS = "p1";
-(:background)
+(:background :glance)
 const KEY_CHARGED = "c1";
-(:background)
+(:background :glance)
 const KEY_ACTIVITY = "a1";
-(:background)
+(:background :glance)
 const KEY_ACTIVITY_TS = "t1";
-(:background)
+(:background :glance)
 const KEY_MARK = "m1";
-(:background)
+(:background :glance)
 const MAX_POINTS = 5;
-(:background)
+(:background :glance)
 const CAPACITY = 50;  // limited by background exit max size
 
 typedef StateValues as StatePoint or StatePoints or Boolean or Array<Long> or Number or Null;
 typedef StateData as Dictionary<String, StateValues>;
 
-(:background)
+(:typecheck([disableBackgroundCheck, disableGlanceCheck]) :background :glance)
 class State {
 	private var mPoints as TimeSeries;
 	private var mCharged as StatePoint?;
@@ -64,12 +64,10 @@ class State {
 		//log.debug("initialize: data", mData);
 	}
 
-	(:typecheck(disableBackgroundCheck))
 	public function getPointsIterator() as PointsIterator {
 		return new PointsIterator(mPoints, 0);
 	}
 
-	(:typecheck(disableBackgroundCheck))
 	public function getWindowIterator() as PointsIterator {
 		var position = 0;
 		if (mPoints.size() > MAX_POINTS) {

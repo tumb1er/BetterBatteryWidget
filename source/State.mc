@@ -8,13 +8,21 @@ using Toybox.System;
 import Toybox.Test;
 using Toybox.Time;
 
+(:background)
 const STATE_PROPERTY = "s";
+(:background)
 const KEY_POINTS = "p";
+(:background)
 const KEY_CHARGED = "c";
+(:background)
 const KEY_ACTIVITY = "a";
+(:background)
 const KEY_ACTIVITY_TS = "t";
+(:background)
 const KEY_MARK = "m";
+(:background)
 const MAX_POINTS = 5;
+(:background)
 const CAPACITY = 100;  // TODO: from resources depending on screen size
 
 typedef StateValues as StatePoint or StatePoints or Boolean or Array<Long> or Number or Null;
@@ -56,10 +64,12 @@ class State {
 		//log.debug("initialize: data", mData);
 	}
 
+	(:typecheck(disableBackgroundCheck))
 	public function getPointsIterator() as PointsIterator {
 		return new PointsIterator(mPoints, 0);
 	}
 
+	(:typecheck(disableBackgroundCheck))
 	public function getWindowIterator() as PointsIterator {
 		var position = 0;
 		if (mPoints.size() > MAX_POINTS) {

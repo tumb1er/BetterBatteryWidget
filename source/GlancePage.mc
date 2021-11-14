@@ -44,8 +44,10 @@ class GlancePage extends WatchUi.GlanceView {
             var ts = Time.now().value();
             var current = new BatteryPoint(ts, state.battery);
             var predicted = predict(charged, current);
-            dc.drawText(w, h * 3 / 4, Graphics.FONT_GLANCE, formatInterval(predicted.getTS()), 
-                        Graphics.TEXT_JUSTIFY_VCENTER|Graphics.TEXT_JUSTIFY_RIGHT);
+            if (predicted != null ) {
+                dc.drawText(w, h * 3 / 4, Graphics.FONT_GLANCE, formatInterval(predicted.getTS()), 
+                            Graphics.TEXT_JUSTIFY_VCENTER|Graphics.TEXT_JUSTIFY_RIGHT);
+            }
         }
 
     }

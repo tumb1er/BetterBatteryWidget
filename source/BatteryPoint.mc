@@ -2,7 +2,7 @@ import Toybox.Lang;
 using Toybox.Test;
 
 
-(:background)
+(:background :glance)
 class BatteryPoint {
     /* 
     Serialization format: UINT32 LE

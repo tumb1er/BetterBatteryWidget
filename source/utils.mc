@@ -7,6 +7,32 @@ using Toybox.Time.Gregorian;
 using Toybox.WatchUi;
 
 
+(:glance)
+class InterpolateError extends Exception {
+	var mArgs as Array<Numeric>;
+
+	public function initialize(min_from as Numeric, max_from as Numeric, current as Numeric, min_to as Numeric, max_to as Numeric) {
+		Exception.initialize();
+		mArgs = [min_from, max_from, current, min_to, max_to];
+	}
+}
+
+(:glance)
+function interpolate(min_from as Numeric, max_from as Numeric, current as Numeric, min_to as Numeric, max_to as Numeric) as Double {
+	var fraction = 0.5;
+	if (min_from != max_from) {
+		fraction = (current - min_from).toDouble() / (max_from - min_from).toDouble();
+	}
+	var result = 0.0d;
+	try {
+		 result = (min_to + (max_to - min_to).toDouble() * fraction);
+	} catch (ex) {
+		throw new InterpolateError(min_from, max_from, current, min_to, max_to);
+	}
+	return result;
+}
+
+
 (:background)
 function formatTime(moment as Time.Moment?) as String {
 	if (moment == null) {

@@ -45,6 +45,7 @@ function formatTime(moment as Time.Moment?) as String {
     return ret;
 }
 
+(:glance)
 function formatTimestamp(ts as Number) as String {
 	var t = Time.Gregorian.info(new Time.Moment(ts), Time.FORMAT_SHORT);
 	return Lang.format(
@@ -57,6 +58,7 @@ function formatTimestamp(ts as Number) as String {
 		]);
 }
 
+(:glance)
 function formatPercent(value as Float?) as String {
 	if (value == null) {
 		return "";
@@ -64,6 +66,7 @@ function formatPercent(value as Float?) as String {
 	return Lang.format("$1$%", [(value as Float).format("%.1f")]);
 }
 
+(:glance)
 function formatInterval(seconds as Number) as String {
 	var hours = seconds / 3600.0;
 	if (hours >= 24) {
@@ -73,6 +76,7 @@ function formatInterval(seconds as Number) as String {
 	}
 }
 
+(:glance)
 function colorize(percent as Float) as Graphics.ColorType {
 	if (percent > 90) {
 		// blue

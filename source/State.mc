@@ -9,17 +9,17 @@ import Toybox.Test;
 using Toybox.Time;
 
 (:background)
-const STATE_PROPERTY = "s";
+const STATE_PROPERTY = "s1";
 (:background)
-const KEY_POINTS = "p";
+const KEY_POINTS = "p1";
 (:background)
-const KEY_CHARGED = "c";
+const KEY_CHARGED = "c1";
 (:background)
-const KEY_ACTIVITY = "a";
+const KEY_ACTIVITY = "a1";
 (:background)
-const KEY_ACTIVITY_TS = "t";
+const KEY_ACTIVITY_TS = "t1";
 (:background)
-const KEY_MARK = "m";
+const KEY_MARK = "m1";
 (:background)
 const MAX_POINTS = 5;
 (:background)

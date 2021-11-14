@@ -8,12 +8,12 @@ using Toybox.WatchUi;
 
 
 (:glance)
-class InterpolateError extends Exception {
+class InterpolateError extends Lang.Exception {
 	var mArgs as Array<Numeric>;
 
 	public function initialize(min_from as Numeric, max_from as Numeric, current as Numeric, min_to as Numeric, max_to as Numeric) {
 		Exception.initialize();
-		mArgs = [min_from, max_from, current, min_to, max_to];
+		mArgs = [min_from, max_from, current, min_to, max_to] as Array<Numeric>;
 	}
 }
 

@@ -6,7 +6,7 @@ using Toybox.Time;
 using Toybox.WatchUi;
 
 
-(:typecheck(disableBackgroundCheck) :background :glance)
+(:background :glance)
 class BetterBatteryWidgetApp extends Application.AppBase {
  	var log as Log;
     var mState as State;
@@ -27,6 +27,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 		mState.printPoints();
     }
 
+	(:typecheck([disableBackgroundCheck]))
     public function onBackgroundData(data as StateData?) as Void {
     	mState = new State(data);
 		log.msg("Points from background data (saving)");
@@ -37,6 +38,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 	    	//log.msg("onBackgroundData: calling WidgetPage.updateState");
             (mWidgetPage as WidgetPage).updateState(mState);
         }
+		
         WatchUi.requestUpdate();
     }
     
@@ -46,6 +48,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     }
 
     // This method runs each time the main application starts.
+	(:typecheck([disableBackgroundCheck, disableGlanceCheck]))
     public function getInitialView() {
         mWidgetPage = new WidgetPage(mState);
         var inputDelegate = new WidgetPageBehaviorDelegate();
@@ -53,9 +56,15 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     }
 
     // This method runs each time the background process starts.
+	(:typecheck([disableGlanceCheck]))
     public function getServiceDelegate() {
         return [new BackgroundServiceDelegate()] as Array<BackgroundServiceDelegate>;
     }
+
+	(:typecheck([disableBackgroundCheck]))
+	public function getGlanceView() {
+		return [new GlancePage(mState)] as Array<WatchUi.GlanceView>;
+	}
     
     private function setBackgroundEvent() as Void {    	
     	var time = Background.getLastTemporalEventTime();
@@ -74,7 +83,8 @@ class BetterBatteryWidgetApp extends Application.AppBase {
         }
     }
     
-    public function onSettingsChanged() as Void {
+    (:typecheck([disableBackgroundCheck]))
+	public function onSettingsChanged() as Void {
     	//log.msg("onSettingsChanged");
     	loadSettings();
         WatchUi.requestUpdate();

@@ -23,7 +23,7 @@ const KEY_MARK = "m1";
 (:background)
 const MAX_POINTS = 5;
 (:background)
-const CAPACITY = 100;  // TODO: from resources depending on screen size
+const CAPACITY = 20;  // TODO: from resources depending on screen size
 
 typedef StateValues as StatePoint or StatePoints or Boolean or Array<Long> or Number or Null;
 typedef StateData as Dictionary<String, StateValues>;
@@ -124,23 +124,39 @@ class State {
 	}
 	
 	public function getData() as StateData {
-		return {
-			KEY_POINTS => mPoints.serialize(),
+		log.msg("getData()");
+		var stats = System.getSystemStats();
+		log.debug("getting data", stats.freeMemory);
+		var points = mPoints.serialize();
+		stats = System.getSystemStats();
+		log.debug("serialized points", stats.freeMemory);
+		var data = {
+			KEY_POINTS => points,
 			KEY_CHARGED => mCharged,
 			KEY_ACTIVITY => mActivityRunning,
 			KEY_ACTIVITY_TS => mActivityTS,
 			KEY_MARK => (mMark != null)?mMark:false
 		} as StateData;
-		
+		stats = System.getSystemStats();
+		log.debug("constructed a dict", stats.freeMemory);
+		log.debug("getData", data);
+		return data;
 	}
 	
 	public function save() as Void {
-		//log.debug("save", getData());
+		var stats = System.getSystemStats();
+		log.debug("saving", stats.freeMemory);
+		var data = getData();
+		stats = System.getSystemStats();
+		log.debug("got data", stats.freeMemory);
+		log.debug("save", data);
 		try {
-			Application.getApp().setProperty(STATE_PROPERTY, getData());
+			Application.getApp().setProperty(STATE_PROPERTY, data);
 		} catch (ex) {
-			//log.error("save error", ex);
+			log.error("save error", ex);
 		}
+		stats = System.getSystemStats();
+		log.debug("saved", stats.freeMemory);
 	}
 	
 	/**

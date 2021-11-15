@@ -8,7 +8,7 @@ using Toybox.WatchUi;
 
 (:typecheck(disableBackgroundCheck) :background :glance)
 class BetterBatteryWidgetApp extends Application.AppBase {
- 	// var log as Log;
+ 	var log as Log;
     var mState as State;
 
     var mWidgetPage as WidgetPage?;
@@ -18,7 +18,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
  	var mGraphMode as Number?;
     
     public function initialize() {
-    	// log = new Log("App");
+    	log = new Log("App");
 		AppBase.initialize();
     	loadSettings();
     	var data = Background.getBackgroundData() as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>;
@@ -27,7 +27,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 
     public function onBackgroundData(data as StateData?) as Void {
     	mState = new State(data);
-    	// log.debug("onBackgroundData: saving", data as Dictionary);
+    	log.debug("onBackgroundData: saving", data as Dictionary);
     	mState.save();
         if( mWidgetPage != null ) {
 	    	//log.msg("onBackgroundData: calling WidgetPage.updateState");
@@ -92,20 +92,20 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 
 (:background)
 class BackgroundServiceDelegate extends System.ServiceDelegate {
-	//var log;
+	var log;
     public function initialize() {
         ServiceDelegate.initialize();
-        //log = new Log("BackgroundServiceDelegate");
+        log = new Log("BackgroundServiceDelegate");
     }
 
     public function onTemporalEvent() as Void {
     	var data = Background.getBackgroundData() as StateData?;
 		//log.debug("onTemporalEvent bgData", data); 
     	var state = new State(data);
-    	//log.debug("onTemporalEvent measure", state.mData);
+    	log.debug("onTemporalEvent measure", state);
 		state.measure();
 		var ret = state.getData();
-		//log.debug("onTemporalEvent ret", ret); 
+		log.debug("onTemporalEvent ret", ret); 
 		try {
 			Background.exit(ret as Dictionary<String, Application.PropertyValueType>);
 		} catch (e instanceof Background.ExitDataSizeLimitException) {

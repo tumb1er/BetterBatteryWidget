@@ -83,7 +83,7 @@ class TimeSeries {
     all previous are packed points.
     */
     public function initialize(points as Array<Long>) {
-        log = new Log("PI");
+        log = new Log("TS");
         var size = points.size();
         if (size == 0) {
             size = 1;
@@ -98,8 +98,14 @@ class TimeSeries {
     }
 
     public function serialize() as Array<Long> {
+        log.debug("serialize", [mStart, mSize, mOffset]);
         // sync size, offset and start values
-        mPoints[mCapacity] = mStart.toLong() << 32 + mSize << 16 + mOffset;
+        try {
+            mPoints[mCapacity] = mStart.toLong() << 32 + mSize << 16 + mOffset;
+        } catch (ex) {
+            log.error("serialize error", ex);
+        }
+        log.debug("serialized", mPoints);
         return mPoints;
     }
 
@@ -122,13 +128,14 @@ class TimeSeries {
     }
 
     public function add(ts as Number, value as Float) as Void {
+        log.debug("adding", [ts, value, mSize, mOffset]);
         if (mSize == 0) {
             mStart = ts;
         }
         var delta = ts - mStart;
         if (mSize == mCapacity * 2) {
             // points array is full, removing oldest element
-            log.debug("xxx", [mPoints, mOffset, mCapacity]);
+            log.debug("rotating", [mPoints, mOffset, mCapacity]);
             // cleanup
             mPoints[mOffset] = 0l;
             // move offset to next element
@@ -146,6 +153,7 @@ class TimeSeries {
         var v = (value * 10).toNumber();
         var point = TimeSeries.validate(delta, v);
         var idx = (mSize / 2 + mOffset) % mCapacity;
+        log.debug("replacing", [idx, mPoints[idx], mSize]);
         if (mSize % 2 == 0) {
             // setting low bits with clear high bits to that place;
             mPoints[idx] = point;
@@ -153,7 +161,9 @@ class TimeSeries {
             mPoints[idx] += point << 32;
         }
         mSize += 1;
-        log.debug("add", [mPoints, mOffset]);
+        log.debug("new value", [idx, mPoints[idx], mSize]);
+        mPoints[mCapacity] = mStart.toLong() << 32 + mSize << 16 + mOffset;
+        log.debug("add", mPoints);
     }
 
     private function align(ts as Number) as Void {
@@ -177,11 +187,14 @@ class TimeSeries {
     }
 
     public function set(i as Number, ts as Number, value as Float) as Void {
+        log.debug("setting", [i, ts, value]);
         var delta = ts - mStart;
         // log.debug("delta", delta);
         var v = (value * 10).toNumber();
         var point = TimeSeries.validate(delta, v);
         var idx = ((i / 2) + mOffset) % mCapacity;
+        log.debug("replacing2", [idx, mPoints[idx]]);
+
         if (i % 2 == 0) {
             // clear low bits
             mPoints[idx] &= HIGH_MASK;
@@ -191,6 +204,9 @@ class TimeSeries {
             mPoints[idx] &= LOW_MASK;
             mPoints[idx] |= point << 32;
         }
+
+        log.debug("new value2", [idx, mPoints[idx]]);
+
         if (i == 0 && mStart != ts) {
             self.align(ts);
         }

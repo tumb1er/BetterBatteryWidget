@@ -136,9 +136,25 @@ class TimeSeries {
         return mSize;
     }
 
+    public function print() as Void {
+        System.print(Lang.format("[$1$, $2$, $3$]: ", [mStart, mSize, mOffset]));
+        var point = new BatteryPoint(0, 0);
+        System.print("[");
+        for (var i = 0; i< mSize; i ++) {
+            point.load(mPoints, i * BatteryPoint.SIZE);
+            if (i > 0) {
+                System.print(", ");
+            }
+            System.print(point.toString());
+        }
+        System.print("]");
+    }
+
     public function get(idx as Number) as BatteryPoint {
-        idx = (idx + mOffset) % mCapacity;
-        return BatteryPoint.FromBytes(idx * BatteryPoint.SIZE);
+        var offset = (((idx + mOffset) % mCapacity) * BatteryPoint.SIZE).toNumber();
+        var point = BatteryPoint.FromBytes(mPoints, offset);
+        point.shiftTS(mStart);
+        return point;
     }
 
     public function add(ts as Number, value as Float) as Void {
@@ -168,7 +184,7 @@ class TimeSeries {
         point.initialize(delta, value);
         point.validate();
         var idx = (mSize + mOffset) % mCapacity;
-        point.save(idx * BatteryPoint.SIZE);
+        point.save(mPoints, idx * BatteryPoint.SIZE);
         mSize += 1;
         serialize();
         // log.debug("add", mPoints);
@@ -191,7 +207,7 @@ class TimeSeries {
     public function set(i as Number, ts as Number, value as Float) as Void {
         log.debug("setting", [i, ts, value]);
         var delta = ts - mStart;
-        var point = new BatteryPoint(ts, value);
+        var point = new BatteryPoint(delta, value);
         point.validate();
         var idx = (i + mOffset) % mCapacity;
         point.save(mPoints, idx * BatteryPoint.SIZE);

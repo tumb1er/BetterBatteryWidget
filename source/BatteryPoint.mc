@@ -39,10 +39,10 @@ class BatteryPoint {
 
     public function validate()  as Void {
         if (ts > MAX_TS || ts < 0) {
-            throw new Lang.InvalidValueException("timestamp out of range");
+            throw new Lang.InvalidValueException(Lang.format("timestamp out of range: $1$", [ts]));
         }
         if (value > MAX_VALUE || value < 0) {
-            throw new Lang.InvalidValueException("value out of range");
+            throw new Lang.InvalidValueException(Lang.format("value out of range: $1$", [value]));
         }
         return;
     }

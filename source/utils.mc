@@ -99,7 +99,6 @@ function assert_equal(v1 as Any, v2 as Any, msg as string) as Void {
 function encodeNumber(b as ByteArray, n as Number, offset as Number) as ByteArray {
 	for (var i = offset + 3; i >= offset; i--) {
 		b[i] = n % 256;
-		System.println([i, n, b[i]]);
 		n /= 256;
 	}
 	return b;

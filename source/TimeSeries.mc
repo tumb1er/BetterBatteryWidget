@@ -7,6 +7,55 @@ typedef StatePoints as Array<StatePoint>;
 
 
 (:background)
+class TimeSeriesOpts {
+    public const INT16_MASK = 1 << 16 - 1;
+    private var mStart as Number;  // iterator start timestamp
+    private var mSize as Number; // unpacked size
+    private var mOffset as Number; // zero element offset
+
+    public function initialize(start as Number, size as Number, offset as Number) as Void {
+        mStart = start;
+        mSize = size;
+        mOffset = offset;
+    }
+
+    public function save(b as ByteArray, offset as Number) as Void {
+        System.println(b);
+        b = encodeNumber(b, mStart, offset);
+        System.println(b);
+        offset += 4;
+        var n = mSize << 16 + mOffset;
+        b = encodeNumber(b, n, offset);
+        System.println(b);
+    }  
+    
+    public function load(b as ByteArray, offset as Number) as Void {
+        mStart = decodeNumber(b, offset);
+        System.println(mStart);
+        offset += 4;
+        var n = decodeNumber(b, offset);
+        System.println(n);
+        mSize = n >> 16;
+        mOffset = n & INT16_MASK;
+    }
+
+    (:debug)
+    function getStart() as Number {
+        return mStart;
+    }
+
+    (:debug)
+    function getSize() as Number {
+        return mSize;
+    }
+
+    (:debug)
+    function getOffset() as Number {
+        return mOffset;
+    }
+}
+
+(:background)
 class TimeSeries {
 
     static const MAX_TS = 1 << 22;
@@ -253,6 +302,48 @@ class TimeSeries {
     public function getOffset() as Number {
         return mOffset;
     }
+}
+
+(:test)
+function testTimeSeriesOptsNew(logger as Logger) as Boolean {
+    var opts = new TimeSeriesOpts(1, 2, 3);
+    assert_equal(opts.getStart(), 1, "unexpected start");
+    assert_equal(opts.getSize(), 2, "unexpected size");
+    assert_equal(opts.getOffset(), 3, "unexpected offset");    
+    return true;
+}
+
+(:test)
+function testTimeSeriesOptsLoad(logger as Logger) as Boolean {
+    var low = 2l << 16 + 3l;
+    var high = 1l;
+    var value = high << 32 + low;
+    var b = new [10]b;
+    b.encodeNumber(high, Lang.NUMBER_FORMAT_UINT32, {:offset => 2, :endianness => Lang.ENDIAN_BIG});
+    b.encodeNumber(low, Lang.NUMBER_FORMAT_UINT32, {:offset => 6, :endianness => Lang.ENDIAN_BIG});
+
+    var opts = new TimeSeriesOpts(0, 0, 0);
+    opts.load(b, 2);
+    assert_equal(opts.getStart(), 1, "unexpected start");
+    assert_equal(opts.getSize(), 2, "unexpected size");
+    assert_equal(opts.getOffset(), 3, "unexpected offset");
+    return true;
+}
+
+(:test)
+function testTimeSeriesOptsSave(logger as Logger) as Boolean {
+    var low = 2l << 16 + 3l;
+    var high = 1l;
+    var value = high << 32 + low;
+    var b = new [10]b;
+    b.encodeNumber(high, Lang.NUMBER_FORMAT_UINT32, {:offset => 2, :endianness => Lang.ENDIAN_BIG});
+    b.encodeNumber(low, Lang.NUMBER_FORMAT_UINT32, {:offset => 6, :endianness => Lang.ENDIAN_BIG});
+    var d = new [10]b;
+
+    var opts = new TimeSeriesOpts(1, 2, 3);
+    opts.save(d, 2);
+    assert_equal(b, d, "unexpected bytes");
+    return true;
 }
 
 (:test)

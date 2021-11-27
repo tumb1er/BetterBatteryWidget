@@ -94,3 +94,23 @@ function assertViewDraw(logger as Test.Logger, page as WatchUi.View) as Graphics
 function assert_equal(v1 as Any, v2 as Any, msg as string) as Void {
     Test.assertEqualMessage(v1, v2, Lang.format("$1$: $2$ != $3$", [msg, v1, v2]));
 }
+
+(:background)
+function encodeNumber(b as ByteArray, n as Number, offset as Number) as ByteArray {
+	for (var i = offset + 3; i >= offset; i--) {
+		b[i] = n % 256;
+		System.println([i, n, b[i]]);
+		n /= 256;
+	}
+	return b;
+}
+
+(:background)
+function decodeNumber(b as ByteArray, offset as Number) as Number {
+	var n = b[offset].toNumber();
+	for (var i = offset + 1; i < offset + 4; i++) {
+		n *= 256;
+		n += b[i];
+	}
+	return n;
+}

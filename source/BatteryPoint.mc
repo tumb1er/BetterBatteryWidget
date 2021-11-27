@@ -9,13 +9,15 @@ class BatteryPoint {
     Serialization format: UINT32 LE
     Bits format: <22bit timestamp offset> <10 bit value>
     */
+    static const MAX_TS = 1 << 22;
+    static const MAX_VALUE = 100.0;
     static const MASK_LEN = 11;
     static const MASK = 1 << MASK_LEN - 1;
     private var ts as Number = 0;
     private var value as Float = 0.0;
 
     (:debug)
-    public static function fromArray(d as StatePoint?) as BatteryPoint? {
+    public static function FromArray(d as StatePoint?) as BatteryPoint? {
         if (d == null) { 
             return null;
         }
@@ -24,7 +26,7 @@ class BatteryPoint {
     }
 
     (:debug)
-    public static function fromBytes(b as ByteArray, offset as Number) as BatteryPoint {
+    public static function FromBytes(b as ByteArray, offset as Number) as BatteryPoint {
         var p = new BatteryPoint(0, 0);
         p.load(b, offset);
         return p;
@@ -35,24 +37,24 @@ class BatteryPoint {
         self.value = value;
     }
 
+    public function validate()  as Void {
+        if (ts > MAX_TS || ts < 0) {
+            throw new Lang.InvalidValueException("timestamp out of range");
+        }
+        if (value > MAX_VALUE || value < 0) {
+            throw new Lang.InvalidValueException("value out of range");
+        }
+        return;
+    }
+
     public function save(b as ByteArray, offset as Number) as Void {
         var n = self.ts << BatteryPoint.MASK_LEN;
         n += (self.value * 10).toNumber() & BatteryPoint.MASK;
-        for (var i = offset + 3; i >= offset; i--) {
-            b[i] = n % 256;
-            n /= 256;
-        }
+        encodeNumber(b, n, offset);
     }
 
     public function load(b as ByteArray, offset as Number) as Void {
-        var n = b[offset].toNumber();
-        System.println(n);
-        for (var i = offset + 1; i < offset + 4; i++) {
-            n *= 256;
-            n += b[i];
-            System.println(b[i]);
-        }
-        System.println(n);
+        var n = decodeNumber(b, offset);
         var v = n & BatteryPoint.MASK;
         value = v.toFloat() / 10.0;
         ts = n >> BatteryPoint.MASK_LEN;
@@ -74,7 +76,7 @@ class BatteryPoint {
 
 (:test)
 function testBatteryPointFromArray(logger as Logger) as Boolean {
-    var p = BatteryPoint.fromArray([123, 22.2]);
+    var p = BatteryPoint.FromArray([123, 22.2]);
     assert_equal(p.getTS(), 123, "unexpected ts");
     assert_equal(p.getValue(), 22.2, "unexpected value");
 
@@ -88,7 +90,7 @@ function testBatteryPointFromBytes(logger as Logger) as Boolean {
     System.println(n);
     b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
     System.println(b);
-    var p = BatteryPoint.fromBytes(b, 4);
+    var p = BatteryPoint.FromBytes(b, 4);
     assert_equal(p.getTS(), 123, "unexpected ts");
     assert_equal(p.getValue(), 22.2, "unexpected value");
     return true;

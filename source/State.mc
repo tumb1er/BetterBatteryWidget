@@ -91,11 +91,11 @@ class State {
 	}
 
 	public function getChargedPoint() as BatteryPoint? {
-		return BatteryPoint.fromArray(mCharged);
+		return BatteryPoint.FromArray(mCharged);
 	}
 
 	public function getMarkPoint() as BatteryPoint? {
-		return BatteryPoint.fromArray(mMark);
+		return BatteryPoint.FromArray(mMark);
 	}
 
 	(:debug)

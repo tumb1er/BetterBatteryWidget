@@ -105,13 +105,26 @@ class TimeSeries {
         } catch (ex) {
             log.error("serialize error", ex);
         }
-        log.debug("serialized", mPoints);
+        // log.debug("serialized", mPoints);
         return mPoints;
     }
 
     public function size() as Number {
         return mSize;
     }
+
+	(:debug)
+	public function print() as Void {
+		System.print("[");
+		for (var i = 0; i< mPoints.size(); i++) {
+			if (i > 0) {
+				System.print(", ");
+			}
+			System.print(mPoints[i]);
+		}	
+		System.print("]");
+	}
+
 
     public function get(idx as Number) as BatteryPoint {
         var point = mPoints[(idx / 2 + mOffset) % mCapacity];
@@ -163,7 +176,7 @@ class TimeSeries {
         mSize += 1;
         log.debug("new value", [idx, mPoints[idx], mSize]);
         mPoints[mCapacity] = mStart.toLong() << 32 + mSize << 16 + mOffset;
-        log.debug("add", mPoints);
+        // log.debug("add", mPoints);
     }
 
     private function align(ts as Number) as Void {

@@ -23,7 +23,7 @@ const KEY_MARK = "m1";
 (:background)
 const MAX_POINTS = 5;
 (:background)
-const CAPACITY = 20;  // TODO: from resources depending on screen size
+const CAPACITY = 50;  // limited by background exit max size
 
 typedef StateValues as StatePoint or StatePoints or Boolean or Array<Long> or Number or Null;
 typedef StateData as Dictionary<String, StateValues>;
@@ -42,10 +42,10 @@ class State {
 		log = new Log("State");
 		var app = Application.getApp() as BetterBatteryWidgetApp;
 		mGraphDuration = 3600 * (app.mGraphDuration as Number);
-		log.debug("initialize: passed", data);
+		// log.debug("initialize: passed", data);
 		if (data == null) {
 			data = app.getProperty(STATE_PROPERTY) as Dictionary<String, Array<Number or Float> or Boolean>?;		
-		log.debug("initialize: got", data);
+		// log.debug("initialize: got", data);
 		}
 		if (data == null) {
 			log.debug("before empty", data);
@@ -123,6 +123,12 @@ class State {
 		return self.mActivityTS;
 	}
 	
+	(:debug)
+	public function printPoints() as Void {
+		mPoints.print();
+		System.println("");
+	}
+
 	public function getData() as StateData {
 		log.msg("getData()");
 		var stats = System.getSystemStats();
@@ -139,7 +145,7 @@ class State {
 		} as StateData;
 		stats = System.getSystemStats();
 		log.debug("constructed a dict", stats.freeMemory);
-		log.debug("getData", data);
+		// log.debug("getData", data);
 		return data;
 	}
 	
@@ -149,7 +155,7 @@ class State {
 		var data = getData();
 		stats = System.getSystemStats();
 		log.debug("got data", stats.freeMemory);
-		log.debug("save", data);
+		// log.debug("save", data);
 		try {
 			Application.getApp().setProperty(STATE_PROPERTY, data);
 		} catch (ex) {

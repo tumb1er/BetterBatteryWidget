@@ -23,11 +23,15 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     	loadSettings();
     	var data = Background.getBackgroundData() as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>;
     	mState = new State(data);
+		log.msg("Points from init");
+		mState.printPoints();
     }
 
     public function onBackgroundData(data as StateData?) as Void {
     	mState = new State(data);
-    	log.debug("onBackgroundData: saving", data as Dictionary);
+		log.msg("Points from background data (saving)");
+		mState.printPoints();
+    	// log.debug("onBackgroundData: saving", data as Dictionary);
     	mState.save();
         if( mWidgetPage != null ) {
 	    	//log.msg("onBackgroundData: calling WidgetPage.updateState");
@@ -105,12 +109,16 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
     	log.debug("onTemporalEvent measure", state);
 		state.measure();
 		var ret = state.getData();
-		log.debug("onTemporalEvent ret", ret); 
+		// log.debug("onTemporalEvent ret", ret); 
 		try {
 			Background.exit(ret as Dictionary<String, Application.PropertyValueType>);
 		} catch (e instanceof Background.ExitDataSizeLimitException) {
+			log.msg("onTermporalError ExitSize error");
+			log.error("Size error", e);
 			throw new LogException("ExitDataSizeLimitException");
 		} catch (e) {
+			log.msg("onTermporalError unhandled error");
+			log.error("Unknown error", e);
 			throw new LogException(format("Unknown error $1$", [e]));
 		}
     }

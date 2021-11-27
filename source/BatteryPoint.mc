@@ -1,5 +1,4 @@
 import Toybox.Lang;
-using Toybox.System;
 using Toybox.Test;
 
 
@@ -9,10 +8,11 @@ class BatteryPoint {
     Serialization format: UINT32 LE
     Bits format: <22bit timestamp offset> <10 bit value>
     */
-    static const MAX_TS = 1 << 22;
-    static const MAX_VALUE = 100.0;
-    static const MASK_LEN = 11;
-    static const MASK = 1 << MASK_LEN - 1;
+    public static const SIZE = 4; // bytes used to store BatteryPoint
+    private static const MAX_TS = 1 << 22;
+    private static const MAX_VALUE = 100.0;
+    private static const MASK_LEN = 11;
+    private static const MASK = 1 << MASK_LEN - 1;
     private var ts as Number = 0;
     private var value as Float = 0.0;
 
@@ -64,6 +64,10 @@ class BatteryPoint {
         return self.ts;
     }
 
+    public function shiftTS(delta as Number) as Void {
+        self.ts += delta;
+    }
+
     public function getValue() as Float {
         return self.value;
     }
@@ -87,9 +91,7 @@ function testBatteryPointFromArray(logger as Logger) as Boolean {
 function testBatteryPointFromBytes(logger as Logger) as Boolean {
     var n = 123 << 11 + 222;
     var b = new [8]b;
-    System.println(n);
     b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
-    System.println(b);
     var p = BatteryPoint.FromBytes(b, 4);
     assert_equal(p.getTS(), 123, "unexpected ts");
     assert_equal(p.getValue(), 22.2, "unexpected value");

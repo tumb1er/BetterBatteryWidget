@@ -8,7 +8,10 @@ typedef StatePoints as Array<StatePoint>;
 
 (:background)
 class TimeSeriesOpts {
-    public const INT16_MASK = 1 << 16 - 1;
+    public static const SIZE = 8; // bytes used to store TimeSeriesOpts
+    private const START_SIZE = 4; // bytes for storing start timestamp
+    private const OFFSET_BITS = 16; // bytes for storing offset
+    private const OFFSET_MASK = 1 << OFFSET_BITS - 1; // mask for offset
     private var mStart as Number;  // iterator start timestamp
     private var mSize as Number; // unpacked size
     private var mOffset as Number; // zero element offset
@@ -20,36 +23,28 @@ class TimeSeriesOpts {
     }
 
     public function save(b as ByteArray, offset as Number) as Void {
-        System.println(b);
         b = encodeNumber(b, mStart, offset);
-        System.println(b);
-        offset += 4;
-        var n = mSize << 16 + mOffset;
+        offset += START_SIZE;
+        var n = mSize << OFFSET_BITS + mOffset;
         b = encodeNumber(b, n, offset);
-        System.println(b);
     }  
     
     public function load(b as ByteArray, offset as Number) as Void {
         mStart = decodeNumber(b, offset);
-        System.println(mStart);
-        offset += 4;
+        offset += START_SIZE;
         var n = decodeNumber(b, offset);
-        System.println(n);
-        mSize = n >> 16;
-        mOffset = n & INT16_MASK;
+        mSize = n >> OFFSET_BITS;
+        mOffset = n & OFFSET_MASK;
     }
 
-    (:debug)
     function getStart() as Number {
         return mStart;
     }
 
-    (:debug)
     function getSize() as Number {
         return mSize;
     }
 
-    (:debug)
     function getOffset() as Number {
         return mOffset;
     }
@@ -58,18 +53,14 @@ class TimeSeriesOpts {
 (:background)
 class TimeSeries {
 
-    static const MAX_TS = 1 << 22;
-    const MAX_VALUE = 1 << 10;  // right 10 bits
-    const INT32_MASK = 1l << 32;
-    const INT16_MASK = 1l << 16;
-    const LOW_MASK = INT32_MASK - 1;
-    const HIGH_MASK = LOW_MASK << 32;
+    // static const MAX_TS = 1 << 22;
+    // const MAX_VALUE = 1 << 10;  // right 10 bits
+    // const INT32_MASK = 1l << 32;
+    // const INT16_MASK = 1l << 16;
+    // const LOW_MASK = INT32_MASK - 1;
+    // const HIGH_MASK = LOW_MASK << 32;
 
     /*
-    long packing format: <odd int32><even in32>
-
-    * first two points are stored as (second << 32) | first
-
     int32 format:
     <ts 22 bit as offset in seconds><value 10 bit as battery ppm>
 
@@ -80,28 +71,15 @@ class TimeSeries {
     last array value contains: (start ts) << 32 | size << 16 | offset
 
     */
-    private var mPoints as Array<Long>;  // packed int32 values
+    private var mPoints as ByteArray;  // packed uint32 points + int64 opts
     private var mSize as Number; // unpacked size
     private var mStart as Number;  // iterator start timestamp
     private var mOffset as Number; // zero element offset
-    private var mCapacity as Number; // max memory for points array in int64 values
+    private var mCapacity as Number; // max memory for points array in int32 values
     private var log as Log;
 
-    private static function validate(ts as Number, value as Number) as Long {
-        if (ts > MAX_TS) {
-            throw new Lang.InvalidValueException("too long points vector");
-        }
-        if (value > 1000 || value < 0) {
-            throw new Lang.InvalidValueException("value out of range");
-        }
-        return (ts << 10 + value).toLong();
-    }
-
     public static function Empty(capacity as Number) as TimeSeries {
-        var points = new [capacity + 1] as Array<Long>;
-        for (var i = 0; i <= capacity; i++) {
-            points[i] = 0l;
-        }
+        var points = new [capacity * BatteryPoint.SIZE + TimeSeriesOpts.SIZE]b;
         return new TimeSeries(points);
     }
 
@@ -112,17 +90,16 @@ class TimeSeries {
             return TimeSeries.Empty(0);
         }
         var start = points[0][0] as Number;
-        var values = new [(size + 1) / 2 + 1] as Array<Long>;
-        values[(size + 1) / 2] = start.toLong() << 32 + size << 16;
+        var values = new [size * BatteryPoint.SIZE + TimeSeriesOpts.SIZE]b;
+        var opts = new TimeSeriesOpts(start, size, 0);
+        opts.save(values, size * BatteryPoint.SIZE);
+        var point = new BatteryPoint(0, 0);
         for (var i=0; i<size; i++) {
             var ts = (points[i][0] - start) as Number;
-            var value = (points[i][1] * 10).toNumber();
-            var point = TimeSeries.validate(ts, value);
-            if (i % 2 == 0) {
-                values[i / 2] = point;
-            } else {
-                values[i / 2] += point << 32;
-            }
+            var value = points[i][1];
+            point.initialize(ts, value);
+            point.validate();
+            point.save(values, i * BatteryPoint.SIZE);
         }
         return new TimeSeries(values);
     }
@@ -131,29 +108,26 @@ class TimeSeries {
     Accepts an array where last element is packed start timestamp + points count, and
     all previous are packed points.
     */
-    public function initialize(points as Array<Long>) {
+    public function initialize(points as ByteArray) as Void {
         log = new Log("TS");
         var size = points.size();
         if (size == 0) {
-            size = 1;
-            points = new [0l] as Array<Long>;
+            size = TimeSeriesOpts.SIZE;
+            points = new [TimeSeriesOpts.SIZE]b;
         }
-        var init = points[size - 1];
-        mStart = (init / INT32_MASK).toNumber();
-        mOffset = (init % INT16_MASK).toNumber();
-        mSize = ((init % INT32_MASK) / INT16_MASK).toNumber();
-        mCapacity = size - 1;
+        var opts = new TimeSeriesOpts(0, 0, 0);
+        opts.load(points, size - TimeSeriesOpts.SIZE); 
+        mStart = opts.getStart();
+        mSize = opts.getSize();
+        mOffset = opts.getOffset();
+        mCapacity = (size - TimeSeriesOpts.SIZE) / BatteryPoint.SIZE;
         mPoints = points;
     }
 
-    public function serialize() as Array<Long> {
-        log.debug("serialize", [mStart, mSize, mOffset]);
+    public function serialize() as ByteArray {
         // sync size, offset and start values
-        try {
-            mPoints[mCapacity] = mStart.toLong() << 32 + mSize << 16 + mOffset;
-        } catch (ex) {
-            log.error("serialize error", ex);
-        }
+        var opts = new TimeSeriesOpts(mStart, mSize, mOffset);
+        opts.save(mPoints, mCapacity * BatteryPoint.SIZE);
         // log.debug("serialized", mPoints);
         return mPoints;
     }
@@ -162,31 +136,9 @@ class TimeSeries {
         return mSize;
     }
 
-	(:debug)
-	public function print() as Void {
-		System.print("[");
-		for (var i = 0; i< mPoints.size(); i++) {
-			if (i > 0) {
-				System.print(", ");
-			}
-			System.print(mPoints[i]);
-		}	
-		System.print("]");
-	}
-
-
     public function get(idx as Number) as BatteryPoint {
-        var point = mPoints[(idx / 2 + mOffset) % mCapacity];
-        if (idx % 2 == 1) {
-            // high bits needed for even indices
-            point /= INT32_MASK;
-        } else {
-            // low bits only
-            point %= INT32_MASK;
-        }
-        var value = (point % MAX_VALUE).toFloat() / 10.0f;
-        var ts = (point >> 10 + mStart).toNumber();
-        return new BatteryPoint(ts as Number, value as Float);
+        idx = (idx + mOffset) % mCapacity;
+        return BatteryPoint.FromBytes(idx * BatteryPoint.SIZE);
     }
 
     public function add(ts as Number, value as Float) as Void {
@@ -194,8 +146,9 @@ class TimeSeries {
         if (mSize == 0) {
             mStart = ts;
         }
+        var point = new BatteryPoint(0, 0);
         var delta = ts - mStart;
-        if (mSize == mCapacity * 2) {
+        if (mSize == mCapacity) {
             // points array is full, removing oldest element
             log.debug("rotating", [mPoints, mOffset, mCapacity]);
             // cleanup
@@ -204,27 +157,20 @@ class TimeSeries {
             mOffset = (mOffset + 1) % mCapacity;
             if (mOffset == 0) {
                 // align values to first TS
-                var start = mStart + (mPoints[0] % INT32_MASK).toNumber() >> 10;
-                log.debug("align", start);
-                align(start);
+                var start = point.load(mPoints, 0);
+                log.debug("align", start.getTS());
+                align(mStart + start.getTS());
                 delta = ts - mStart;
             }
             // lower size value
-            mSize -= 2;
+            mSize -= 1;
         }
-        var v = (value * 10).toNumber();
-        var point = TimeSeries.validate(delta, v);
-        var idx = (mSize / 2 + mOffset) % mCapacity;
-        log.debug("replacing", [idx, mPoints[idx], mSize]);
-        if (mSize % 2 == 0) {
-            // setting low bits with clear high bits to that place;
-            mPoints[idx] = point;
-        } else {
-            mPoints[idx] += point << 32;
-        }
+        point.initialize(delta, value);
+        point.validate();
+        var idx = (mSize + mOffset) % mCapacity;
+        point.save(idx * BatteryPoint.SIZE);
         mSize += 1;
-        log.debug("new value", [idx, mPoints[idx], mSize]);
-        mPoints[mCapacity] = mStart.toLong() << 32 + mSize << 16 + mOffset;
+        serialize();
         // log.debug("add", mPoints);
     }
 
@@ -232,17 +178,11 @@ class TimeSeries {
         var delta = (ts - mStart).toLong();
         log.debug("align to ", [ts, delta]);
         log.debug("before", mPoints);
-        var lowShift = delta << 10;
-        var highShift = lowShift << 32;
+        var point = new BatteryPoint(0, 0);
         for (var i = 0; i < mSize; i++) {
-            var idx = (i / 2 + mOffset) % mCapacity;
-            if (i % 2 == 0) {
-                // low part align
-                mPoints[idx] -= lowShift;
-            } else {
-                // high part align
-                mPoints[idx] -= highShift;
-            }
+            point.load(mPoints, i * BatteryPoint.SIZE);
+            point.shiftTS(-delta);
+            point.save(mPoints, i * BatteryPoint.SIZE);
         }
         log.debug("after", mPoints);
         mStart = ts;
@@ -251,24 +191,10 @@ class TimeSeries {
     public function set(i as Number, ts as Number, value as Float) as Void {
         log.debug("setting", [i, ts, value]);
         var delta = ts - mStart;
-        // log.debug("delta", delta);
-        var v = (value * 10).toNumber();
-        var point = TimeSeries.validate(delta, v);
-        var idx = ((i / 2) + mOffset) % mCapacity;
-        log.debug("replacing2", [idx, mPoints[idx]]);
-
-        if (i % 2 == 0) {
-            // clear low bits
-            mPoints[idx] &= HIGH_MASK;
-            mPoints[idx] |= point;
-        } else {
-            // clear high bits
-            mPoints[idx] &= LOW_MASK;
-            mPoints[idx] |= point << 32;
-        }
-
-        log.debug("new value2", [idx, mPoints[idx]]);
-
+        var point = new BatteryPoint(ts, value);
+        point.validate();
+        var idx = (i + mOffset) % mCapacity;
+        point.save(mPoints, idx * BatteryPoint.SIZE);
         if (i == 0 && mStart != ts) {
             self.align(ts);
         }
@@ -289,7 +215,7 @@ class TimeSeries {
     }
 
     (:debug)
-    public function getPoints() as Array<Long> {
+    public function getPoints() as ByteArray {
         return mPoints;
     }
 

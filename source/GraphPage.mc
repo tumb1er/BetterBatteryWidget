@@ -145,6 +145,7 @@ class GraphPage extends WatchUi.View {
 		drawPredictions(dc);
 		var g = mGraph as GraphDrawable;
 		g.draw(dc);
+		dc.setColor(0xFFFFFF, 0x000000);
 
 		dc.fillPolygon([
 			[mx, my + 5] as Array<Number>, 

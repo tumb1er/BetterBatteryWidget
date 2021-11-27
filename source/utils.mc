@@ -89,3 +89,8 @@ function assertViewDraw(logger as Test.Logger, page as WatchUi.View) as Graphics
 	page.onUpdate(dc);
 	return dc;
 }
+
+(:debug)    
+function assert_equal(v1 as Any, v2 as Any, msg as string) as Void {
+    Test.assertEqualMessage(v1, v2, Lang.format("$1$: $2$ != $3$", [msg, v1, v2]));
+}

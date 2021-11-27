@@ -44,7 +44,7 @@ class State {
 		mGraphDuration = 3600 * (app.mGraphDuration as Number);
 		// log.debug("initialize: passed", data);
 		if (data == null) {
-			data = app.getProperty(STATE_PROPERTY) as Dictionary<String, Array<Number or Float> or Boolean>?;		
+			data = Application.Storage.getValue(STATE_PROPERTY) as Dictionary<String, Array<Number or Float> or Boolean>?;		
 		// log.debug("initialize: got", data);
 		}
 		if (data == null) {
@@ -157,7 +157,7 @@ class State {
 		log.debug("got data", stats.freeMemory);
 		// log.debug("save", data);
 		try {
-			Application.getApp().setProperty(STATE_PROPERTY, data);
+			Application.Storage.setValue(STATE_PROPERTY, data);
 		} catch (ex) {
 			log.error("save error", ex);
 		}

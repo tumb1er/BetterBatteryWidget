@@ -86,7 +86,14 @@ class TimeSeries {
     private var log as Log;
 
     public static function Empty(capacity as Number) as TimeSeries {
+<<<<<<< HEAD
         var points = new [capacity * BatteryPoint.SIZE + TimeSeriesOpts.SIZE]b;
+=======
+        var points = new [capacity + 1] as Array<Long>;
+        for (var i = 0; i <= capacity; i++) {
+            points[i] = 0;
+        }
+>>>>>>> Predict avg on glance
         return new TimeSeries(points);
     }
 

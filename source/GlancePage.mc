@@ -32,7 +32,7 @@ class GlancePage extends WatchUi.GlanceView {
         dc.drawText(0, h / 2, Graphics.FONT_GLANCE_NUMBER, formatPercent(state.battery), Graphics.TEXT_JUSTIFY_LEFT);
         var color = colorize(state.battery);
         dc.setColor(color, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(3);
+        dc.setPenWidth(5);
         dc.drawLine(0, h / 2, bx, h / 2);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(1);
@@ -41,11 +41,13 @@ class GlancePage extends WatchUi.GlanceView {
         var charged = mState.getChargedPoint();
         if (charged != null) {
             dc.drawText(w, 0, Graphics.FONT_GLANCE, formatTimestamp(charged.getTS()), Graphics.TEXT_JUSTIFY_RIGHT);
-            var ts = Time.now().value();
-            var current = new BatteryPoint(ts, state.battery);
-            var predicted = predict(charged, current);
+            mState.measure();
+            var result = new Result(mState);
+            result.predictWindow();
+            result.predictCharged();
+            var predicted = result.predictAvg(0.5);
             if (predicted != null ) {
-                dc.drawText(w, h * 3 / 4, Graphics.FONT_GLANCE, formatInterval(predicted.getTS()), 
+                dc.drawText(w, h * 3 / 4, Graphics.FONT_SMALL, formatInterval(predicted), 
                             Graphics.TEXT_JUSTIFY_VCENTER|Graphics.TEXT_JUSTIFY_RIGHT);
             }
         }

@@ -1,5 +1,6 @@
 import Toybox.Lang;
 
+(:glance)
 class PointsIterator {
     private var mData as TimeSeries;
     private var mPosition as Number;

@@ -21,6 +21,7 @@ function predict(first as BatteryPoint?, last as BatteryPoint?) as BatteryPoint?
 	return new BatteryPoint((last.getValue() / speed).toNumber(), speed.toFloat());		
 }
 
+(:glance)
 class Result {
     // var log;
 	private var mStats as State;

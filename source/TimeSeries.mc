@@ -16,6 +16,13 @@ class TimeSeriesOpts {
     private var mSize as Number; // unpacked size
     private var mOffset as Number; // zero element offset
 
+    (:debug)
+    public static function FromBytes(b as ByteArray, offset as Number) as TimeSeriesOpts {
+        var opts = new TimeSeriesOpts(0, 0, 0);
+        opts.load(b, offset);
+        return opts;
+    }
+
     public function initialize(start as Number, size as Number, offset as Number) as Void {
         mStart = start;
         mSize = size;
@@ -167,15 +174,13 @@ class TimeSeries {
         if (mSize == mCapacity) {
             // points array is full, removing oldest element
             log.debug("rotating", [mPoints, mOffset, mCapacity]);
-            // cleanup
-            mPoints[mOffset] = 0l;
             // move offset to next element
             mOffset = (mOffset + 1) % mCapacity;
             if (mOffset == 0) {
                 // align values to first TS
-                var start = point.load(mPoints, 0);
+                var start = get(0);
                 log.debug("align", start.getTS());
-                align(mStart + start.getTS());
+                align(start.getTS());
                 delta = ts - mStart;
             }
             // lower size value
@@ -187,7 +192,7 @@ class TimeSeries {
         point.save(mPoints, idx * BatteryPoint.SIZE);
         mSize += 1;
         serialize();
-        // log.debug("add", mPoints);
+        log.debug("add", mPoints);
     }
 
     private function align(ts as Number) as Void {
@@ -197,7 +202,9 @@ class TimeSeries {
         var point = new BatteryPoint(0, 0);
         for (var i = 0; i < mSize; i++) {
             point.load(mPoints, i * BatteryPoint.SIZE);
+            System.println(["<", i, point]);
             point.shiftTS(-delta);
+            System.println([">", i, point]);
             point.save(mPoints, i * BatteryPoint.SIZE);
         }
         log.debug("after", mPoints);
@@ -211,7 +218,7 @@ class TimeSeries {
         point.validate();
         var idx = (i + mOffset) % mCapacity;
         point.save(mPoints, idx * BatteryPoint.SIZE);
-        if (i == 0 && mStart != ts) {
+        if (idx == 0 && mStart != ts) {
             self.align(ts);
         }
     }
@@ -288,17 +295,33 @@ function testTimeSeriesOptsSave(logger as Logger) as Boolean {
     return true;
 }
 
+(:debug)
+function assert_slice_equal(b as ByteArray, offset as Number, expected as StatePoint, msg as String) as Void {
+    var p = BatteryPoint.FromBytes(b, offset);
+    assert_point_equal(p, expected, msg);
+}
+
+(:debug)
+function assert_point_equal(p1 as BatteryPoint, expected as StatePoint, msg as String) as Void {
+    assert_array_equal([p1.getTS(), p1.getValue()], expected, msg);
+}
+
+(:debug)
+function assert_opts_equal(b as ByteArray, expected as Array<Number>) as Void {
+    var opts = TimeSeriesOpts.FromBytes(b, b.size() - 8);
+    assert_array_equal([opts.getStart(), opts.getSize(), opts.getOffset()], expected, "unexpected serialized opts");
+}
+
 (:test)
 function testTimeSeriesInitializeZero(logger as Logger) as Boolean {
     var pi = TimeSeries.FromPoints([] as StatePoints);
-	Test.assertEqualMessage(pi.size(), 0, "unexpected size");
-    Test.assertEqualMessage(pi.getStart(), 0, "unexpected start");
+    assert_equal(pi.size(), 0, "unexpected size");
+    assert_equal(pi.getStart(), 0, "unexpected start");
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 1, "unexpected packed length");
+    assert_equal(points.size(), 8, "unexpected packed length");
     var data = pi.serialize();
-    Test.assertEqualMessage(data.size(), 1, "unexpected serialized length");
-    var expected = 0l << 32 + 0;  // unknown start + zero size
-    Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
+    assert_equal(data.size(), 8, "unexpected serialized length");
+    assert_opts_equal(data, [0, 0, 0]);
 	return true;
 }
 
@@ -306,20 +329,16 @@ function testTimeSeriesInitializeZero(logger as Logger) as Boolean {
 function testTimeSeriesInitializeSingle(logger as Logger) as Boolean {
     var pi = TimeSeries.FromPoints([[123, 55.5] as StatePoint] as StatePoints);
 
-	Test.assertEqualMessage(pi.size(), 1, "unexpected size");
-    Test.assertEqualMessage(pi.getStart(), 123, "unexpected start");
+	assert_equal(pi.size(), 1, "unexpected size");
+    assert_equal(pi.getStart(), 123, "unexpected start");
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 2, "unexpected packed length");
-    var expected = (0 << 10 + 555).toLong();
-    Test.assertEqualMessage(points[0], expected, "unexpected packed long");
+    assert_equal(points.size(), 4 + 8, "unexpected packed length");
+    assert_slice_equal(points, 0, [0, 55.5], "unexpected packet point");
     var p = pi.last() as BatteryPoint;
-    Test.assertEqualMessage(p.getTS(), 123, "invalid ts");
-    Test.assertEqualMessage(p.getValue(), 55.5, "invalid value");
+    assert_point_equal(p, [123, 55.5], "unexpected last point");
     var data = pi.serialize();
-    Test.assertEqualMessage(data.size(), 2, "unexpected serialized length");
-    expected = 123l << 32 + 1 << 16;  // start + size
-    Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
-
+    assert_equal(data.size(), 4 + 8, "unexpected serialized length");
+    assert_opts_equal(data, [123, 1, 0]);
     return true;
 }
 
@@ -330,135 +349,57 @@ function testTimeSeriesInitializeDouble(logger as Logger) as Boolean {
         [125, 77.7] as StatePoint,
     ] as StatePoints);
 
-	Test.assertEqualMessage(pi.size(), 2, Lang.format("unexpected size $1$", [pi.size()]));
-    Test.assertEqualMessage(pi.getStart(), 123, "unexpected start");
+	assert_equal(pi.size(), 2, "unexpected size");
+    assert_equal(pi.getStart(), 123, "unexpected start");
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 2, "unexpected length");
-    var expected = (0l << 10 + 555l + ((125 - 123) << 10 + 777l) << 32).toLong();
-    Test.assertEqualMessage(points[0], expected, "unexpected packed long");
-    var p = pi.last() as BatteryPoint;
-    Test.assertEqualMessage(p.getTS(), 125, "invalid ts");
-    Test.assertEqualMessage(p.getValue(), 77.7, "invalid value");
+    assert_equal(points.size(), 4 * 2 + 8, "unexpected length");
+    assert_slice_equal(points, 0, [0, 55.5], "unexpected packed point 0");
+    assert_slice_equal(points, 4, [2, 77.7], "unexpected packed point 1");
+    var p = pi.first() as BatteryPoint;
+    assert_point_equal(p, [123, 55.5], "unexpected last point");
+    p = pi.last() as BatteryPoint;
+    assert_point_equal(p, [125, 77.7], "unexpected last point");
     var data = pi.serialize();
-    Test.assertEqualMessage(data.size(), 2, "unexpected serialized length");
-    expected = 123l << 32 + 2 << 16;  // start + size
-    Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
-
-    return true;
-}
-
-(:test)
-function testTimeSeriesInitializeTriple(logger as Logger) as Boolean {
-    var pi = TimeSeries.FromPoints([
-        [123, 55.5] as StatePoint,
-        [125, 77.7] as StatePoint,
-        [126, 88.8] as StatePoint,
-    ] as StatePoints);
-
-	Test.assertEqualMessage(pi.size(), 3, "unexpected size");
-    Test.assertEqualMessage(pi.getStart(), 123, "unexpected start");
-    var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 3, "unexpected length");
-    var expected = (0l << 10 + 555l + ((125 - 123) << 10 + 777l) << 32).toLong();
-    Test.assertEqualMessage(points[0], expected, "unexpected packed long 1");
-    expected = ((126 - 123) << 10 + 888).toLong();
-    Test.assertEqualMessage(points[1], expected, "unexpected packed long 2");
-    var p = pi.last() as BatteryPoint;
-    Test.assertEqualMessage(p.getTS(), 126, "invalid ts");
-    Test.assertEqualMessage(p.getValue(), 88.8, "invalid value");
-    var data = pi.serialize();
-    Test.assertEqualMessage(data.size(), 3, "unexpected serialized length");
-    expected = 123l << 32 + 3 << 16;  // start + size
-    Test.assertEqualMessage(data[data.size() - 1], expected, "unexpected serialized value");
-
+    assert_equal(data.size(), 2 * 4 + 8, "unexpected serialized length");
+    assert_opts_equal(data, [123, 2, 0]);
     return true;
 }
 
 (:test)
 function testTimeSeriesAdd(logger as Logger) as Boolean {
-    var pi = new TimeSeries([0l, 0l, 0l, 0l] as Array<Long>);
+    var pi = TimeSeries.Empty(2);
 
     pi.add(123, 11.1);
 
-    Test.assertEqualMessage(pi.size(), 1, "unexpected size");
-    Test.assertEqualMessage(pi.getStart(), 123, "unexpected start $1$");
+    assert_equal(pi.size(), 1, "unexpected size");
+    assert_equal(pi.getStart(), 123, "unexpected start $1$");
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 4, "unexpected packed length");
-    var expected = (0 << 10 + 111).toLong();
-    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
+    assert_equal(points.size(), 2 * 4 + 8, "unexpected packed length");
+    assert_slice_equal(points, 0, [0, 11.1], "unexpected packed point 0");
 
     pi.add(125, 22.2);
 
-    Test.assertEqualMessage(pi.size(), 2, Lang.format("unexpected size $1$", [pi.size()]));
+    assert_equal(pi.size(), 2, "unexpected size");
     points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 4, "unexpected length");
-    expected = (0l << 10 + 111l + ((125 - 123) << 10 + 222l) << 32).toLong();
-    Test.assertEqualMessage(points[0], expected, "unexpected packed long");
-
+    assert_equal(points.size(), 2 * 4 + 8, "unexpected length");
+    assert_slice_equal(points, 0, [0, 11.1], "unexpected packed point 0");
+    assert_slice_equal(points, 4, [2, 22.2], "unexpected packed point 1");
+    assert_opts_equal(points, [123, 2, 0]);
+    
+    // array is full here - point rotation expected
     pi.add(126, 33.3);
 
-	Test.assertEqualMessage(pi.size(), 3, "unexpected size");
-    points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 4, "unexpected length");
-    expected = (126 - 123).toLong() << 10 + 333l;
-    Test.assertEqualMessage(points[1], expected, "unexpected packed long");
+    assert_slice_equal(points, 0, [126 - 123, 33.3], "unexpected packed point 0");
+    assert_slice_equal(points, 4, [2, 22.2], "unexpected packed point 1");
+    assert_equal(pi.getOffset(), 1, "unexpected offset");
 
-    pi.add(127, 44.4);
-    pi.add(128, 55.5);
-    pi.add(129, 66.6);  // here array is full;
-    Test.assertEqualMessage(pi.getOffset(), 0, "unexpected offset");
-
+    // offset rotation - align expected
     pi.add(130, 77.7);
     
-    Test.assertEqualMessage(pi.size(), 6 - 2 + 1, "unexpected size");
-    Test.assertEqualMessage(pi.getStart(), 123, Lang.format("unexpected start $1$", [pi.getStart()]));
-    Test.assertEqualMessage(pi.getOffset(), 1, "unexpected offset");
     points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 4, "unexpected packed length");
-    expected = ((130 - 123) << 10 + 777).toLong();
-    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
-
-    pi.add(131, 88.8);
-
-    points = pi.getPoints();
-    expected = ((130 - 123) << 10 + 777 + ((131 - 123) << 10 + 888l) << 32).toLong();
-    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
-    Test.assertEqualMessage(pi.getOffset(), 1, "unexpected offset");
-
-    pi.add(132, 99.9);
-
-    Test.assertEqualMessage(pi.getOffset(), 2, "unexpected offset");
-    points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 4, "unexpected packed length");
-    expected = ((132 - 123) << 10 + 999).toLong();
-    Test.assertEqualMessage(points[1], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
-    pi.serialize();
-    expected = 123l << 32 + 5 << 16 + 2;  // start + size + offset
-    Test.assertEqualMessage(points[points.size() - 1], expected,
-                            Lang.format("unexpected serialized value $1$ != $2$", [points[points.size() - 1], expected]));
-    Test.assertEqualMessage(pi.getOffset(), 2, "unexpected offset");
-    Test.assertEqualMessage(pi.getStart(), 123, Lang.format("unexpected start $1$", [pi.getStart()]));
-    var p = pi.get(0);
-    Test.assertEqualMessage(p.getTS(), 128, Lang.format("unexpected first ts $1$ $2$", [p.getTS(), pi.getPoints()]));
-    Test.assertEqualMessage(p.getValue(), 55.5, "unexpected first value");
-
-    // overwriting previous items while rotated again to zero offset
-    pi.add(133, 11.2);
-
-    pi.add(134, 22.3);
-
-    Test.assertEqualMessage(pi.getOffset(), 0, "unexpected offset");
-    points = pi.getPoints();
-    pi.serialize();
-    expected = 130l << 32 + 5 << 16 + 0;  // start + size + offset
-    Test.assertEqualMessage(points[points.size() - 1], expected, 
-        Lang.format("unexpected serialized value $1$ != $2$", [points[points.size() - 1], expected]));
-    expected = ((130 - 130) << 10 + 777 + ((131-130) << 10 + 888l) << 32).toLong();
-    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
-    expected = ((134 - 130) << 10 + 223).toLong();
-    Test.assertEqualMessage(points[2], expected, Lang.format("unexpected packed long $1$ != $2$", [points[0], expected]));
-
-
+    assert_slice_equal(points, 0, [0, 33.3], "unexpected packed point 0");
+    assert_slice_equal(points, 4, [130 - 126, 77.7], "unexpected packed point 1");
+    assert_equal(pi.getOffset(), 0, "unexpected offset");
     return true;
 }
 
@@ -472,16 +413,16 @@ function testTimeSeriesSet(logger as Logger) as Boolean {
     pi.set(0, 124, 33.3);
     
     var points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 2, "unexpected length");
-    var expected = ((124 - 124).toLong() << 10 + 333l + ((125 - 124) << 10 + 777l) << 32).toLong();
-    Test.assertEqualMessage(points[0], expected, Lang.format("unexpected packed long $1$ $2$", [points[0], expected]));
+    assert_equal(points.size(), 2 * 4 + 8, "unexpected length");
+    assert_slice_equal(points, 0, [0, 33.3], "unexpected packed point 0");
+    assert_slice_equal(points, 4, [125 - 124, 77.7], "unexpected packed point 1");
+    // points rotation, offset = 1
+    pi.add(127, 99.9);
+    
+    pi.set(0, 130, 88.8);
 
-    pi.set(1, 127, 99.9);
-
-    points = pi.getPoints();
-    Test.assertEqualMessage(points.size(), 2, "unexpected length");
-    expected = ((124 - 124).toLong() << 10 + 333l + ((127 - 124) << 10 + 999l) << 32).toLong();
-    Test.assertEqualMessage(points[0], expected, "unexpected packed long");
+    assert_slice_equal(points, 0, [127 - 124, 99.9], "unexpected packed point 0");
+    assert_slice_equal(points, 4, [130 - 124, 88.8], "unexpected packed point 1");
 
     return true;    
 }
@@ -489,7 +430,7 @@ function testTimeSeriesSet(logger as Logger) as Boolean {
 (:test) 
 function testTimeSeriesEmpty(logger as Logger) as Boolean {
     var pi = TimeSeries.Empty(6);
-    Test.assertEqualMessage(pi.size(), 0, "unexpected length");
+    assert_equal(pi.size(), 0, "unexpected length");
 
     return true;
 }

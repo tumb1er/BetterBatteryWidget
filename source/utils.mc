@@ -95,6 +95,19 @@ function assert_equal(v1 as Any, v2 as Any, msg as string) as Void {
     Test.assertEqualMessage(v1, v2, Lang.format("$1$: $2$ != $3$", [msg, v1, v2]));
 }
 
+(:debug)
+function assert_array_equal(v1 as Array, v2 as Array, msg as string) as Void {
+	try {
+		Test.assertEqual(v1.size(), v2.size());
+		for (var i = 0; i < v1.size(); i++) {
+			Test.assertEqual(v1[i], v2[i]);
+		}
+	} catch (e instanceof Test.AssertException) {
+		e.initialize(Lang.format("$1$: $2$ != $3$", [msg, v1, v2]));
+		throw e;
+	}
+}
+
 (:background)
 function encodeNumber(b as ByteArray, n as Number, offset as Number) as ByteArray {
 	for (var i = offset + 3; i >= offset; i--) {

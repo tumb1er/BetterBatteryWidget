@@ -50,7 +50,7 @@ class BatteryPoint {
     public function save(b as ByteArray, offset as Number) as Void {
         var n = self.ts << BatteryPoint.MASK_LEN;
         n += (self.value * 10).toNumber() & BatteryPoint.MASK;
-        encodeNumber(b, n, offset);
+        encodeNumber(b, n.toNumber(), offset);
     }
 
     public function load(b as ByteArray, offset as Number) as Void {

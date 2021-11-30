@@ -175,14 +175,15 @@ class TimeSeries {
             // points array is full, removing oldest element
             log.debug("rotating", [mPoints, mOffset, mCapacity]);
             // move offset to next element
-            mOffset = (mOffset + 1) % mCapacity;
-            if (mOffset == 0) {
+            var newOffset = (mOffset + 1) % mCapacity;
+            if (newOffset == 0) {
                 // align values to first TS
                 var start = get(0);
                 log.debug("align", start.getTS());
                 align(start.getTS());
                 delta = ts - mStart;
             }
+            mOffset = newOffset;
             // lower size value
             mSize -= 1;
         }
@@ -197,7 +198,7 @@ class TimeSeries {
 
     private function align(ts as Number) as Void {
         var delta = (ts - mStart).toLong();
-        log.debug("align to ", [ts, delta]);
+        log.debug("align to ", [ts, delta, mOffset]);
         log.debug("before", mPoints);
         var point = new BatteryPoint(0, 0);
         for (var i = 0; i < mSize; i++) {

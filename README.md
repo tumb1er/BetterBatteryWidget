@@ -35,11 +35,6 @@ Widget | Graph | Info | Mark
 
 * Approach S60 - no charging state available
 * D2 Charlie - no ByteArray support (see #29)
-* 240x240 devices that are not aligned properly (see #28) 
-   * Descent MK2s
-   * Forerunner 745
-   * Forerunner 945
-   * Forerunner 945 LTE
 * 218x218 devices (#30)
    * Captain Marvel
    * Fenix 5s

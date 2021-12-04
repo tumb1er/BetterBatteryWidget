@@ -11,7 +11,7 @@ class TimeSeriesOpts {
     private static const SIZE = 2; // uint32 used to store TimeSeriesOpts
     private const OFFSET_BITS = 16; // bytes for storing offset
     private const OFFSET_MASK = 1 << OFFSET_BITS - 1; // mask for offset
-    
+
     private var mStart as Number;  // iterator start timestamp
     private var mSize as Number; // unpacked size
     private var mOffset as Number; // zero element offset
@@ -68,14 +68,6 @@ class TimeSeriesOpts {
 
 (:background)
 class TimeSeries {
-
-    // static const MAX_TS = 1 << 22;
-    // const MAX_VALUE = 1 << 10;  // right 10 bits
-    // const INT32_MASK = 1l << 32;
-    // const INT16_MASK = 1l << 16;
-    // const LOW_MASK = INT32_MASK - 1;
-    // const HIGH_MASK = LOW_MASK << 32;
-
     /*
     int32 format:
     <ts 22 bit as offset in seconds><value 10 bit as battery ppm>
@@ -85,8 +77,8 @@ class TimeSeries {
     * value accuracy is 0.1%
 
     last array value contains: (start ts) << 32 | size << 16 | offset
-
     */
+
     private var mPoints as ByteArray;  // packed uint32 points + int64 opts
     private var mSize as Number; // unpacked size
     private var mStart as Number;  // iterator start timestamp
@@ -168,9 +160,12 @@ class TimeSeries {
         System.println("]");
     }
 
+    private function index(idx as Number) as Number {
+        return (idx + mOffset) % mCapacity;
+    }
+
     public function get(idx as Number) as BatteryPoint {
-        var index = ((idx + mOffset) % mCapacity).toNumber();
-        var point = BatteryPoint.FromBytes(mPoints, index);
+        var point = BatteryPoint.FromBytes(mPoints, index(idx));
         point.shiftTS(mStart);
         return point;
     }
@@ -187,7 +182,7 @@ class TimeSeries {
             // points array is full, removing oldest element
             log.debug("rotating", [mPoints, mOffset, mCapacity]);
             // move offset to next element
-            var newOffset = (mOffset + 1) % mCapacity;
+            var newOffset = index(1);
             if (newOffset == 0) {
                 needAlign = true;
             }
@@ -197,7 +192,7 @@ class TimeSeries {
         }
         point.initialize(delta, value);
         point.validate();
-        var idx = (mSize + mOffset) % mCapacity;
+        var idx = index(mSize);
         point.save(mPoints, idx);
         mSize += 1;
         if (needAlign) {
@@ -230,7 +225,7 @@ class TimeSeries {
         var delta = ts - mStart;
         var point = new BatteryPoint(delta, value);
         point.validate();
-        var idx = (i + mOffset) % mCapacity;
+        var idx = index(i);
         point.save(mPoints, idx);
         if (idx == 0 && mStart != ts) {
             self.align(ts);

@@ -5,22 +5,22 @@ using Toybox.WatchUi;
 
 (:glance)
 class GlancePage extends WatchUi.GlanceView {
-	var mState as State;
+    var mState as State;
     // var log as Log;
     var mBattery as Lang.String?;
 
     public function initialize(state as State) {
         // log = new Log("GlancePage");
         // log.debug("init", [state]);
-    	GlanceView.initialize();
-		mState = state;
-	}
+        GlanceView.initialize();
+        mState = state;
+    }
 
     public function onLayout(dc) {
         var RS = Rez.Strings;
         mBattery = (loadResource(RS.AppName) as Lang.String).toUpper();
     }
-	
+    
     public function onUpdate( dc ) {
         // log.msg("onUpdate");
         var w = dc.getWidth();
@@ -65,8 +65,8 @@ class GlancePage extends WatchUi.GlanceView {
 
 (:test)
 function testGlancePageSmoke(logger as Logger) as Boolean {
-	var app = getApp();
-	var page = new GlancePage(app.getState());
-	var dc = assertViewDraw(logger, page);
-	return true;
+    var app = getApp();
+    var page = new GlancePage(app.getState());
+    var dc = assertViewDraw(logger, page);
+    return true;
 }

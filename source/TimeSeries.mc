@@ -334,14 +334,14 @@ function testTimeSeriesInitializeZero(logger as Logger) as Boolean {
     var data = pi.serialize();
     assert_equal(data.size(), 8, "unexpected serialized length");
     assert_opts_equal(data, [0, 0, 0]);
-	return true;
+    return true;
 }
 
 (:test)
 function testTimeSeriesInitializeSingle(logger as Logger) as Boolean {
     var pi = TimeSeries.FromPoints([[123, 55.5] as StatePoint] as StatePoints);
 
-	assert_equal(pi.size(), 1, "unexpected size");
+    assert_equal(pi.size(), 1, "unexpected size");
     assert_equal(pi.getStart(), 123, "unexpected start");
     var points = pi.getPoints().serialize();
     assert_equal(points.size(), 4 + 8, "unexpected packed length");
@@ -361,7 +361,7 @@ function testTimeSeriesInitializeDouble(logger as Logger) as Boolean {
         [125, 77.7] as StatePoint,
     ] as StatePoints);
 
-	assert_equal(pi.size(), 2, "unexpected size");
+    assert_equal(pi.size(), 2, "unexpected size");
     assert_equal(pi.getStart(), 123, "unexpected start");
     var points = pi.getPoints().serialize();
     assert_equal(points.size(), 4 * 2 + 8, "unexpected length");

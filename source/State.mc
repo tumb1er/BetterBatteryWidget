@@ -3,355 +3,310 @@ State describes current state of battery widget
 */
 using Toybox.Activity;
 using Toybox.Application;
-using Toybox.Lang;
+import Toybox.Lang;
 using Toybox.System;
-using Toybox.Test;
+import Toybox.Test;
 using Toybox.Time;
 
-const STATE_PROPERTY = "s";
-const KEY_DATA = "d";
-const KEY_POINTS = "p";
-const KEY_CHARGED = "c";
-const KEY_ACTIVITY = "a";
-const KEY_MARK = "m";
-const MAX_POINTS = 5;
+typedef StateData as {
+    "p1" as ByteArray,
+    "c1" as StatePoint?,
+    "a1" as Boolean,
+    "t1" as Number?,
+    "m1" as StatePoint?
+};
 
-class Result {
-	var mStats;
-	var chargedTs, chargedPercent;
-	var chargedSpeed, chargedPredict;
-	var windowSpeed, windowPredict;
-	var markSpeed, markPredict;
-	var avgSpeed, avgPredict;
-	
-	function initialize(stats) {
-		mStats = stats;
-		if (mStats.mCharged != null) { 
-			chargedTs = mStats.mCharged[0];
-			chargedPercent = mStats.mCharged[1];
-		}
-	}
-	
-	function predict(first, last) {
-		var duration = (last[0] - first[0]).toDouble();
-		var delta = (last[1] - first[1]).abs();
-		if (delta == 0 || duration == 0) {
-			return [null, null];
-		}
-		var speed = delta / duration;
-		return [speed, last[1] / speed];		
-	}
-	
-	function predictAvg(weight) {
-		if (windowPredict == null) {
-			return chargedPredict;
-		}
-		if (chargedPredict == null) {
-			return windowPredict;
-		}
-		return windowPredict * weight + chargedPredict * (1.0 - weight);
-	}
-	
-	function predictWindow() {
-		windowSpeed = null;
-		windowPredict = null;
-		var data = mStats.mData;
-		if (data.size() < 2) {
-			return;
-		}
-		var first = data[0];
-		var last = data[data.size() - 1];
-		var result = predict(first, last);
-		windowSpeed = result[0];
-		windowPredict = result[1];
-	}
-	
-	function predictCharged() {
-		chargedSpeed = null;
-		chargedPredict = null;
-		var first = mStats.mCharged;
-		if (first == null) {
-			return;
-		}
-		var data = mStats.mData;
-		if (data.size() == 0) {
-			return;
-		}
-		var last = data[data.size() - 1];
-		var result = predict(first, last);
-		chargedSpeed = result[0];
-		chargedPredict = result[1];
-	}
-	
-	function chargedDuration() {
-		var first = mStats.mCharged;
-		if (first == null) {
-			return 0;
-		}
-		var data = mStats.mData;
-		if (data.size() == 0) {
-			return 0;
-		}
-		var last = data[data.size() - 1];
-		var duration = (last[0] - first[0]).toDouble();
-		return duration;
-	}
-	
-	function predictMark() {
-		markSpeed = null;
-		markPredict = null;
-		var first = mStats.mMark;
-		if (first == null) {
-			return;
-		}
-		var data = mStats.mData;
-		if (data.size() == 0) {
-			return;
-		}
-		var last = data[data.size() - 1];
-		var result = predict(first, last);
-		markSpeed = result[0];
-		markPredict = result[1];
-	}
-	
-}
-
-
-(:background)
+(:typecheck([disableBackgroundCheck, disableGlanceCheck]) :background :glance)
 class State {
-	var mData;	
-	var mPoints;
-	var mCharged;
-	var mMark;
-	var mActivityRunning;
-	//var log;
-	var mGraphDuration;
-	
-	function initialize(data) {
-		//log = new Log("State");
-		var app = Application.getApp();
-		mGraphDuration = 3600 * app.mGraphDuration;
-		//log.debug("initialize: passed", data);
-		if (data == null) {
-			data = app.getProperty(STATE_PROPERTY);		
-		}
-		if (data == null) {
-			mData = [];
-			mCharged = null;
-			mActivityRunning = false;
-			mPoints = [];
-			mMark = null;
-		} else {
-			mData = data[KEY_DATA];
-			mPoints = data[KEY_POINTS];
-			mCharged = data[KEY_CHARGED];
-			mMark = data[KEY_MARK];
-			if (mMark == false) {
-				mMark = null;
-			}
-			mActivityRunning = data[KEY_ACTIVITY];
-		}
-		//log.debug("initialize: data", mData);
-	}
-	
-	public function getData() {
-		return {
-			KEY_DATA => mData,
-			KEY_POINTS => mPoints,
-			KEY_CHARGED => mCharged,
-			KEY_ACTIVITY => mActivityRunning,
-			KEY_MARK => (mMark != null)?mMark:false
-		};
-		
-	}
-	
-	public function save() {
-		//log.debug("save", getData());
-		try {
-			Application.getApp().setProperty(STATE_PROPERTY, getData());
-		} catch (ex) {
-			//log.error("save error", ex);
-		}
-	}
-	
-	/**
-	Сохраняет отмеченное значение
-	*/
-	public function mark() {
-		var ts = Time.now().value();
-		var stats = System.getSystemStats();
-		//log.debug("mark", stats.battery);
-		mMark = [ts, stats.battery];
-	}
-	
-	/**
-	Добавляет точки для графика. 
-	*/
-	private function pushPoint(ts, value) {
-		// Если массив пуст, добавляем точку без условий
-		if (mPoints.size() == 0) {
-			mPoints.add([ts, value]);
-			return;
-		}
-		// Не добавляем точку, если интервал времени между ними слишком мал
-		var prev = mPoints[mPoints.size() - 1];
-		if (ts - prev[0] < 1) {
-			return;
-		}
-		// Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
-		if (value == prev[1]) {
-			if (mPoints.size() > 1) {
-				prev[0] = ts;
-			}
-			return;
-		}
-		
-		mPoints.add([ts, value]);
-		
-		// Храним точки не дольше N часов
-		var i;
-		for (i=0; mPoints[i][0] < ts - mGraphDuration; i++) {}
-		if (i != 0) {
-			// Оставляем одну точку про запас для графика
-			mPoints = mPoints.slice(i - 1, null);
-		}
-	}
-	
-	public function measure() {
-		var ts = Time.now().value();
-		var stats = System.getSystemStats();
-		//log.debug("values", [ts, stats.battery, mData]);	
-		handleMeasurements(ts, stats.battery, stats.charging);
-		checkActivityState(Activity.getActivityInfo(), ts, stats.battery);
-		//log.debug("handled", [ts, stats.battery, mData]);	
-	}
-	
-	public function handleMeasurements(ts, battery, charging) {		
-		// Точку на график добавляем всегда
-		pushPoint(ts, battery);
-		
-		// Если данные отсутствуют, просто добавляем одну точку.
-		if (mCharged == null) {
-			//log.debug("data is empty, initializing", battery);
-			return reset(ts, battery);
-		}
-		
-		// На зарядке сбрасываем состояние
-		if (charging) {
-			//log.debug("charging, reset at", battery);
-			return reset(ts, battery);
-		}
-			
-		// Добавляем точку для отслеживания показаний за последние полчаса.
-		return pushData(ts, battery);
-	}
-	
-	/**
-	Resets prediction data if activity state changed
-	*/
-	function checkActivityState(info, ts, value) {
-		
-		// При изменении статуса активности сбрасываем состояние.
-		var activityRunning = info != null && info.timerState != Activity.TIMER_STATE_OFF;
-		if (activityRunning != mActivityRunning) {
-			//log.debug("activity state changed, reset at", value);
-			mActivityRunning = activityRunning;
-			// Стираем только данные, отметка о последней зарядке остается на месте
-			mData = [[ts, value]];
-			return;
-		}
-		
-	}
-	/**
-	Добавляет новую точку для измерений
-	*/
-	private function pushData(ts, value) {
-		// Первую точку добавляем всегда.
-		//log.debug("pushData", mData);
-		if (mData.size() == 0) {
-			mData.add([ts, value]);
-			return;		
-		}
+	private static const STATE_PROPERTY = "s1";
 
-		var prev = mData[mData.size() - 1][1];
-			
-		// Одинаковые значения не добавляем
-		if (prev == value) {
-			//log.debug("same value, skip", [value, prev]);
-			return;
-		}	
-		// Слишком быстрый рост заряда - это показатель пропущенных данных, сбрасываем.
-		if (value > prev + 1.0) {
-			//log.debug("value increase, reset at", [value, prev]);
-			reset(ts, value);
-			return;
-		}
+	private static const KEY_POINTS = "p1";
+	private static const KEY_CHARGED = "c1";
+	private static const KEY_ACTIVITY = "a1";
+	private static const KEY_ACTIVITY_TS = "t1";
+	private static const KEY_MARK = "m1";
+	
+	private static const MAX_POINTS = 5;
+	private static const CAPACITY = 50;  // limited by background exit max size
 
-		// Добавляем точку и удаляем устаревшие
-		mData.add([ts, value]);
-		if (mData.size() > MAX_POINTS) {
-			mData = mData.slice(1, null);
-		}
-		return;
-	}
-	
-	
-	/**
-	Сбрасывает данные для измерений. 
-	*/
-	private function reset(ts, value) {
-		mData = [[ts, value]];
-		mCharged = [ts, value];
-		mMark = null;
-	}
+    private var mPoints as TimeSeries;
+    private var mCharged as StatePoint?;
+    private var mMark as StatePoint?;
+    private var mActivityRunning as Boolean;
+    private var mActivityTS as Number?;
+    var log as Log;
+    var mGraphDuration as Number?;
+    
+    public function initialize(data as StateData?) {
+        log = new Log("State");
+        var app = getApp();
+        mGraphDuration = 3600 * app.getGraphDuration();
+        // log.debug("initialize: passed", data);
+        if (data == null) {
+            data = Application.Storage.getValue(STATE_PROPERTY) as StateData?;        
+        // log.debug("initialize: got", data);
+        }
+        if (data == null) {
+            log.debug("before empty", data);
+            mPoints = TimeSeries.Empty(CAPACITY);
+            mCharged = null;
+            mMark = null;
+            mActivityTS = null;
+            mActivityRunning = false;
+        } else {
+            mPoints = new TimeSeries(data[KEY_POINTS] as ByteArray);
+            mCharged = data[KEY_CHARGED] as StatePoint?;
+            mMark = data[KEY_MARK] as StatePoint?;
+            mActivityTS = data[KEY_ACTIVITY_TS] as Number?;
+            mActivityRunning = data[KEY_ACTIVITY] as Boolean;
+        }
+        //log.debug("initialize: data", mData);
+    }
+
+    public function getPointsIterator() as PointsIterator {
+        return new PointsIterator(mPoints, 0);
+    }
+
+    public function getWindowIterator() as PointsIterator {
+        var position = 0;
+        if (mPoints.size() > MAX_POINTS) {
+            position = mPoints.size() - MAX_POINTS;
+        }
+        var iterator = new PointsIterator(mPoints, position);
+        if (mActivityTS != null) {
+            var c = iterator.current();
+            while (c != null) {
+                if ((c as BatteryPoint).getTS() < mActivityTS as Number) {
+                    iterator.next();
+                    c = iterator.current();
+                } else {
+                    break;
+                }
+            }
+        }
+        return iterator;
+    }
+
+    public function getChargedPoint() as BatteryPoint? {
+        return BatteryPoint.FromArray(mCharged);
+    }
+
+    public function getMarkPoint() as BatteryPoint? {
+        return BatteryPoint.FromArray(mMark);
+    }
+
+    (:debug)
+    public function getmActivityRunning() as Boolean {
+        return self.mActivityRunning;
+    }
+
+    (:debug)
+    public function setmActivityRunning(v as Boolean) as Void {
+        self.mActivityRunning = v;
+    }
+
+    (:debug)
+    public function getmPoints() as TimeSeries {
+        return mPoints;
+    }
+
+    (:debug)
+    public function setmPoints(points as TimeSeries) as Void {
+        self.mPoints = points;
+    }
+
+    (:debug)
+    public function getmActivityTS() as Number? {
+        return self.mActivityTS;
+    }
+    
+    (:debug)
+    public function printPoints() as Void {
+        mPoints.print();
+        System.println("");
+    }
+
+    public function getData() as StateData {
+        log.msg("getData()");
+        var stats = System.getSystemStats();
+        log.debug("getting data", stats.freeMemory);
+        var points = mPoints.serialize();
+        stats = System.getSystemStats();
+        log.debug("serialized points", stats.freeMemory);
+        var data = {
+            KEY_POINTS => points,
+            KEY_CHARGED => mCharged,
+            KEY_ACTIVITY => mActivityRunning,
+            KEY_ACTIVITY_TS => mActivityTS,
+            KEY_MARK => mMark
+        };
+        stats = System.getSystemStats();
+        log.debug("constructed a dict", stats.freeMemory);
+        // log.debug("getData", data);
+        return data;
+    }
+    
+    public function save() as Void {
+        var stats = System.getSystemStats();
+        log.debug("saving", stats.freeMemory);
+        var data = getData();
+        stats = System.getSystemStats();
+        log.debug("got data", stats.freeMemory);
+        // log.debug("save", data);
+        try {
+            Application.Storage.setValue(STATE_PROPERTY, data);
+        } catch (ex) {
+            log.error("save error", ex);
+        }
+        stats = System.getSystemStats();
+        log.debug("saved", stats.freeMemory);
+    }
+    
+    /**
+    Сохраняет отмеченное значение
+    */
+    public function mark() as Void {
+        var ts = Time.now().value();
+        var stats = System.getSystemStats();
+        //log.debug("mark", stats.battery);
+        mMark = [ts, stats.battery] as StatePoint?;
+    }
+    
+    /**
+    Добавляет точки для графика. 
+    */
+    private function pushPoint(ts as Number, value as Float) as Void {
+        // Если массив пуст, добавляем точку без условий
+        if (mPoints.size() == 0) {
+            mPoints.add(ts, value);
+            return;
+        }
+        // Не добавляем точку, если интервал времени между ними слишком мал
+        var prev = mPoints.last() as BatteryPoint;
+        if (ts - prev.getTS() < 1) {
+            return;
+        }
+        // Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
+        if (value == prev.getValue()) {
+            if (mPoints.size() > 1) {
+                mPoints.set(mPoints.size() - 1, ts, value);
+            }
+            return;
+        }
+        
+        mPoints.add(ts, value);
+        
+        // TODO: rotate
+        // // Храним точки не дольше N часов
+        // var i;
+        // for (i=0; mPoints[i][0] < ts - (mGraphDuration as Number); i++) {}
+        // if (i != 0) {
+        //     // Оставляем одну точку про запас для графика
+        //     mPoints = mPoints.slice(i - 1, null);
+        // }
+    }
+    
+    public function measure() as Void {
+        var ts = Time.now().value();
+        var stats = System.getSystemStats();
+        //log.debug("values", [ts, stats.battery, mData]);    
+        handleMeasurements(ts, stats.battery, stats.charging);
+        checkActivityState(Activity.getActivityInfo(), ts, stats.battery);
+        //log.debug("handled", [ts, stats.battery, mData]);    
+    }
+    
+    public function handleMeasurements(ts as Number, battery as Float, charging as Boolean) as Void {        
+        // Точку на график добавляем всегда
+        pushPoint(ts, battery);
+        
+        // Если данные отсутствуют, просто добавляем одну точку.
+        if (mCharged == null) {
+            //log.debug("data is empty, initializing", battery);
+            reset(ts, battery);
+            return;
+        }
+        
+        // На зарядке сбрасываем состояние
+        if (charging) {
+            //log.debug("charging, reset at", battery);
+            reset(ts, battery);
+            return;
+        }
+
+        return;
+    }
+    
+    /**
+    Resets prediction data if activity state changed
+    */
+    public function checkActivityState(info as Activity.Info?, ts as Number, value as Float) as Void {
+        
+        // При изменении статуса активности сбрасываем состояние.
+        var activityRunning = info != null && (info as Activity.Info).timerState != Activity.TIMER_STATE_OFF;
+        if (activityRunning != mActivityRunning) {
+            //log.debug("activity state changed, reset at", value);
+            mActivityRunning = activityRunning;
+            // Сбрасываем точку изменения активности
+            mActivityTS = ts;
+        }
+        
+    }
+
+    
+    /**
+    Сбрасывает данные для измерений. 
+    */
+    private function reset(ts as Number, value as Float) as Void {
+        mActivityTS = ts;
+        mCharged = [ts, value] as Array<Number or Float>?;
+        mMark = null;
+    }
 }
 
 (:test)
-function testCheckActivityState(logger) {
-	var app = Application.getApp();
-	var state = app.mState;
-	var ts = Time.now().value();
-	var value = 75.1;
-	
-	state.mActivityRunning = true;
-	
-	// activity not registered
-	state.checkActivityState(null, ts, value);
-	
-	Test.assertEqualMessage(state.mActivityRunning, false, "mActivityRunning not updated");
-	Test.assertEqualMessage(state.mData.size(), 1, "mData not reset");
-	
-	state.mData.add([ts, value]);
-	var info = new Activity.Info();
-	info.timerState = Activity.TIMER_STATE_ON;
-	
-	// activity started
-	state.checkActivityState(info, ts, value);
-	
-	Test.assertEqualMessage(state.mActivityRunning, true, "mActivityRunning not updated");
-	Test.assertEqualMessage(state.mData.size(), 1, "mData not reset");
-	
-	state.mData.add([ts, value]);
-	info.timerState = Activity.TIMER_STATE_OFF;
-	
-	// activity stopped
-	state.checkActivityState(info, ts, value);
-	
-	Test.assertEqualMessage(state.mActivityRunning, false, "mActivityRunning not updated");
-	Test.assertEqualMessage(state.mData.size(), 1, "mData not reset");
-	return true;
+function testCheckActivityState(logger as Logger) as Boolean {
+    var app = getApp();
+    var state = app.getState();
+    var ts = Time.now().value() as Number;
+    var value = 75.1;
+    
+    state.setmActivityRunning(true);
+    
+    // activity not registered
+    state.checkActivityState(null, ts, value);
+    
+    Test.assertEqualMessage(state.getmActivityRunning(), false, "mActivityRunning not updated");
+    Test.assertEqualMessage(state.getmActivityTS() as Object, ts, "mActivityTS not reset");
+
+    var info = new Activity.Info();
+    info.timerState = Activity.TIMER_STATE_ON;
+    ts += 1;
+    
+    // activity started
+    state.checkActivityState(info, ts, value);
+    
+    Test.assertEqualMessage(state.getmActivityRunning(), true, "mActivityRunning not updated");
+    Test.assertEqualMessage(state.getmActivityTS() as Object, ts, "mActivityTS not reset");
+
+    info.timerState = Activity.TIMER_STATE_OFF;
+    ts += 1;
+    
+    // activity stopped
+    state.checkActivityState(info, ts, value);
+    
+    Test.assertEqualMessage(state.getmActivityRunning(), false, "mActivityRunning not updated");
+    Test.assertEqualMessage(state.getmActivityTS() as Object, ts, "mActivityTS not reset");
+    return true;
 } 
 
 (:test)
-function testMeasureSmoke(logger) {
-	var app = Application.getApp();
-	var state = app.mState;
-	state.mPoints = [];
-	state.mData = [];
-	
-	state.measure();
-	
-	Test.assertEqualMessage(state.mPoints.size(), 1, "mPoints not updated");
-	Test.assertEqualMessage(state.mData.size(), 1, "mData not updated");
-	return true;
+function testMeasureSmoke(logger as Logger) as Boolean {
+    var app = getApp();
+    var state = app.getState();
+    state.setmPoints(TimeSeries.Empty(CAPACITY));
+    
+    state.measure();
+    
+    Test.assertEqualMessage(state.getmPoints().size(), 1, "mPoints not updated");
+    return true;
 }

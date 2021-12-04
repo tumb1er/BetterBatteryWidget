@@ -1,5 +1,5 @@
 <strings>
-    <string id="AppName">Battery</string>
+    <string id="AppName" scope="glance">Battery</string>
     <string id="MeasurePeriodTitle">Measure period</string>
     <string id="GraphWidthTitle">Graph width</string>
     <string id="GraphMode">Graph mode</string>
@@ -34,7 +34,7 @@
     <string id="MarkedWithParam">Marked $1$</string>
     <string id="perHourWithParam">$1$/h</string>
     <string id="MeasuringDot">measuring...</string>
-    <string id="shortDay">d</string>
-    <string id="shortHour">h</string>
-    <string id="DateTimeFormat">$1$.$2$ $3$:$4$</string>
+    <string id="shortDay" scope="glance">d</string>
+    <string id="shortHour" scope="glance">h</string>
+    <string id="DateTimeFormat" scope="glance">$1$.$2$ $3$:$4$</string>
 </strings>

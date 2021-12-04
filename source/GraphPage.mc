@@ -195,7 +195,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
     public function onNextPage() as Boolean {
         //log.msg("onNextPage");
         var app = getApp();
-        var infoPage = new InfoPage(app.mState);
+        var infoPage = new InfoPage(app.getState());
         switchToView(infoPage, new InfoPageBehaviorDelegate(infoPage), WatchUi.SLIDE_UP);    
         return true;
     }

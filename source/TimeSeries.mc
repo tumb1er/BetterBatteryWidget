@@ -33,7 +33,7 @@ class TimeSeriesOpts {
 
     public function save(b as PointsContainer) as Void {
         b.encode(start, capacity);
-        var n = mSize << OFFSET_BITS + offset;
+        var n = size << OFFSET_BITS + offset;
         b.encode(n, capacity + 1);
     }  
     
@@ -50,7 +50,7 @@ class TimeSeriesOpts {
     }
 
     public function toString() as String {
-        return Lang.format("{$1$: +$2$, $3$/$4$}", [start, opts.size, opts.offset]);
+        return Lang.format("{$1$: +$2$, $3$/$4$}", [start, size, offset, capacity]);
     }
 
     public function index(idx as Number) as Number {
@@ -177,7 +177,7 @@ class TimeSeries {
         point.initialize(delta, value);
         point.validate();
         var idx = opts.index(opts.size);
-        point.save(mPoints, idx);
+        point.save(points, idx);
         opts.size += 1;
         if (needAlign) {
             var first = get(0);
@@ -253,6 +253,13 @@ function testTimeSeriesOptsNew(logger as Logger) as Boolean {
     assert_equal(opts.size, 2, "unexpected size");
     assert_equal(opts.offset, 3, "unexpected offset");    
     assert_equal(opts.capacity, 4, "unexpected capacity");
+    return true;
+}
+
+(:test)
+function testTimeSeriesOptsTosString(logger as Logger) as Boolean {
+    var opts = new TimeSeriesOpts(1, 2, 3, 4);
+    assertEqual(opts.toString() instanceof String, true);
     return true;
 }
 

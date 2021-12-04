@@ -195,15 +195,6 @@ class State {
         }
         
         mPoints.add(ts, value);
-        
-        // TODO: rotate
-        // // Храним точки не дольше N часов
-        // var i;
-        // for (i=0; mPoints[i][0] < ts - (mGraphDuration as Number); i++) {}
-        // if (i != 0) {
-        //     // Оставляем одну точку про запас для графика
-        //     mPoints = mPoints.slice(i - 1, null);
-        // }
     }
     
     public function measure() as Void {

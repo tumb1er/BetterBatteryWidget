@@ -106,7 +106,7 @@ class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
     private function enterWidget() as Boolean {
         //log.msg("enterWidget");
         var app = getApp();
-        var view = new GraphPage(app.mState);
+        var view = new GraphPage(app.getState());
         pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);   
         //log.msg("enterWidget done"); 
         return true;

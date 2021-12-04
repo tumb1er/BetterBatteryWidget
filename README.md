@@ -34,7 +34,10 @@ Widget | Graph | Info | Mark
 ## Unsupported devices
 
 * Approach S60 - no charging state available
-
+* D2 Charlie - no ByteArray support (see #29)
+* Descent MK2s - graph not aligned properly (#28)
+* 218x218 devices (#30)
+   * Captain Marvel
 
 ## Release
 

@@ -10,8 +10,7 @@ using Toybox.WatchUi;
 class BetterBatteryWidgetApp extends Application.AppBase {
  	private var log as Log;
     private var mState as State;
-    private var mWidgetPage as WidgetPage?;
- 	private var mMeasureInterval as Number?;
+ 	private var mMeasureInterval as Duration?;
  	private var mGraphDuration as Number?;
  	private var mGraphMode as Number?;
     
@@ -19,7 +18,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     	log = new Log("App");
 		AppBase.initialize();
     	loadSettings();
-    	var data = Background.getBackgroundData() as Dictionary<String, Array<Array<Number or Float> > or Array<Number or Float> or Boolean>;
+    	var data = Background.getBackgroundData() as StateData?;
     	mState = new State(data);
 		log.msg("Points from init");
 		mState.printPoints();
@@ -31,12 +30,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 		log.msg("Points from background data (saving)");
 		mState.printPoints();
     	// log.debug("onBackgroundData: saving", data as Dictionary);
-    	mState.save();
-        if( mWidgetPage != null ) {
-	    	//log.msg("onBackgroundData: calling WidgetPage.updateState");
-            (mWidgetPage as WidgetPage).updateState(mState);
-        }
-		
+    	mState.save();		
         WatchUi.requestUpdate();
     }
     
@@ -48,9 +42,7 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     // This method runs each time the main application starts.
 	(:typecheck([disableBackgroundCheck, disableGlanceCheck]))
     public function getInitialView() {
-        mWidgetPage = new WidgetPage(mState);
-        var inputDelegate = new WidgetPageBehaviorDelegate();
-		return [ mWidgetPage, inputDelegate ] as Array<WidgetPage or WidgetPageBehaviorDelegate>;
+		return [new WidgetPage(mState), new WidgetPageBehaviorDelegate()] as Array<WidgetPage or WidgetPageBehaviorDelegate>;
     }
 
     // This method runs each time the background process starts.
@@ -72,10 +64,9 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 			//log.debug("setBackgroundEvent regDuration", time);
 			return;
 		}
-		var interval = new Time.Duration((mMeasureInterval as Number) * 60);
        	//log.debug("setBackgroundEvent scheduling", interval);
 		try {
-	 	    Background.registerForTemporalEvent(interval);
+	 	    Background.registerForTemporalEvent(mMeasureInterval);
 	    } catch (e instanceof Background.InvalidBackgroundTimeException) {
 	        //log.error("setBackgroundEvent error", e);
         }
@@ -94,7 +85,8 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     }  
     
     private function loadSettings() as Void {
-    	mMeasureInterval = getProperty("MeasurePeriod");
+    	var period = getProperty("MeasurePeriod") as Number;
+		mMeasureInterval = new Time.Duration(period * 60);
     	mGraphDuration = getProperty("GraphDuration");
     	mGraphMode = getProperty("GraphMode");
     	//log.debug("settings loaded", [mMeasureInterval, mGraphDuration]);

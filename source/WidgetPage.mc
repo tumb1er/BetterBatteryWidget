@@ -93,11 +93,6 @@ class WidgetPage extends WatchUi.View {
 			return formatInterval(predicted.toNumber());
 		}
 	}
-    
-    public function updateState(state as State) as Void {
-    	mState = state;
-    }
-
 }
 
 class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {

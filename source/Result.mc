@@ -54,13 +54,13 @@ class Result {
         var firstTs = 0.0;
         var secondTs = 0.0;
         if (windowPredict != null) {
-            firstTs = (windowPredict as BatteryPoint).getTS().toFloat()
+            firstTs = (windowPredict as BatteryPoint).getTS().toFloat();
         } else {
             // whole weight to second member
             weight = 0.0;
         }
         if (chargedPredict != null) {
-            secondTs = (chargedPredict as BatteryPoint).getTS().toFloat()
+            secondTs = (chargedPredict as BatteryPoint).getTS().toFloat();
         } else {
             // whole weight to first member - whether it is zero or not
             weight = 1.0;

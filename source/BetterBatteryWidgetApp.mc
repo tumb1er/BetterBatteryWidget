@@ -133,3 +133,8 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
 		}
     }
 }
+
+(:background :glance)
+public function getApp() as BetterBatteryWidgetApp {
+	return Application.getApp() as BetterBatteryWidgetApp;
+}

@@ -40,7 +40,7 @@ class State {
 	
 	public function initialize(data as StateData?) {
 		log = new Log("State");
-		var app = Application.getApp() as BetterBatteryWidgetApp;
+		var app = getApp();
 		mGraphDuration = 3600 * (app.mGraphDuration as Number);
 		// log.debug("initialize: passed", data);
 		if (data == null) {
@@ -266,7 +266,7 @@ class State {
 
 (:test)
 function testCheckActivityState(logger as Logger) as Boolean {
-	var app = Application.getApp() as BetterBatteryWidgetApp;
+	var app = getApp();
 	var state = app.mState;
 	var ts = Time.now().value() as Number;
 	var value = 75.1;
@@ -302,7 +302,7 @@ function testCheckActivityState(logger as Logger) as Boolean {
 
 (:test)
 function testMeasureSmoke(logger as Logger) as Boolean {
-	var app = Application.getApp() as BetterBatteryWidgetApp;
+	var app = getApp();
 	var state = app.mState;
 	state.setmPoints(TimeSeries.Empty(CAPACITY));
 	

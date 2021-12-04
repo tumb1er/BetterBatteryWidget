@@ -110,7 +110,7 @@ class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
     
     private function enterWidget() as Boolean {
 		//log.msg("enterWidget");
-		var app = Application.getApp() as BetterBatteryWidgetApp;
+		var app = getApp();
 		var view = new GraphPage(app.mState);
 		pushView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_IMMEDIATE);   
 		//log.msg("enterWidget done"); 
@@ -137,7 +137,7 @@ class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
 
 (:test)
 function testWidgetPageSmoke(logger as Logger) as Boolean {
-	var app = Application.getApp() as BetterBatteryWidgetApp;
+	var app = getApp();
 	var page = new WidgetPage(app.mState);
 	assertViewDraw(logger, page);
 	return true;

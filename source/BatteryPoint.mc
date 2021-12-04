@@ -8,10 +8,9 @@ class BatteryPoint {
     Serialization format: UINT32 LE
     Bits format: <22bit timestamp offset> <10 bit value>
     */
-    public static const SIZE = 4; // bytes used to store BatteryPoint
     private static const MAX_TS = 1 << 22;
     private static const MAX_VALUE = 100.0;
-    private static const MASK_LEN = 11;
+    private static const MASK_LEN = 10;
     private static const MASK = 1 << MASK_LEN - 1;
     private var ts as Number = 0;
     private var value as Float = 0.0;
@@ -89,7 +88,7 @@ function testBatteryPointFromArray(logger as Logger) as Boolean {
 
 (:test)
 function testBatteryPointFromBytes(logger as Logger) as Boolean {
-    var n = 123 << 11 + 222;
+    var n = 123 << 10 + 222;
     var b = new [8]b;
     b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
     var pc = new PointsContainer(b);
@@ -101,7 +100,7 @@ function testBatteryPointFromBytes(logger as Logger) as Boolean {
 
 (:test)
 function testBatteryPointLoad(logger as Logger) as Boolean {
-    var n = 123 << 11 + 222;
+    var n = 123 << 10 + 222;
     var b = new [8]b;
     b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
     var p = new BatteryPoint(1, 1.0);
@@ -114,7 +113,7 @@ function testBatteryPointLoad(logger as Logger) as Boolean {
 
 (:test)
 function testBatteryPointSave(logger as Logger) as Boolean {
-    var n = 123 << 11 + 222;
+    var n = 123 << 10 + 222;
     var b = new [8]b;
     b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
     var d = PointsContainer.New(2);

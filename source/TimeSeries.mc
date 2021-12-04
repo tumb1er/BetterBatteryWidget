@@ -9,9 +9,9 @@ typedef StatePoints as Array<StatePoint>;
 (:background)
 class TimeSeriesOpts {
     private static const SIZE = 2; // uint32 used to store TimeSeriesOpts
-    private const START_SIZE = 4; // bytes for storing start timestamp
     private const OFFSET_BITS = 16; // bytes for storing offset
     private const OFFSET_MASK = 1 << OFFSET_BITS - 1; // mask for offset
+    
     private var mStart as Number;  // iterator start timestamp
     private var mSize as Number; // unpacked size
     private var mOffset as Number; // zero element offset

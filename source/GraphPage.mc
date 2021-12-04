@@ -25,7 +25,7 @@ class GraphPage extends WatchUi.View {
 		// log = new Log("GraphPage");
 		mState = state;
 		mMode = 0;
-		var app = Application.getApp() as BetterBatteryWidgetApp;  // FIXME: Use BBWA and override return type
+		var app = getApp();
 		mGraphDuration = 3600 * (app.mGraphDuration as Number);  // FIXME: private variable + getter
 		mGraphMode = (app.mGraphMode as Number);  // FIXME: private variable + getter
 	}
@@ -194,7 +194,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
     
     public function onNextPage() as Boolean {
     	//log.msg("onNextPage");
-		var app = Application.getApp() as BetterBatteryWidgetApp;
+		var app = getApp();
 		var infoPage = new InfoPage(app.mState);
 		switchToView(infoPage, new InfoPageBehaviorDelegate(infoPage), WatchUi.SLIDE_UP);    
 		return true;
@@ -249,7 +249,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 
 (:test)
 function testGraphPageSmoke(logger as Logger) as Boolean {
-	var app = Application.getApp() as BetterBatteryWidgetApp;
+	var app = getApp();
 	var page = new GraphPage(app.mState);
 	var dc = assertViewDraw(logger, page);
 	logger.debug("onAnimateEnd");
@@ -259,7 +259,7 @@ function testGraphPageSmoke(logger as Logger) as Boolean {
 
 (:test)
 function testGraphPageEmptyData(logger as Logger) as Boolean {
-	var app = Application.getApp() as BetterBatteryWidgetApp;
+	var app = getApp();
 	var page = new GraphPage(app.mState);
 	var ts = Time.now().value();
 	app.mState.handleMeasurements(ts, 75.5, true);

@@ -154,7 +154,7 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
     
     public function onPreviousPage() as Boolean {
     	//log.msg("onPreviousPage");
-		var app = Application.getApp() as BetterBatteryWidgetApp;
+		var app = getApp();
 		var view = new GraphPage(app.mState);
 		switchToView(view, new GraphPageBehaviorDelegate(view), WatchUi.SLIDE_DOWN);    
 		return true;
@@ -206,7 +206,7 @@ class InfoPageBehaviorDelegate extends WatchUi.InputDelegate {
 
 (:test)
 function testInfoPageSmoke(logger as Logger) as Boolean {
-	var app = Application.getApp() as BetterBatteryWidgetApp;
+	var app = getApp();
 	var page = new InfoPage(app.mState);
 	assertViewDraw(logger, page);
 	return true;

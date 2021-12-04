@@ -25,8 +25,13 @@ const MAX_POINTS = 5;
 (:background :glance)
 const CAPACITY = 50;  // limited by background exit max size
 
-typedef StateValues as StatePoint or StatePoints or Boolean or Array<Long> or Number or Null;
-typedef StateData as Dictionary<String, StateValues>;
+typedef StateData as {
+	KEY_POINTS as ByteArray,
+	KEY_CHARGED as StatePoint?,
+	KEY_ACTIVITY as Boolean,
+	KEY_ACTIVITY_TS as Number?,
+	KEY_MARK as StatePoint?
+};
 
 (:typecheck([disableBackgroundCheck, disableGlanceCheck]) :background :glance)
 class State {
@@ -44,7 +49,7 @@ class State {
 		mGraphDuration = 3600 * app.getGraphDuration();
 		// log.debug("initialize: passed", data);
 		if (data == null) {
-			data = Application.Storage.getValue(STATE_PROPERTY) as Dictionary<String, Array<Number or Float> or Boolean>?;		
+			data = Application.Storage.getValue(STATE_PROPERTY) as StateData?;		
 		// log.debug("initialize: got", data);
 		}
 		if (data == null) {
@@ -56,8 +61,8 @@ class State {
 			mActivityRunning = false;
 		} else {
 			mPoints = new TimeSeries(data[KEY_POINTS] as ByteArray);
-			mCharged = ((data[KEY_CHARGED])? data[KEY_CHARGED]: null) as Array<Number or Float>?;
-			mMark = ((data[KEY_MARK])? data[KEY_MARK]: null) as Array<Number or Float>?;
+			mCharged = data[KEY_CHARGED] as StatePoint?;
+			mMark = data[KEY_MARK] as StatePoint?;
 			mActivityTS = data[KEY_ACTIVITY_TS] as Number?;
 			mActivityRunning = data[KEY_ACTIVITY] as Boolean;
 		}
@@ -139,8 +144,8 @@ class State {
 			KEY_CHARGED => mCharged,
 			KEY_ACTIVITY => mActivityRunning,
 			KEY_ACTIVITY_TS => mActivityTS,
-			KEY_MARK => (mMark != null)?mMark:false
-		} as StateData;
+			KEY_MARK => mMark
+		};
 		stats = System.getSystemStats();
 		log.debug("constructed a dict", stats.freeMemory);
 		// log.debug("getData", data);
@@ -170,7 +175,7 @@ class State {
 		var ts = Time.now().value();
 		var stats = System.getSystemStats();
 		//log.debug("mark", stats.battery);
-		mMark = [ts, stats.battery] as Array<Number or Float>?;
+		mMark = [ts, stats.battery] as StatePoint?;
 	}
 	
 	/**

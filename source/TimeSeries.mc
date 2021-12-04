@@ -75,7 +75,7 @@ class TimeSeries {
     last array value contains: (start ts) << 32 | size << 16 | offset
     */
 
-    private var points as ByteArray;  // packed uint32 points + int64 opts
+    private var points as PointsContainer;  // packed uint32 points + int64 opts
     private var opts as TimeSeriesOpts;
     private var log as Log;
 
@@ -184,7 +184,6 @@ class TimeSeries {
             align(first.getTS());
         }
         serialize();
-        log.debug("add", points);
     }
 
     private function align(ts as Number) as Void {
@@ -195,12 +194,11 @@ class TimeSeries {
         var point = new BatteryPoint(0, 0);
         for (var i = 0; i < opts.size; i++) {
             point.load(points, i);
-            System.println(["<", i, point]);
             point.shiftTS(-delta);
-            System.println([">", i, point]);
             point.save(points, i);
         }
-        log.debug("after", points);
+        log.msg("after");
+        print();
         opts.start = ts;
     }
 
@@ -231,7 +229,7 @@ class TimeSeries {
     }
 
     (:debug)
-    public function getPoints() as ByteArray {
+    public function getPoints() as PointsContainer {
         return points;
     }
 
@@ -299,18 +297,18 @@ function testTimeSeriesOptsSave(logger as Logger) as Boolean {
 }
 
 (:debug)
-function assert_slice_equal(b as ByteArray, offset as Number, expected as StatePoint, msg as String) as Void {
+function assert_slice_equal(b as ByteArray, offset as Number, expected as Array, msg as String) as Void {
     var p = BatteryPoint.FromBytes(new PointsContainer(b), offset / 4);
     assert_point_equal(p, expected, msg);
 }
 
 (:debug)
-function assert_point_equal(p1 as BatteryPoint, expected as StatePoint, msg as String) as Void {
+function assert_point_equal(p1 as BatteryPoint, expected as Array, msg as String) as Void {
     assert_array_equal([p1.getTS(), p1.getValue()], expected, msg);
 }
 
 (:debug)
-function assert_opts_equal(b as ByteArray, expected as Array<Number>) as Void {
+function assert_opts_equal(b as ByteArray, expected as Array) as Void {
     var opts = TimeSeriesOpts.FromBytes(new PointsContainer(b));
     assert_array_equal([opts.start, opts.size, opts.offset], expected, "unexpected serialized opts");
 }

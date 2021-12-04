@@ -26,14 +26,14 @@ class BatteryPoint {
 
     (:debug)
     public static function FromBytes(b as PointsContainer, idx as Number) as BatteryPoint {
-        var p = new BatteryPoint(0, 0.0);
+        var p = new BatteryPoint(0, 0);
         p.load(b, idx);
         return p;
     }
 
-    public function initialize(ts as Number, value as Float) {
+    public function initialize(ts as Number, value as Float or Number) {
         self.ts = ts;
-        self.value = value;
+        self.value = value.toFloat();
     }
 
     public function validate()  as Void {
@@ -103,7 +103,7 @@ function testBatteryPointLoad(logger as Logger) as Boolean {
     var n = 123 << 10 + 222;
     var b = new [8]b;
     b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
-    var p = new BatteryPoint(1, 1.0);
+    var p = new BatteryPoint(1, 1);
     var pc = new PointsContainer(b);
     p.load(pc, 1);
     assert_equal(p.getTS(), 123, "unexpected dst ts");

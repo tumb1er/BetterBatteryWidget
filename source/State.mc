@@ -149,7 +149,7 @@ class State {
     public function save() as Void {
         var stats = System.getSystemStats();
         log.debug("saving", stats.freeMemory);
-        var data = getData();
+        var data = getData() as Dictionary<String, Application.PropertyValueType>;
         stats = System.getSystemStats();
         log.debug("got data", stats.freeMemory);
         // log.debug("save", data);

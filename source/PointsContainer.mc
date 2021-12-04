@@ -23,7 +23,7 @@ class PointsContainer {
             b[i] = mod;
             n = (n - mod) / 256;
         }
-        return b;
+        return self;
     }
 
     public function decode(idx as Number) as Number {

@@ -59,8 +59,12 @@ class GlancePage extends WatchUi.GlanceView {
             var predicted = result.predictAvg(0.5);
             if (predicted != null ) {
                 // Draw predicted battery lifetime
-                dc.drawText(w, h * 3 / 4, Graphics.FONT_SMALL, formatInterval(predicted), 
-                            Graphics.TEXT_JUSTIFY_VCENTER|Graphics.TEXT_JUSTIFY_RIGHT);
+                var text = formatInterval(predicted.toNumber());
+                dc.drawText(
+                    w, (h * 3 / 4), 
+                    Graphics.FONT_SMALL, 
+                    text, 
+                    Graphics.TEXT_JUSTIFY_VCENTER|Graphics.TEXT_JUSTIFY_RIGHT);
             }
         }
     }

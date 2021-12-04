@@ -26,7 +26,7 @@ class BatteryPoint {
 
     (:debug)
     public static function FromBytes(b as PointsContainer, idx as Number) as BatteryPoint {
-        var p = new BatteryPoint(0, 0);
+        var p = new BatteryPoint(0, 0.0);
         p.load(b, idx);
         return p;
     }
@@ -79,7 +79,7 @@ class BatteryPoint {
 
 (:test)
 function testBatteryPointFromArray(logger as Logger) as Boolean {
-    var p = BatteryPoint.FromArray([123, 22.2]);
+    var p = BatteryPoint.FromArray([123, 22.2] as StatePoint);
     assert_equal(p.getTS(), 123, "unexpected ts");
     assert_equal(p.getValue(), 22.2, "unexpected value");
 

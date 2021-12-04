@@ -8,33 +8,27 @@ using Toybox.System;
 import Toybox.Test;
 using Toybox.Time;
 
-(:background :glance)
-const STATE_PROPERTY = "s1";
-(:background :glance)
-const KEY_POINTS = "p1";
-(:background :glance)
-const KEY_CHARGED = "c1";
-(:background :glance)
-const KEY_ACTIVITY = "a1";
-(:background :glance)
-const KEY_ACTIVITY_TS = "t1";
-(:background :glance)
-const KEY_MARK = "m1";
-(:background :glance)
-const MAX_POINTS = 5;
-(:background :glance)
-const CAPACITY = 50;  // limited by background exit max size
-
 typedef StateData as {
-    KEY_POINTS as ByteArray,
-    KEY_CHARGED as StatePoint?,
-    KEY_ACTIVITY as Boolean,
-    KEY_ACTIVITY_TS as Number?,
-    KEY_MARK as StatePoint?
+    "p1" as ByteArray,
+    "c1" as StatePoint?,
+    "a1" as Boolean,
+    "t1" as Number?,
+    "m1" as StatePoint?
 };
 
 (:typecheck([disableBackgroundCheck, disableGlanceCheck]) :background :glance)
 class State {
+	private static const STATE_PROPERTY = "s1";
+
+	private static const KEY_POINTS = "p1";
+	private static const KEY_CHARGED = "c1";
+	private static const KEY_ACTIVITY = "a1";
+	private static const KEY_ACTIVITY_TS = "t1";
+	private static const KEY_MARK = "m1";
+	
+	private static const MAX_POINTS = 5;
+	private static const CAPACITY = 50;  // limited by background exit max size
+
     private var mPoints as TimeSeries;
     private var mCharged as StatePoint?;
     private var mMark as StatePoint?;

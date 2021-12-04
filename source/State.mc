@@ -34,11 +34,11 @@ class State {
     private var mMark as StatePoint?;
     private var mActivityRunning as Boolean;
     private var mActivityTS as Number?;
-    var log as Log;
-    var mGraphDuration as Number?;
+    // private var log as Log;
+    private var mGraphDuration as Number?;
     
     public function initialize(data as StateData?) {
-        log = new Log("State");
+        // log = new Log("State");
         var app = getApp();
         mGraphDuration = 3600 * app.getGraphDuration();
         // log.debug("initialize: passed", data);
@@ -47,7 +47,7 @@ class State {
         // log.debug("initialize: got", data);
         }
         if (data == null) {
-            log.debug("before empty", data);
+            // log.debug("before empty", data);
             mPoints = TimeSeries.Empty(CAPACITY);
             mCharged = null;
             mMark = null;
@@ -127,12 +127,12 @@ class State {
     }
 
     public function getData() as StateData {
-        log.msg("getData()");
+        // log.msg("getData()");
         var stats = System.getSystemStats();
-        log.debug("getting data", stats.freeMemory);
+        // log.debug("getting data", stats.freeMemory);
         var points = mPoints.serialize();
         stats = System.getSystemStats();
-        log.debug("serialized points", stats.freeMemory);
+        // log.debug("serialized points", stats.freeMemory);
         var data = {
             KEY_POINTS => points,
             KEY_CHARGED => mCharged,
@@ -141,25 +141,25 @@ class State {
             KEY_MARK => mMark
         };
         stats = System.getSystemStats();
-        log.debug("constructed a dict", stats.freeMemory);
+        // log.debug("constructed a dict", stats.freeMemory);
         // log.debug("getData", data);
         return data;
     }
     
     public function save() as Void {
-        var stats = System.getSystemStats();
-        log.debug("saving", stats.freeMemory);
+        // var stats = System.getSystemStats();
+        // log.debug("saving", stats.freeMemory);
         var data = getData() as Dictionary<String, Application.PropertyValueType>;
-        stats = System.getSystemStats();
-        log.debug("got data", stats.freeMemory);
+        // stats = System.getSystemStats();
+        // log.debug("got data", stats.freeMemory);
         // log.debug("save", data);
         try {
             Application.Storage.setValue(STATE_PROPERTY, data);
         } catch (ex) {
-            log.error("save error", ex);
+            // log.error("save error", ex);
         }
-        stats = System.getSystemStats();
-        log.debug("saved", stats.freeMemory);
+        // stats = System.getSystemStats();
+        // log.debug("saved", stats.freeMemory);
     }
     
     /**

@@ -77,7 +77,7 @@ class TimeSeries {
 
     private var points as PointsContainer;  // packed uint32 points + int64 opts
     private var opts as TimeSeriesOpts;
-    private var log as Log;
+    // private var log as Log;
 
     public static function Empty(capacity as Number) as TimeSeries {
         var pc = new TimeSeriesOpts(0, 0, 0, capacity).empty();
@@ -110,7 +110,7 @@ class TimeSeries {
     all previous are packed points.
     */
     public function initialize(points as ByteArray or PointsContainer) {
-        log = new Log("TS");
+        // log = new Log("TS");
         if (!(points instanceof PointsContainer)) {
             points = new PointsContainer(points);
         }
@@ -155,7 +155,7 @@ class TimeSeries {
     }
 
     public function add(ts as Number, value as Float) as Void {
-        log.debug("adding", [ts, value, opts.toString()]);
+        // log.debug("adding", [ts, value, opts.toString()]);
         if (opts.size == 0) {
             opts.start = ts;
         }
@@ -164,7 +164,7 @@ class TimeSeries {
         var needAlign = false;
         if (opts.full()) {
             // points array is full, removing oldest element
-            log.debug("rotating", [opts.toString()]);
+            // log.debug("rotating", [opts.toString()]);
             // move offset to next element
             var newOffset = opts.index(1);
             if (newOffset == 0) {
@@ -188,22 +188,22 @@ class TimeSeries {
 
     private function align(ts as Number) as Void {
         var delta = ts - opts.start;
-        log.debug("align to ", [ts, delta]);
-        log.msg("before");
-        print();
+        // log.debug("align to ", [ts, delta]);
+        // log.msg("before");
+        // print();
         var point = new BatteryPoint(0, 0);
         for (var i = 0; i < opts.size; i++) {
             point.load(points, i);
             point.shiftTS(-delta);
             point.save(points, i);
         }
-        log.msg("after");
-        print();
+        // log.msg("after");
+        // print();
         opts.start = ts;
     }
 
     public function set(i as Number, ts as Number, value as Float) as Void {
-        log.debug("setting", [i, ts, value]);
+        // log.debug("setting", [i, ts, value]);
         var delta = ts - opts.start;
         var point = new BatteryPoint(delta, value);
         point.validate();

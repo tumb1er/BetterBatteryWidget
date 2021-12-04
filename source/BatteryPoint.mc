@@ -15,7 +15,6 @@ class BatteryPoint {
     private var ts as Number = 0;
     private var value as Float = 0.0;
 
-    (:debug)
     public static function FromArray(d as StatePoint?) as BatteryPoint? {
         if (d == null) { 
             return null;
@@ -24,7 +23,6 @@ class BatteryPoint {
         return new BatteryPoint(d[0] as Number, d[1] as Float);
     }
 
-    (:debug)
     public static function FromBytes(b as PointsContainer, idx as Number) as BatteryPoint {
         var p = new BatteryPoint(0, 0);
         p.load(b, idx);

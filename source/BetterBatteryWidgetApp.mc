@@ -9,27 +9,27 @@ using Toybox.WatchUi;
 
 (:background :glance)
 class BetterBatteryWidgetApp extends Application.AppBase {
-     private var log as Log;
+    // private var log as Log;
     private var mState as State;
-     private var mMeasureInterval as Duration?;
-     private var mGraphDuration as Number?;
-     private var mGraphMode as Number?;
+    private var mMeasureInterval as Duration?;
+    private var mGraphDuration as Number?;
+    private var mGraphMode as Number?;
     
     public function initialize() {
-        log = new Log("App");
+        // log = new Log("App");
         AppBase.initialize();
         loadSettings();
         var data = Background.getBackgroundData() as StateData?;
         mState = new State(data);
-        log.msg("Points from init");
-        mState.printPoints();
+        // log.msg("Points from init");
+        // mState.printPoints();
     }
 
     (:typecheck([disableBackgroundCheck]))
     public function onBackgroundData(data as StateData?) as Void {
         mState = new State(data);
-        log.msg("Points from background data (saving)");
-        mState.printPoints();
+        // log.msg("Points from background data (saving)");
+        // mState.printPoints();
         // log.debug("onBackgroundData: saving", data as Dictionary);
         mState.save();        
         WatchUi.requestUpdate();
@@ -108,29 +108,29 @@ class BetterBatteryWidgetApp extends Application.AppBase {
 
 (:background)
 class BackgroundServiceDelegate extends System.ServiceDelegate {
-    var log;
+    // var log as Log;
     public function initialize() {
         ServiceDelegate.initialize();
-        log = new Log("BackgroundServiceDelegate");
+        // log = new Log("BackgroundServiceDelegate");
     }
 
     public function onTemporalEvent() as Void {
         var data = Background.getBackgroundData() as StateData?;
         //log.debug("onTemporalEvent bgData", data); 
         var state = new State(data);
-        log.debug("onTemporalEvent measure", state);
+        // log.debug("onTemporalEvent measure", state);
         state.measure();
         var ret = state.getData();
         // log.debug("onTemporalEvent ret", ret); 
         try {
             Background.exit(ret as Dictionary<String, Application.PropertyValueType>);
         } catch (e instanceof Background.ExitDataSizeLimitException) {
-            log.msg("onTermporalError ExitSize error");
-            log.error("Size error", e);
+            // log.msg("onTermporalError ExitSize error");
+            // log.error("Size error", e);
             throw new LogException("ExitDataSizeLimitException");
         } catch (e) {
-            log.msg("onTermporalError unhandled error");
-            log.error("Unknown error", e);
+            // log.msg("onTermporalError unhandled error");
+            // log.error("Unknown error", e);
             throw new LogException(format("Unknown error $1$", [e]));
         }
     }

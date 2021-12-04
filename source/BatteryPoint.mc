@@ -26,9 +26,9 @@ class BatteryPoint {
     }
 
     (:debug)
-    public static function FromBytes(b as ByteArray, offset as Number) as BatteryPoint {
+    public static function FromBytes(b as PointsContainer, idx as Number) as BatteryPoint {
         var p = new BatteryPoint(0, 0);
-        p.load(b, offset);
+        p.load(b, idx);
         return p;
     }
 
@@ -47,14 +47,14 @@ class BatteryPoint {
         return;
     }
 
-    public function save(b as ByteArray, offset as Number) as Void {
+    public function save(b as PointsContainer, idx as Number) as Void {
         var n = self.ts << BatteryPoint.MASK_LEN;
         n += (self.value * 10).toNumber() & BatteryPoint.MASK;
-        encodeNumber(b, n.toNumber(), offset);
+        b.encode(n.toNumber(), idx);
     }
 
-    public function load(b as ByteArray, offset as Number) as Void {
-        var n = decodeNumber(b, offset);
+    public function load(b as PointsContainer, idx as Number) as Void {
+        var n = b.decode(idx);
         var v = n & BatteryPoint.MASK;
         value = v.toFloat() / 10.0;
         ts = n >> BatteryPoint.MASK_LEN;
@@ -92,7 +92,8 @@ function testBatteryPointFromBytes(logger as Logger) as Boolean {
     var n = 123 << 11 + 222;
     var b = new [8]b;
     b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
-    var p = BatteryPoint.FromBytes(b, 4);
+    var pc = new PointsContainer(b);
+    var p = BatteryPoint.FromBytes(pc, 1);
     assert_equal(p.getTS(), 123, "unexpected ts");
     assert_equal(p.getValue(), 22.2, "unexpected value");
     return true;
@@ -104,7 +105,8 @@ function testBatteryPointLoad(logger as Logger) as Boolean {
     var b = new [8]b;
     b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
     var p = new BatteryPoint(1, 1.0);
-    p.load(b, 4);
+    var pc = new PointsContainer(b);
+    p.load(pc, 1);
     assert_equal(p.getTS(), 123, "unexpected dst ts");
     assert_equal(p.getValue(), 22.2, "unexpected dst value");
     return true;
@@ -115,9 +117,9 @@ function testBatteryPointSave(logger as Logger) as Boolean {
     var n = 123 << 11 + 222;
     var b = new [8]b;
     b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
-    var d = new[8]b;
+    var d = PointsContainer.New(2);
     var p = new BatteryPoint(123, 22.2);
-    p.save(d, 4);
-    assert_equal(b, d, "unexpected bytes");
+    p.save(d, 1);
+    assert_equal(b, d.serialize(), "unexpected bytes");
     return true;
 }

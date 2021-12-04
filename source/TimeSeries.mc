@@ -8,40 +8,45 @@ typedef StatePoints as Array<StatePoint>;
 
 (:background)
 class TimeSeriesOpts {
-    public static const SIZE = 8; // bytes used to store TimeSeriesOpts
+    private static const SIZE = 2; // uint32 used to store TimeSeriesOpts
     private const START_SIZE = 4; // bytes for storing start timestamp
     private const OFFSET_BITS = 16; // bytes for storing offset
     private const OFFSET_MASK = 1 << OFFSET_BITS - 1; // mask for offset
     private var mStart as Number;  // iterator start timestamp
     private var mSize as Number; // unpacked size
     private var mOffset as Number; // zero element offset
+    private var mCapacity as Number; // derived from array
 
     (:debug)
-    public static function FromBytes(b as ByteArray, offset as Number) as TimeSeriesOpts {
-        var opts = new TimeSeriesOpts(0, 0, 0);
-        opts.load(b, offset);
+    public static function FromBytes(b as PointsContainer) as TimeSeriesOpts {
+        var opts = new TimeSeriesOpts(0, 0, 0, 0);
+        opts.load(b);
         return opts;
     }
 
-    public function initialize(start as Number, size as Number, offset as Number) as Void {
+    public function initialize(start as Number, size as Number, offset as Number, capacity as Number) as Void {
         mStart = start;
         mSize = size;
         mOffset = offset;
+        mCapacity = capacity;
     }
 
-    public function save(b as ByteArray, offset as Number) as Void {
-        b = encodeNumber(b, mStart, offset);
-        offset += START_SIZE;
+    public function save(b as PointsContainer) as Void {
+        b.encode(mStart, mCapacity);
         var n = mSize << OFFSET_BITS + mOffset;
-        b = encodeNumber(b, n, offset);
+        b.encode(n, mCapacity + 1);
     }  
     
-    public function load(b as ByteArray, offset as Number) as Void {
-        mStart = decodeNumber(b, offset);
-        offset += START_SIZE;
-        var n = decodeNumber(b, offset);
+    public function load(b as PointsContainer) as Void {
+        mCapacity = b.size() - SIZE;
+        mStart = b.decode(mCapacity);
+        var n = b.decode(mCapacity + 1);
         mSize = n >> OFFSET_BITS;
         mOffset = n & OFFSET_MASK;
+    }
+
+    public function empty() as PointsContainer {
+        return PointsContainer.New(mCapacity + SIZE);
     }
 
     function getStart() as Number {
@@ -54,6 +59,10 @@ class TimeSeriesOpts {
 
     function getOffset() as Number {
         return mOffset;
+    }
+
+    function getCapacity() as Number {
+        return mCapacity;
     }
 }
 
@@ -86,8 +95,8 @@ class TimeSeries {
     private var log as Log;
 
     public static function Empty(capacity as Number) as TimeSeries {
-        var points = new [capacity * BatteryPoint.SIZE + TimeSeriesOpts.SIZE]b;
-        return new TimeSeries(points);
+        var pc = new TimeSeriesOpts(0, 0, 0, capacity).empty();
+        return new TimeSeries(pc);
     }
 
     (:debug)
@@ -97,16 +106,16 @@ class TimeSeries {
             return TimeSeries.Empty(0);
         }
         var start = points[0][0] as Number;
-        var values = new [size * BatteryPoint.SIZE + TimeSeriesOpts.SIZE]b;
-        var opts = new TimeSeriesOpts(start, size, 0);
-        opts.save(values, size * BatteryPoint.SIZE);
+        var opts = new TimeSeriesOpts(start, size, 0, size);
+        var values = opts.empty();
+        opts.save(values);
         var point = new BatteryPoint(0, 0);
-        for (var i=0; i<size; i++) {
+        for (var i = 0; i < size; i++) {
             var ts = (points[i][0] - start) as Number;
             var value = points[i][1];
             point.initialize(ts, value);
             point.validate();
-            point.save(values, i * BatteryPoint.SIZE);
+            point.save(values, i);
         }
         return new TimeSeries(values);
     }
@@ -115,28 +124,30 @@ class TimeSeries {
     Accepts an array where last element is packed start timestamp + points count, and
     all previous are packed points.
     */
-    public function initialize(points as ByteArray) as Void {
+    public function initialize(points as ByteArray or PointsContainer) as Void {
         log = new Log("TS");
+        if (!(points instanceof PointsContainer)) {
+            points = new PointsContainer(points);
+        }
         var size = points.size();
         if (size == 0) {
-            size = TimeSeriesOpts.SIZE;
-            points = new [TimeSeriesOpts.SIZE]b;
+            points = new TimeSeriesOpts(0, 0, 0, 0).empty();
         }
-        var opts = new TimeSeriesOpts(0, 0, 0);
-        opts.load(points, size - TimeSeriesOpts.SIZE); 
+        var opts = new TimeSeriesOpts(0, 0, 0, size);
+        opts.load(points); 
         mStart = opts.getStart();
         mSize = opts.getSize();
         mOffset = opts.getOffset();
-        mCapacity = (size - TimeSeriesOpts.SIZE) / BatteryPoint.SIZE;
+        mCapacity = opts.getCapacity();
         mPoints = points;
     }
 
     public function serialize() as ByteArray {
         // sync size, offset and start values
-        var opts = new TimeSeriesOpts(mStart, mSize, mOffset);
-        opts.save(mPoints, mCapacity * BatteryPoint.SIZE);
+        var opts = new TimeSeriesOpts(mStart, mSize, mOffset, mCapacity);
+        opts.save(mPoints);
         // log.debug("serialized", mPoints);
-        return mPoints;
+        return mPoints.serialize();
     }
 
     public function size() as Number {
@@ -148,7 +159,7 @@ class TimeSeries {
         var point = new BatteryPoint(0, 0);
         System.print("[");
         for (var i = 0; i< mSize; i ++) {
-            point.load(mPoints, i * BatteryPoint.SIZE);
+            point.load(mPoints, i);
             if (i > 0) {
                 System.print(", ");
             }
@@ -158,8 +169,8 @@ class TimeSeries {
     }
 
     public function get(idx as Number) as BatteryPoint {
-        var offset = (((idx + mOffset) % mCapacity) * BatteryPoint.SIZE).toNumber();
-        var point = BatteryPoint.FromBytes(mPoints, offset);
+        var index = ((idx + mOffset) % mCapacity).toNumber();
+        var point = BatteryPoint.FromBytes(mPoints, index);
         point.shiftTS(mStart);
         return point;
     }
@@ -187,7 +198,7 @@ class TimeSeries {
         point.initialize(delta, value);
         point.validate();
         var idx = (mSize + mOffset) % mCapacity;
-        point.save(mPoints, idx * BatteryPoint.SIZE);
+        point.save(mPoints, idx);
         mSize += 1;
         if (needAlign) {
             var first = get(0);
@@ -204,11 +215,11 @@ class TimeSeries {
         print();
         var point = new BatteryPoint(0, 0);
         for (var i = 0; i < mSize; i++) {
-            point.load(mPoints, i * BatteryPoint.SIZE);
+            point.load(mPoints, i);
             System.println(["<", i, point]);
             point.shiftTS(-delta);
             System.println([">", i, point]);
-            point.save(mPoints, i * BatteryPoint.SIZE);
+            point.save(mPoints, i);
         }
         log.debug("after", mPoints);
         mStart = ts;
@@ -220,7 +231,7 @@ class TimeSeries {
         var point = new BatteryPoint(delta, value);
         point.validate();
         var idx = (i + mOffset) % mCapacity;
-        point.save(mPoints, idx * BatteryPoint.SIZE);
+        point.save(mPoints, idx);
         if (idx == 0 && mStart != ts) {
             self.align(ts);
         }
@@ -258,10 +269,11 @@ class TimeSeries {
 
 (:test)
 function testTimeSeriesOptsNew(logger as Logger) as Boolean {
-    var opts = new TimeSeriesOpts(1, 2, 3);
+    var opts = new TimeSeriesOpts(1, 2, 3, 4);
     assert_equal(opts.getStart(), 1, "unexpected start");
     assert_equal(opts.getSize(), 2, "unexpected size");
     assert_equal(opts.getOffset(), 3, "unexpected offset");    
+    assert_equal(opts.getCapacity(), 4, "unexpected capacity");
     return true;
 }
 
@@ -270,15 +282,16 @@ function testTimeSeriesOptsLoad(logger as Logger) as Boolean {
     var low = 2l << 16 + 3l;
     var high = 1l;
     var value = high << 32 + low;
-    var b = new [10]b;
-    b.encodeNumber(high, Lang.NUMBER_FORMAT_UINT32, {:offset => 2, :endianness => Lang.ENDIAN_BIG});
-    b.encodeNumber(low, Lang.NUMBER_FORMAT_UINT32, {:offset => 6, :endianness => Lang.ENDIAN_BIG});
-
-    var opts = new TimeSeriesOpts(0, 0, 0);
-    opts.load(b, 2);
+    var b = new [4 * 4 + 2 * 4]b;
+    b.encodeNumber(high, Lang.NUMBER_FORMAT_UINT32, {:offset => 16, :endianness => Lang.ENDIAN_BIG});
+    b.encodeNumber(low, Lang.NUMBER_FORMAT_UINT32, {:offset => 20, :endianness => Lang.ENDIAN_BIG});
+    var pc = new PointsContainer(b);
+    var opts = new TimeSeriesOpts(0, 0, 0, 0);
+    opts.load(pc);
     assert_equal(opts.getStart(), 1, "unexpected start");
     assert_equal(opts.getSize(), 2, "unexpected size");
     assert_equal(opts.getOffset(), 3, "unexpected offset");
+    assert_equal(opts.getCapacity(), 4, "unexpected capacity");
     return true;
 }
 
@@ -287,20 +300,21 @@ function testTimeSeriesOptsSave(logger as Logger) as Boolean {
     var low = 2l << 16 + 3l;
     var high = 1l;
     var value = high << 32 + low;
-    var b = new [10]b;
-    b.encodeNumber(high, Lang.NUMBER_FORMAT_UINT32, {:offset => 2, :endianness => Lang.ENDIAN_BIG});
-    b.encodeNumber(low, Lang.NUMBER_FORMAT_UINT32, {:offset => 6, :endianness => Lang.ENDIAN_BIG});
-    var d = new [10]b;
+    var b = new [4 * 4 + 2 * 4]b;
+    b.encodeNumber(high, Lang.NUMBER_FORMAT_UINT32, {:offset => 16, :endianness => Lang.ENDIAN_BIG});
+    b.encodeNumber(low, Lang.NUMBER_FORMAT_UINT32, {:offset => 20, :endianness => Lang.ENDIAN_BIG});
+    var d = new [4 * 4 + 2 * 4]b;
+    var pc = new PointsContainer(d);
 
-    var opts = new TimeSeriesOpts(1, 2, 3);
-    opts.save(d, 2);
-    assert_equal(b, d, "unexpected bytes");
+    var opts = new TimeSeriesOpts(1, 2, 3, 4);
+    opts.save(pc);
+    assert_equal(b, pc.serialize(), "unexpected bytes");
     return true;
 }
 
 (:debug)
 function assert_slice_equal(b as ByteArray, offset as Number, expected as StatePoint, msg as String) as Void {
-    var p = BatteryPoint.FromBytes(b, offset);
+    var p = BatteryPoint.FromBytes(new PointsContainer(b), offset / 4);
     assert_point_equal(p, expected, msg);
 }
 
@@ -311,7 +325,7 @@ function assert_point_equal(p1 as BatteryPoint, expected as StatePoint, msg as S
 
 (:debug)
 function assert_opts_equal(b as ByteArray, expected as Array<Number>) as Void {
-    var opts = TimeSeriesOpts.FromBytes(b, b.size() - 8);
+    var opts = TimeSeriesOpts.FromBytes(new PointsContainer(b));
     assert_array_equal([opts.getStart(), opts.getSize(), opts.getOffset()], expected, "unexpected serialized opts");
 }
 
@@ -320,7 +334,7 @@ function testTimeSeriesInitializeZero(logger as Logger) as Boolean {
     var pi = TimeSeries.FromPoints([] as StatePoints);
     assert_equal(pi.size(), 0, "unexpected size");
     assert_equal(pi.getStart(), 0, "unexpected start");
-    var points = pi.getPoints();
+    var points = pi.getPoints().serialize();
     assert_equal(points.size(), 8, "unexpected packed length");
     var data = pi.serialize();
     assert_equal(data.size(), 8, "unexpected serialized length");
@@ -334,7 +348,7 @@ function testTimeSeriesInitializeSingle(logger as Logger) as Boolean {
 
 	assert_equal(pi.size(), 1, "unexpected size");
     assert_equal(pi.getStart(), 123, "unexpected start");
-    var points = pi.getPoints();
+    var points = pi.getPoints().serialize();
     assert_equal(points.size(), 4 + 8, "unexpected packed length");
     assert_slice_equal(points, 0, [0, 55.5], "unexpected packet point");
     var p = pi.last() as BatteryPoint;
@@ -354,7 +368,7 @@ function testTimeSeriesInitializeDouble(logger as Logger) as Boolean {
 
 	assert_equal(pi.size(), 2, "unexpected size");
     assert_equal(pi.getStart(), 123, "unexpected start");
-    var points = pi.getPoints();
+    var points = pi.getPoints().serialize();
     assert_equal(points.size(), 4 * 2 + 8, "unexpected length");
     assert_slice_equal(points, 0, [0, 55.5], "unexpected packed point 0");
     assert_slice_equal(points, 4, [2, 77.7], "unexpected packed point 1");
@@ -378,7 +392,7 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
 
     assert_equal(pi.size(), 1, "unexpected size");
     assert_equal(pi.getStart(), 123, "unexpected start $1$");
-    var points = pi.getPoints();
+    var points = pi.getPoints().serialize();
     assert_equal(points.size(), 2 * 4 + 8, "unexpected packed length");
     assert_slice_equal(points, 0, [0, 11.1], "unexpected packed point 0");
 
@@ -386,7 +400,7 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
     // 123 - [123, 125]
 
     assert_equal(pi.size(), 2, "unexpected size");
-    points = pi.getPoints();
+    points = pi.getPoints().serialize();
     assert_equal(points.size(), 2 * 4 + 8, "unexpected length");
     assert_slice_equal(points, 0, [0, 11.1], "unexpected packed point 0");
     assert_slice_equal(points, 4, [2, 22.2], "unexpected packed point 1");
@@ -404,7 +418,7 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
     pi.add(130, 77.7);
     // 126 - [126, 130]
     
-    points = pi.getPoints();
+    points = pi.getPoints().serialize();
     assert_slice_equal(points, 0, [0, 33.3], "unexpected packed point 0");
     assert_slice_equal(points, 4, [130 - 126, 77.7], "unexpected packed point 1");
     assert_equal(pi.getOffset(), 0, "unexpected offset");
@@ -420,7 +434,7 @@ function testTimeSeriesSet(logger as Logger) as Boolean {
     
     pi.set(0, 124, 33.3);
     
-    var points = pi.getPoints();
+    var points = pi.getPoints().serialize();
     assert_equal(points.size(), 2 * 4 + 8, "unexpected length");
     assert_slice_equal(points, 0, [0, 33.3], "unexpected packed point 0");
     assert_slice_equal(points, 4, [125 - 124, 77.7], "unexpected packed point 1");

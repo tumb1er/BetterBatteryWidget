@@ -55,7 +55,7 @@ class State {
 			mActivityTS = null;
 			mActivityRunning = false;
 		} else {
-			mPoints = new TimeSeries(data[KEY_POINTS] as Array<Long>);
+			mPoints = new TimeSeries(data[KEY_POINTS] as ByteArray);
 			mCharged = ((data[KEY_CHARGED])? data[KEY_CHARGED]: null) as Array<Number or Float>?;
 			mMark = ((data[KEY_MARK])? data[KEY_MARK]: null) as Array<Number or Float>?;
 			mActivityTS = data[KEY_ACTIVITY_TS] as Number?;

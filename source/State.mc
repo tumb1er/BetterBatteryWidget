@@ -41,7 +41,7 @@ class State {
 	public function initialize(data as StateData?) {
 		log = new Log("State");
 		var app = getApp();
-		mGraphDuration = 3600 * (app.mGraphDuration as Number);
+		mGraphDuration = 3600 * app.getGraphDuration();
 		// log.debug("initialize: passed", data);
 		if (data == null) {
 			data = Application.Storage.getValue(STATE_PROPERTY) as Dictionary<String, Array<Number or Float> or Boolean>?;		
@@ -267,7 +267,7 @@ class State {
 (:test)
 function testCheckActivityState(logger as Logger) as Boolean {
 	var app = getApp();
-	var state = app.mState;
+	var state = app.getState();
 	var ts = Time.now().value() as Number;
 	var value = 75.1;
 	
@@ -303,7 +303,7 @@ function testCheckActivityState(logger as Logger) as Boolean {
 (:test)
 function testMeasureSmoke(logger as Logger) as Boolean {
 	var app = getApp();
-	var state = app.mState;
+	var state = app.getState();
 	state.setmPoints(TimeSeries.Empty(CAPACITY));
 	
 	state.measure();

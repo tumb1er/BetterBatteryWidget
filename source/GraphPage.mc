@@ -26,8 +26,8 @@ class GraphPage extends WatchUi.View {
 		mState = state;
 		mMode = 0;
 		var app = getApp();
-		mGraphDuration = 3600 * (app.mGraphDuration as Number);  // FIXME: private variable + getter
-		mGraphMode = (app.mGraphMode as Number);  // FIXME: private variable + getter
+		mGraphDuration = app.getGraphDuration();
+		mGraphMode = app.getGraphMode();
 	}
 	
     public function onLayout(dc as Graphics.Dc ) as Void {
@@ -250,7 +250,7 @@ class GraphPageBehaviorDelegate extends WatchUi.InputDelegate {
 (:test)
 function testGraphPageSmoke(logger as Logger) as Boolean {
 	var app = getApp();
-	var page = new GraphPage(app.mState);
+	var page = new GraphPage(app.getState());
 	var dc = assertViewDraw(logger, page);
 	logger.debug("onAnimateEnd");
 	page.onAnimateEnd();
@@ -260,9 +260,9 @@ function testGraphPageSmoke(logger as Logger) as Boolean {
 (:test)
 function testGraphPageEmptyData(logger as Logger) as Boolean {
 	var app = getApp();
-	var page = new GraphPage(app.mState);
+	var page = new GraphPage(app.getState());
 	var ts = Time.now().value();
-	app.mState.handleMeasurements(ts, 75.5, true);
+	app.getState().handleMeasurements(ts, 75.5, true);
 	assertViewDraw(logger, page);
 	return true;
 }

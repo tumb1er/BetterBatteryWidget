@@ -138,7 +138,7 @@ class WidgetPageBehaviorDelegate extends WatchUi.InputDelegate {
 (:test)
 function testWidgetPageSmoke(logger as Logger) as Boolean {
 	var app = getApp();
-	var page = new WidgetPage(app.mState);
+	var page = new WidgetPage(app.getState());
 	assertViewDraw(logger, page);
 	return true;
 }

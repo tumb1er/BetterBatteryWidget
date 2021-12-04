@@ -8,14 +8,12 @@ using Toybox.WatchUi;
 
 (:background :glance)
 class BetterBatteryWidgetApp extends Application.AppBase {
- 	var log as Log;
-    var mState as State;
-
-    var mWidgetPage as WidgetPage?;
-
- 	var mMeasureInterval as Number?;
- 	var mGraphDuration as Number?;
- 	var mGraphMode as Number?;
+ 	private var log as Log;
+    private var mState as State;
+    private var mWidgetPage as WidgetPage?;
+ 	private var mMeasureInterval as Number?;
+ 	private var mGraphDuration as Number?;
+ 	private var mGraphMode as Number?;
     
     public function initialize() {
     	log = new Log("App");
@@ -101,7 +99,18 @@ class BetterBatteryWidgetApp extends Application.AppBase {
     	mGraphMode = getProperty("GraphMode");
     	//log.debug("settings loaded", [mMeasureInterval, mGraphDuration]);
     }
-    
+
+	public function getGraphDuration() as Number {
+		return 3600 * mGraphDuration;
+	}
+
+	public function getGraphMode() as Number {
+		return mGraphMode as Number;
+	}
+
+	public function getState() as State {
+		return mState;
+	}
 }
 
 (:background)

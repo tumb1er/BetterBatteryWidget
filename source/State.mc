@@ -294,7 +294,7 @@ function testCheckActivityState(logger as Logger) as Boolean {
 function testMeasureSmoke(logger as Logger) as Boolean {
     var app = getApp();
     var state = app.getState();
-    state.setmPoints(TimeSeries.Empty(CAPACITY));
+    state.setmPoints(TimeSeries.Empty(50));
     
     state.measure();
     

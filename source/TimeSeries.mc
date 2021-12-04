@@ -211,7 +211,7 @@ class TimeSeries {
         point.validate();
         var idx = opts.index(i);
         point.save(points, idx);
-        if (idx == 0 && start != ts) {
+        if (idx == 0 && opts.start != ts) {
             self.align(ts);
         }
     }
@@ -259,7 +259,7 @@ function testTimeSeriesOptsNew(logger as Logger) as Boolean {
 (:test)
 function testTimeSeriesOptsTosString(logger as Logger) as Boolean {
     var opts = new TimeSeriesOpts(1, 2, 3, 4);
-    assertEqual(opts.toString() instanceof String, true);
+    assert_equal(opts.toString() instanceof Lang.String, true, "unexpected return type");
     return true;
 }
 
@@ -312,7 +312,7 @@ function assert_point_equal(p1 as BatteryPoint, expected as StatePoint, msg as S
 (:debug)
 function assert_opts_equal(b as ByteArray, expected as Array<Number>) as Void {
     var opts = TimeSeriesOpts.FromBytes(new PointsContainer(b));
-    assert_array_equal([opts.getStart(), opts.getSize(), opts.getOffset()], expected, "unexpected serialized opts");
+    assert_array_equal([opts.start, opts.size, opts.offset], expected, "unexpected serialized opts");
 }
 
 (:test)

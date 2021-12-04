@@ -10,6 +10,7 @@
             <iq:product id="legacysagadarthvader"/>
             <iq:product id="descentmk1"/>
             <iq:product id="descentmk2"/>
+            <iq:product id="descentmk2s"/>
             <iq:product id="enduro"/>
             <iq:product id="fenix5"/>
             <iq:product id="fenix5plus"/>
@@ -26,8 +27,10 @@
             <iq:product id="fr245m"/>
             <iq:product id="fr645"/>
             <iq:product id="fr645m"/>
+            <iq:product id="fr745"/>
             <iq:product id="fr935"/>
             <iq:product id="fr945"/>
+            <iq:product id="fr945lte"/>
             <iq:product id="marqadventurer"/>
             <iq:product id="marqathlete"/>
             <iq:product id="marqaviator"/>

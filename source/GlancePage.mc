@@ -55,3 +55,11 @@ class GlancePage extends WatchUi.GlanceView {
     }
 
 }
+
+(:test)
+function testGlancePageSmoke(logger as Logger) as Boolean {
+	var app = getApp();
+	var page = new GlancePage(app.getState());
+	var dc = assertViewDraw(logger, page);
+	return true;
+}

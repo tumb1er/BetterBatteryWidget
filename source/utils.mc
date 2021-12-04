@@ -141,8 +141,10 @@ function assert_array_equal(v1 as Array, v2 as Array, msg as string) as Void {
 (:background)
 function encodeNumber(b as ByteArray, n as Number, offset as Number) as ByteArray {
 	for (var i = offset + 3; i >= offset; i--) {
-		b[i] = n % 256;
-		n /= 256;
+		var mod = n % 256;
+		b[i] = mod;
+		System.println(Lang.format("($1$ - $2$) / 256", [n, mod]));
+		n = (n - mod) / 256;
 	}
 	return b;
 }

@@ -137,24 +137,3 @@ function assert_array_equal(v1 as Array, v2 as Array, msg as string) as Void {
         throw e;
     }
 }
-
-(:background)
-function encodeNumber(b as ByteArray, n as Number, offset as Number) as ByteArray {
-    for (var i = offset + 3; i >= offset; i--) {
-        var mod = n % 256;
-        b[i] = mod;
-        System.println(Lang.format("($1$ - $2$) / 256", [n, mod]));
-        n = (n - mod) / 256;
-    }
-    return b;
-}
-
-(:background)
-function decodeNumber(b as ByteArray, offset as Number) as Number {
-    var n = b[offset].toNumber();
-    for (var i = offset + 1; i < offset + 4; i++) {
-        n *= 256;
-        n += b[i];
-    }
-    return n;
-}

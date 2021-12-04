@@ -51,14 +51,21 @@ class Result {
     }
         
     public function predictAvg(weight as Lang.Float) as Lang.Float {
-        if (windowPredict != null && chargedPredict != null) {
-            return (windowPredict as BatteryPoint).getTS() * weight + (chargedPredict as BatteryPoint).getTS() * (1.0 - weight);
-        } else if (chargedPredict != null) {
-            return (chargedPredict as BatteryPoint).getTS().toFloat();
-        } else if (windowPredict != null) {
-            return (windowPredict as BatteryPoint).getTS().toFloat();
+        var firstTs = 0.0;
+        var secondTs = 0.0;
+        if (windowPredict != null) {
+            firstTs = (windowPredict as BatteryPoint).getTS().toFloat()
+        } else {
+            // whole weight to second member
+            weight = 0.0;
         }
-        return 0.0;
+        if (chargedPredict != null) {
+            secondTs = (chargedPredict as BatteryPoint).getTS().toFloat()
+        } else {
+            // whole weight to first member - whether it is zero or not
+            weight = 1.0;
+        }
+        return firstTs * weight + secondTs * (1.0 - weight);
     }
     
     public function predictWindow() as Void {

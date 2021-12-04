@@ -40,7 +40,14 @@ Widget | Graph | Info | Mark
    * Fenix 5s
    * Fenix Chronos
    * Forerunner 55
-* Forerunner 735xt - (#31)
+   * Rey
+   * Vivoactive 4s
+* Forerunner 735xt - simulator crash (#31)
+* Venu 2S - 360x360 
+* Venu 2 - 416x416
+* Square devices
+   * Venu Sq
+   * Venu Sq music
 
 ## Release
 

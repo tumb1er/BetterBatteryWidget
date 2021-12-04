@@ -3,10 +3,11 @@ import Toybox.Lang;
 
 (:background :glance)
 class PointsContainer {
+    private static const POINT_SIZE = 4; // size of single point in bytes
     private var data as ByteArray;
 
-    public static function New(size as Number) as PointsContainer {
-        return new PointsContainer(new [size * 4]b);
+    public static function New(capacity as Number) as PointsContainer {
+        return new PointsContainer(new [capacity * POINT_SIZE]b);
     }
 
     public function initialize(data as ByteArray) {
@@ -14,9 +15,9 @@ class PointsContainer {
     }
 
     public function encode(n as Number, idx as Number) as PointsConcainer {
-        var offset = idx * 4; // Size of UINT32
+        var offset = idx * POINT_SIZE;
         var b = self.data;
-        for (var i = offset + 3; i >= offset; i--) {
+        for (var i = offset + POINT_SIZE - 1; i >= offset; i--) {
             var mod = n % 256;
             b[i] = mod;
             n = (n - mod) / 256;
@@ -25,10 +26,10 @@ class PointsContainer {
     }
 
     public function decode(idx as Number) as Number {
-        var offset = idx * 4; // Size of UINT32
+        var offset = idx * POINT_SIZE;
         var b = self.data;
         var n = b[offset].toNumber();
-        for (var i = offset + 1; i < offset + 4; i++) {
+        for (var i = offset + 1; i < offset + POINT_SIZE; i++) {
             n *= 256;
             n += b[i];
         }
@@ -36,7 +37,7 @@ class PointsContainer {
     }
 
     public function size() as Number {
-        return self.data.size() / 4;
+        return self.data.size() / POINT_SIZE;
     }
 
     public function serialize() as ByteArray {

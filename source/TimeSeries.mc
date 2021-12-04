@@ -24,7 +24,7 @@ class TimeSeriesOpts {
         return opts;
     }
 
-    public function initialize(start as Number, size as Number, offset as Number, capacity as Number) as Void {
+    public function initialize(start as Number, size as Number, offset as Number, capacity as Number) {
         mStart = start;
         mSize = size;
         mOffset = offset;
@@ -116,7 +116,7 @@ class TimeSeries {
     Accepts an array where last element is packed start timestamp + points count, and
     all previous are packed points.
     */
-    public function initialize(points as ByteArray or PointsContainer) as Void {
+    public function initialize(points as ByteArray or PointsContainer) {
         log = new Log("TS");
         if (!(points instanceof PointsContainer)) {
             points = new PointsContainer(points);

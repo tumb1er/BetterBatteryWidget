@@ -9,7 +9,7 @@ class PointsContainer {
         return new PointsContainer(new [size * 4]b);
     }
 
-    public function initialize(data as ByteArray) as Void {
+    public function initialize(data as ByteArray) {
         self.data = data;
     }
 

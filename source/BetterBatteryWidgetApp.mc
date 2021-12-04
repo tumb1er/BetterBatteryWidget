@@ -122,7 +122,7 @@ class BackgroundServiceDelegate extends System.ServiceDelegate {
 		var ret = state.getData();
 		// log.debug("onTemporalEvent ret", ret); 
 		try {
-			Background.exit(ret as Dictionary<String, Application.PropertyValueType>);
+			Background.exit(ret);
 		} catch (e instanceof Background.ExitDataSizeLimitException) {
 			log.msg("onTermporalError ExitSize error");
 			log.error("Size error", e);

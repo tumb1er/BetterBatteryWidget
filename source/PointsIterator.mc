@@ -5,29 +5,31 @@ class PointsIterator {
     private var mData as TimeSeries;
     private var mPosition as Number;
     private var mStartPosition as Number;
+    private var mSize as Number;
 
     public function initialize(data as TimeSeries, position as Number) {
         mData = data;
+        mSize = data.size();
         mPosition = position;
         mStartPosition = position;
     }
 
     public function first() as BatteryPoint? {
-        if (mStartPosition >= mData.size()) {
+        if (mStartPosition >= mSize) {
             return null;
         }
         return mData.get(mStartPosition);
     }
 
     public function last() as BatteryPoint? {
-        if (mStartPosition >= mData.size()) {
+        if (mStartPosition >= mSize) {
             return null;
         }
-        return mData.get(mData.size() -1);
+        return mData.get(mSize - 1);
     }
 
     public function size() as Number { 
-        return mData.size();
+        return mSize;
     }
 
     public function start() as Void {
@@ -35,7 +37,7 @@ class PointsIterator {
     }
 
     public function current() as BatteryPoint? {
-        if (mPosition >= mData.size()) {
+        if (mPosition >= mSize) {
             return null;
         }
         return mData.get(mPosition);

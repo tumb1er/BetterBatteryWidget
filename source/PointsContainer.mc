@@ -1,4 +1,5 @@
 import Toybox.Lang;
+import Toybox.Test;
 
 
 (:background :glance)
@@ -14,7 +15,7 @@ class PointsContainer {
         self.data = data;
     }
 
-    public function encode(n as Number, idx as Number) as PointsConcainer {
+    public function encode(n as Number, idx as Number) as PointsContainer {
         var offset = idx * POINT_SIZE;
         var b = self.data;
         for (var i = offset + POINT_SIZE - 1; i >= offset; i--) {

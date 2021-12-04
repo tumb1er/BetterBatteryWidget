@@ -1,8 +1,9 @@
-using Toybox.Application;
-using Toybox.Background;
+import Toybox.Background;
 import Toybox.Lang;
-using Toybox.System;
-using Toybox.Time;
+import Toybox.System;
+import Toybox.Time;
+
+using Toybox.Application;
 using Toybox.WatchUi;
 
 

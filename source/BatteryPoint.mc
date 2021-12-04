@@ -1,5 +1,5 @@
 import Toybox.Lang;
-using Toybox.Test;
+import Toybox.Test;
 
 
 (:background :glance)

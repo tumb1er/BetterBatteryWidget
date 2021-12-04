@@ -1,7 +1,10 @@
+import Toybox.Lang;
+import Toybox.Test;
+
 using Toybox.Graphics;
-using Toybox.Lang;
 using Toybox.System;
 using Toybox.WatchUi;
+
 
 (:glance)
 class GlancePage extends WatchUi.GlanceView {

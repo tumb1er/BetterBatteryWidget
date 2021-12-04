@@ -1,5 +1,6 @@
-using Toybox.Graphics;
 import Toybox.Lang;
+
+using Toybox.Graphics;
 using Toybox.System;
 using Toybox.Test;
 using Toybox.Time;
@@ -121,12 +122,12 @@ function assertViewDraw(logger as Test.Logger, page as WatchUi.View) as Graphics
 }
 
 (:debug)    
-function assert_equal(v1 as Any, v2 as Any, msg as string) as Void {
+function assert_equal(v1, v2, msg as String) as Void {
     Test.assertEqualMessage(v1, v2, Lang.format("$1$: $2$ != $3$", [msg, v1, v2]));
 }
 
 (:debug)
-function assert_array_equal(v1 as Array, v2 as Array, msg as string) as Void {
+function assert_array_equal(v1 as Array, v2 as Array, msg as String) as Void {
     try {
         Test.assertEqual(v1.size(), v2.size());
         for (var i = 0; i < v1.size(); i++) {

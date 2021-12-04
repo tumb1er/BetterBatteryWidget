@@ -154,7 +154,7 @@ class TimeSeries {
             }
             System.print(point.toString());
         }
-        System.print("]");
+        System.println("]");
     }
 
     public function get(idx as Number) as BatteryPoint {
@@ -171,17 +171,14 @@ class TimeSeries {
         }
         var point = new BatteryPoint(0, 0);
         var delta = ts - mStart;
+        var needAlign = false;
         if (mSize == mCapacity) {
             // points array is full, removing oldest element
             log.debug("rotating", [mPoints, mOffset, mCapacity]);
             // move offset to next element
             var newOffset = (mOffset + 1) % mCapacity;
             if (newOffset == 0) {
-                // align values to first TS
-                var start = get(0);
-                log.debug("align", start.getTS());
-                align(start.getTS());
-                delta = ts - mStart;
+                needAlign = true;
             }
             mOffset = newOffset;
             // lower size value
@@ -192,6 +189,10 @@ class TimeSeries {
         var idx = (mSize + mOffset) % mCapacity;
         point.save(mPoints, idx * BatteryPoint.SIZE);
         mSize += 1;
+        if (needAlign) {
+            var first = get(0);
+            align(first.getTS());
+        }
         serialize();
         log.debug("add", mPoints);
     }
@@ -199,7 +200,8 @@ class TimeSeries {
     private function align(ts as Number) as Void {
         var delta = (ts - mStart).toLong();
         log.debug("align to ", [ts, delta, mOffset]);
-        log.debug("before", mPoints);
+        log.msg("before");
+        print();
         var point = new BatteryPoint(0, 0);
         for (var i = 0; i < mSize; i++) {
             point.load(mPoints, i * BatteryPoint.SIZE);
@@ -370,7 +372,9 @@ function testTimeSeriesInitializeDouble(logger as Logger) as Boolean {
 function testTimeSeriesAdd(logger as Logger) as Boolean {
     var pi = TimeSeries.Empty(2);
 
+    // 0 - [x, x]
     pi.add(123, 11.1);
+    // 123 - [123, x]
 
     assert_equal(pi.size(), 1, "unexpected size");
     assert_equal(pi.getStart(), 123, "unexpected start $1$");
@@ -379,6 +383,7 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
     assert_slice_equal(points, 0, [0, 11.1], "unexpected packed point 0");
 
     pi.add(125, 22.2);
+    // 123 - [123, 125]
 
     assert_equal(pi.size(), 2, "unexpected size");
     points = pi.getPoints();
@@ -387,8 +392,9 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
     assert_slice_equal(points, 4, [2, 22.2], "unexpected packed point 1");
     assert_opts_equal(points, [123, 2, 0]);
     
-    // array is full here - point rotation expected
+    // array is full here - point rotation expected. Offset is not zero - skip align
     pi.add(126, 33.3);
+    // 123 - [126, 125]
 
     assert_slice_equal(points, 0, [126 - 123, 33.3], "unexpected packed point 0");
     assert_slice_equal(points, 4, [2, 22.2], "unexpected packed point 1");
@@ -396,6 +402,7 @@ function testTimeSeriesAdd(logger as Logger) as Boolean {
 
     // offset rotation - align expected
     pi.add(130, 77.7);
+    // 126 - [126, 130]
     
     points = pi.getPoints();
     assert_slice_equal(points, 0, [0, 33.3], "unexpected packed point 0");

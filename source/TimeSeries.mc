@@ -12,10 +12,10 @@ class TimeSeriesOpts {
     private const OFFSET_BITS = 16; // bytes for storing offset
     private const OFFSET_MASK = 1 << OFFSET_BITS - 1; // mask for offset
 
-    private var mStart as Number;  // iterator start timestamp
-    private var mSize as Number; // unpacked size
-    private var mOffset as Number; // zero element offset
-    private var mCapacity as Number; // derived from array
+    public var start as Number;  // iterator start timestamp
+    public var size as Number; // unpacked size
+    public var offset as Number; // zero element offset
+    public var capacity as Number; // derived from array
 
     (:debug)
     public static function FromBytes(b as PointsContainer) as TimeSeriesOpts {
@@ -25,44 +25,40 @@ class TimeSeriesOpts {
     }
 
     public function initialize(start as Number, size as Number, offset as Number, capacity as Number) {
-        mStart = start;
-        mSize = size;
-        mOffset = offset;
-        mCapacity = capacity;
+        self.start = start;
+        self.size = size;
+        self.offset = offset;
+        self.capacity = capacity;
     }
 
     public function save(b as PointsContainer) as Void {
-        b.encode(mStart, mCapacity);
-        var n = mSize << OFFSET_BITS + mOffset;
-        b.encode(n, mCapacity + 1);
+        b.encode(start, capacity);
+        var n = mSize << OFFSET_BITS + offset;
+        b.encode(n, capacity + 1);
     }  
     
     public function load(b as PointsContainer) as Void {
-        mCapacity = b.size() - SIZE;
-        mStart = b.decode(mCapacity);
-        var n = b.decode(mCapacity + 1);
-        mSize = n >> OFFSET_BITS;
-        mOffset = n & OFFSET_MASK;
+        self.capacity = b.size() - SIZE;
+        self.start = b.decode(self.capacity);
+        var n = b.decode(self.capacity + 1);
+        self.size = n >> OFFSET_BITS;
+        self.offset = n & OFFSET_MASK;
     }
 
     public function empty() as PointsContainer {
-        return PointsContainer.New(mCapacity + SIZE);
+        return PointsContainer.New(capacity + SIZE);
     }
 
-    function getStart() as Number {
-        return mStart;
+    public function toString() as String {
+        return Lang.format("{$1$: +$2$, $3$/$4$}", [start, opts.size, opts.offset]);
     }
 
-    function getSize() as Number {
-        return mSize;
+    public function index(idx as Number) as Number {
+        return (idx + offset) % capacity;
     }
 
-    function getOffset() as Number {
-        return mOffset;
-    }
-
-    function getCapacity() as Number {
-        return mCapacity;
+    public function full() as Boolean {
+        return size == capacity;
     }
 }
 
@@ -79,11 +75,8 @@ class TimeSeries {
     last array value contains: (start ts) << 32 | size << 16 | offset
     */
 
-    private var mPoints as ByteArray;  // packed uint32 points + int64 opts
-    private var mSize as Number; // unpacked size
-    private var mStart as Number;  // iterator start timestamp
-    private var mOffset as Number; // zero element offset
-    private var mCapacity as Number; // max memory for points array in int32 values
+    private var points as ByteArray;  // packed uint32 points + int64 opts
+    private var opts as TimeSeriesOpts;
     private var log as Log;
 
     public static function Empty(capacity as Number) as TimeSeries {
@@ -125,33 +118,28 @@ class TimeSeries {
         if (size == 0) {
             points = new TimeSeriesOpts(0, 0, 0, 0).empty();
         }
-        var opts = new TimeSeriesOpts(0, 0, 0, size);
-        opts.load(points); 
-        mStart = opts.getStart();
-        mSize = opts.getSize();
-        mOffset = opts.getOffset();
-        mCapacity = opts.getCapacity();
-        mPoints = points;
+        self.opts = new TimeSeriesOpts(0, 0, 0, size);
+        self.opts.load(points); 
+        self.points = points;
     }
 
     public function serialize() as ByteArray {
         // sync size, offset and start values
-        var opts = new TimeSeriesOpts(mStart, mSize, mOffset, mCapacity);
-        opts.save(mPoints);
+        opts.save(points);
         // log.debug("serialized", mPoints);
-        return mPoints.serialize();
+        return points.serialize();
     }
 
     public function size() as Number {
-        return mSize;
+        return opts.size;
     }
 
     public function print() as Void {
-        System.print(Lang.format("[$1$, $2$, $3$]: ", [mStart, mSize, mOffset]));
+        System.print(opts.toString());
         var point = new BatteryPoint(0, 0);
         System.print("[");
-        for (var i = 0; i< mSize; i ++) {
-            point.load(mPoints, i);
+        for (var i = 0; i< opts.size; i ++) {
+            point.load(points, i);
             if (i > 0) {
                 System.print(", ");
             }
@@ -160,87 +148,83 @@ class TimeSeries {
         System.println("]");
     }
 
-    private function index(idx as Number) as Number {
-        return (idx + mOffset) % mCapacity;
-    }
-
     public function get(idx as Number) as BatteryPoint {
-        var point = BatteryPoint.FromBytes(mPoints, index(idx));
-        point.shiftTS(mStart);
+        var point = BatteryPoint.FromBytes(points, opts.index(idx));
+        point.shiftTS(opts.start);
         return point;
     }
 
     public function add(ts as Number, value as Float) as Void {
-        log.debug("adding", [ts, value, mSize, mOffset]);
-        if (mSize == 0) {
-            mStart = ts;
+        log.debug("adding", [ts, value, opts.toString()]);
+        if (opts.size == 0) {
+            opts.start = ts;
         }
         var point = new BatteryPoint(0, 0);
-        var delta = ts - mStart;
+        var delta = ts - opts.start;
         var needAlign = false;
-        if (mSize == mCapacity) {
+        if (opts.full()) {
             // points array is full, removing oldest element
-            log.debug("rotating", [mPoints, mOffset, mCapacity]);
+            log.debug("rotating", [opts.toString()]);
             // move offset to next element
-            var newOffset = index(1);
+            var newOffset = opts.index(1);
             if (newOffset == 0) {
                 needAlign = true;
             }
-            mOffset = newOffset;
+            opts.offset = newOffset;
             // lower size value
-            mSize -= 1;
+            opts.size -= 1;
         }
         point.initialize(delta, value);
         point.validate();
-        var idx = index(mSize);
+        var idx = opts.index(opts.size);
         point.save(mPoints, idx);
-        mSize += 1;
+        opts.size += 1;
         if (needAlign) {
             var first = get(0);
             align(first.getTS());
         }
         serialize();
-        log.debug("add", mPoints);
+        log.debug("add", points);
     }
 
     private function align(ts as Number) as Void {
-        var delta = (ts - mStart).toLong();
-        log.debug("align to ", [ts, delta, mOffset]);
+        var delta = ts - opts.start;
+        log.debug("align to ", [ts, delta]);
         log.msg("before");
         print();
         var point = new BatteryPoint(0, 0);
-        for (var i = 0; i < mSize; i++) {
-            point.load(mPoints, i);
+        for (var i = 0; i < opts.size; i++) {
+            point.load(points, i);
             System.println(["<", i, point]);
             point.shiftTS(-delta);
             System.println([">", i, point]);
-            point.save(mPoints, i);
+            point.save(points, i);
         }
-        log.debug("after", mPoints);
-        mStart = ts;
+        log.debug("after", points);
+        opts.start = ts;
     }
 
     public function set(i as Number, ts as Number, value as Float) as Void {
         log.debug("setting", [i, ts, value]);
-        var delta = ts - mStart;
+        var delta = ts - opts.start;
         var point = new BatteryPoint(delta, value);
         point.validate();
-        var idx = index(i);
-        point.save(mPoints, idx);
-        if (idx == 0 && mStart != ts) {
+        var idx = opts.index(i);
+        point.save(points, idx);
+        if (idx == 0 && start != ts) {
             self.align(ts);
         }
     }
 
     public function last() as BatteryPoint? {
-        if (mSize == 0) {
+        if (opts.size == 0) {
             return null;
         }
-        return get(mSize - 1);
+        return get(opts.size - 1);
     }
 
     public function first() as BatteryPoint? {
-        if (mPoints.size() == 0) {
+        if (opts.size == 0) {
             return null;
         }
         return get(0);
@@ -248,27 +232,27 @@ class TimeSeries {
 
     (:debug)
     public function getPoints() as ByteArray {
-        return mPoints;
+        return points;
     }
 
     (:debug)
     public function getStart() as Number {
-        return mStart;
+        return opts.start;
     }
 
     (:debug)
     public function getOffset() as Number {
-        return mOffset;
+        return opts.offset;
     }
 }
 
 (:test)
 function testTimeSeriesOptsNew(logger as Logger) as Boolean {
     var opts = new TimeSeriesOpts(1, 2, 3, 4);
-    assert_equal(opts.getStart(), 1, "unexpected start");
-    assert_equal(opts.getSize(), 2, "unexpected size");
-    assert_equal(opts.getOffset(), 3, "unexpected offset");    
-    assert_equal(opts.getCapacity(), 4, "unexpected capacity");
+    assert_equal(opts.start, 1, "unexpected start");
+    assert_equal(opts.size, 2, "unexpected size");
+    assert_equal(opts.offset, 3, "unexpected offset");    
+    assert_equal(opts.capacity, 4, "unexpected capacity");
     return true;
 }
 
@@ -283,10 +267,10 @@ function testTimeSeriesOptsLoad(logger as Logger) as Boolean {
     var pc = new PointsContainer(b);
     var opts = new TimeSeriesOpts(0, 0, 0, 0);
     opts.load(pc);
-    assert_equal(opts.getStart(), 1, "unexpected start");
-    assert_equal(opts.getSize(), 2, "unexpected size");
-    assert_equal(opts.getOffset(), 3, "unexpected offset");
-    assert_equal(opts.getCapacity(), 4, "unexpected capacity");
+    assert_equal(opts.start, 1, "unexpected start");
+    assert_equal(opts.size, 2, "unexpected size");
+    assert_equal(opts.offset, 3, "unexpected offset");    
+    assert_equal(opts.capacity, 4, "unexpected capacity");
     return true;
 }
 

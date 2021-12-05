@@ -54,7 +54,7 @@ class GraphPage extends WatchUi.View {
             :border => Graphics.COLOR_WHITE,
             :foreground => Graphics.COLOR_RED,
             :background => Graphics.COLOR_TRANSPARENT,
-            :shade => (mGraphMode == 1)? Graphics.COLOR_LT_GRAY: null,
+            :shade => (mGraphMode == 1)? Graphics.COLOR_DK_GRAY: null,
             :interval => mGraphDuration as Number,
             :scale => 0.0
         });

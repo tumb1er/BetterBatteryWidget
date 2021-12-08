@@ -277,6 +277,11 @@ class GraphDrawable extends WatchUi.Drawable {
             shadeCoords.add([p[0] as Number, b] as GraphPoint);
             // log.debug("fp", shadeCoords);
             dc.fillPolygon(shadeCoords);
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            for (var i = 0; i < shadeCoords.size() - 2; i++) {
+                // draw top points as dots, without bottom points
+                dc.drawPoint(shadeCoords[i][0],shadeCoords[i][1]);
+            }
             // We need to overlap points to exclude holes in graph, but for last iteration it leads to 
             // infinite loop. So we disable overlap for last iteration. 
             start = (next == start)? (next as Number) + 1: next;

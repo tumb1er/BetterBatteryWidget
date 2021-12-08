@@ -12,10 +12,10 @@ class TimeSeriesOpts {
     private const OFFSET_BITS = 16; // bytes for storing offset
     private const OFFSET_MASK = 1 << OFFSET_BITS - 1; // mask for offset
 
-    public var start as Number;  // iterator start timestamp
-    public var size as Number; // unpacked size
-    public var offset as Number; // zero element offset
-    public var capacity as Number; // derived from array
+    public var start as Number?;  // iterator start timestamp
+    public var size as Number?; // unpacked size
+    public var offset as Number?; // zero element offset
+    public var capacity as Number?; // derived from array
 
     (:debug)
     public static function FromBytes(b as PointsContainer) as TimeSeriesOpts {
@@ -75,8 +75,8 @@ class TimeSeries {
     last array value contains: (start ts) << 32 | size << 16 | offset
     */
 
-    private var points as PointsContainer;  // packed uint32 points + int64 opts
-    private var opts as TimeSeriesOpts;
+    private var points as PointsContainer?;  // packed uint32 points + int64 opts
+    private var opts as TimeSeriesOpts?;
     // private var log as Log;
 
     public static function Empty(capacity as Number) as TimeSeries {

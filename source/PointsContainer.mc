@@ -5,7 +5,7 @@ import Toybox.Test;
 (:background :glance)
 class PointsContainer {
     private static const POINT_SIZE = 4; // size of single point in bytes
-    private var data as ByteArray;
+    private var data as ByteArray?;
 
     public static function New(capacity as Number) as PointsContainer {
         return new PointsContainer(new [capacity * POINT_SIZE]b);
@@ -15,7 +15,7 @@ class PointsContainer {
         self.data = data;
     }
 
-    public function encode(n as Number, idx as Number) as PointsContainer {
+    public function encode(n as Number, idx as Number) as ByteArray {
         var offset = idx * POINT_SIZE;
         var b = self.data;
         for (var i = offset + POINT_SIZE - 1; i >= offset; i--) {
@@ -23,7 +23,7 @@ class PointsContainer {
             b[i] = mod;
             n = (n - mod) / 256;
         }
-        return self;
+        return b;
     }
 
     public function decode(idx as Number) as Number {

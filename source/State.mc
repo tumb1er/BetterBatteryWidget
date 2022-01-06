@@ -38,19 +38,19 @@ class State {
     private var mActivityTS as Number?;
     private var mNum as Float?;
     private var mDen as Float?;
-    // private var log as Log;
+    private var log as Log;
     private var mGraphDuration as Number?;
     private var mAlpha as Float?;
     
     public function initialize(data as StateData?) {
-        // log = new Log("State");
+        log = new Log("State");
         var app = getApp();
         mGraphDuration = 3600 * app.getGraphDuration();
         mAlpha = 1.0 - 2.0 / (6 + 1);  // 6 measurements per 30 min window by default
-        // log.debug("initialize: passed", data);
+        log.debug("initialize: passed", data);
         if (data == null) {
             data = Application.Storage.getValue(STATE_PROPERTY) as StateData?;        
-        // log.debug("initialize: got", data);
+        log.debug("initialize: got", data);
         }
         if (data == null) {
             // log.debug("before empty", data);
@@ -79,15 +79,18 @@ class State {
 
     public function getEMARate(current as BatteryPoint) as Float? {
         var prev = getPointsIterator().last();
+        log.debug("emaIter last", prev.toString());
         var num = mNum;
         var den = mDen;
         if (prev != null && (prev.getTS() < current.getTS())) {
+            log.debug("adding prev to", [num, den]);
             // Добавляем актуальное значение к последнему сохраненному
             var weight = current.getTS() - prev.getTS();
             var value = current.getValue() - prev.getValue();
             num = mAlpha * num + (1 - mAlpha) * weight * value;
             den = mAlpha * den + (1 - mAlpha) * weight;
-        }
+            log.debug("result is", [num, den]);
+         }
         if (den == 0.0) {
             return null;
         }
@@ -145,7 +148,9 @@ class State {
             KEY_CHARGED => mCharged,
             KEY_ACTIVITY => mActivityRunning,
             KEY_ACTIVITY_TS => mActivityTS,
-            KEY_MARK => mMark
+            KEY_MARK => mMark,
+            KEY_NUM => mNum,
+            KEY_DEN => mDen
         };
         stats = System.getSystemStats();
         // log.debug("constructed a dict", stats.freeMemory);

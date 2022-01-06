@@ -25,6 +25,8 @@ class State {
 	private static const KEY_ACTIVITY = "a1";
 	private static const KEY_ACTIVITY_TS = "t1";
 	private static const KEY_MARK = "m1";
+    private static const KEY_NUM = "n1";
+    private static const KEY_DEN = "d1";
 	
 	private static const MAX_POINTS = 5;
 	private static const CAPACITY = 50;  // limited by background exit max size
@@ -34,13 +36,17 @@ class State {
     private var mMark as StatePoint?;
     private var mActivityRunning as Boolean;
     private var mActivityTS as Number?;
+    private var mNum as Float?;
+    private var mDen as Float?;
     // private var log as Log;
     private var mGraphDuration as Number?;
+    private var mAlpha as Float?;
     
     public function initialize(data as StateData?) {
         // log = new Log("State");
         var app = getApp();
         mGraphDuration = 3600 * app.getGraphDuration();
+        mAlpha = 1.0 - 2.0 / (6 + 1);  // 6 measurements per 30 min window by default
         // log.debug("initialize: passed", data);
         if (data == null) {
             data = Application.Storage.getValue(STATE_PROPERTY) as StateData?;        
@@ -53,12 +59,16 @@ class State {
             mMark = null;
             mActivityTS = null;
             mActivityRunning = false;
+            mNum = 0.0;
+            mDen = 0.0;
         } else {
             mPoints = new TimeSeries(data[KEY_POINTS] as ByteArray);
             mCharged = data[KEY_CHARGED] as StatePoint?;
             mMark = data[KEY_MARK] as StatePoint?;
             mActivityTS = data[KEY_ACTIVITY_TS] as Number?;
             mActivityRunning = data[KEY_ACTIVITY] as Boolean;
+            mNum = ((data[KEY_NUM] != null)?data[KEY_NUM]: 0.0) as Float?;
+            mDen = ((data[KEY_DEN] != null)?data[KEY_DEN]: 0.0) as Float?;
         }
         //log.debug("initialize: data", mData);
     }
@@ -67,24 +77,21 @@ class State {
         return new PointsIterator(mPoints, 0);
     }
 
-    public function getWindowIterator() as PointsIterator {
-        var position = 0;
-        if (mPoints.size() > MAX_POINTS) {
-            position = mPoints.size() - MAX_POINTS;
+    public function getEMARate(current as BatteryPoint) as Float? {
+        var prev = getPointsIterator().last();
+        var num = mNum;
+        var den = mDen;
+        if (prev != null && (prev.getTS() < current.getTS())) {
+            // Добавляем актуальное значение к последнему сохраненному
+            var weight = current.getTS() - prev.getTS();
+            var value = current.getValue() - prev.getValue();
+            num = mAlpha * num + (1 - mAlpha) * weight * value;
+            den = mAlpha * den + (1 - mAlpha) * weight;
         }
-        var iterator = new PointsIterator(mPoints, position);
-        if (mActivityTS != null) {
-            var c = iterator.current();
-            while (c != null) {
-                if ((c as BatteryPoint).getTS() < mActivityTS as Number) {
-                    iterator.next();
-                    c = iterator.current();
-                } else {
-                    break;
-                }
-            }
+        if (den == 0.0) {
+            return null;
         }
-        return iterator;
+        return ((num > 0)?num: -num) / den;
     }
 
     public function getChargedPoint() as BatteryPoint? {
@@ -173,17 +180,19 @@ class State {
     }
     
     /**
-    Добавляет точки для графика. 
+    Добавляет точки для графика. Возвращает точку, содержащую разницу во времени
+    и в значении относительно предыдущей точки (если была добавлена новая).
     */
-    private function pushPoint(point as BatteryPoint) as Void {
+    private function pushPoint(point as BatteryPoint) as BatteryPoint? {
         // self.log.debug("pushPoint", point.toString());
         point.align();
         // self.log.debug("point aligned", point.toString());
         // Если массив пуст, добавляем точку без условий
         if (mPoints.size() == 0) {
             // self.log.msg("zero size, add");
+            // Всего одна точка, разницу не рассчитаешь.
             mPoints.add(point);
-            return;
+            return null;
         }
         var ts = point.getTS();
         var value = point.getValue();
@@ -192,7 +201,8 @@ class State {
         // self.log.debug("prev point", prev.toString());
         if (ts - prev.getTS() < 1) {
             // self.log.debug("ts delta too low", ts - prev.getTS());
-            return;
+            // Не добавляли новую точку
+            return null;
         }
         // Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
         if (value == prev.getValue()) {
@@ -203,12 +213,22 @@ class State {
             } else {
                 // self.log.msg("nothing to shift");
             }
-            return;
+            // Всего одна точка, либо последнюю подвинули вместо добавления.
+            return null;
         } else {
             // self.log.debug("value delta", (value - prev.getValue()));
         }
         
         mPoints.add(point);
+        return new BatteryPoint(ts - prev.getTS(), value - prev.getValue());
+    }
+
+    // Обновляет значения V-EMA для скорости разряда
+    private function updateEMA(delta as BatteryPoint) as Void {
+        var weight = delta.getTS().toFloat() / 5 * 60; // Нормализуем вес точки по числу измерений
+        var value = delta.getValue();
+        mNum = mAlpha * mNum + (1 - mAlpha) * weight * value;
+        mDen = mAlpha * mDen + (1 - mAlpha) * weight;
     }
     
     public function measure() as Void {
@@ -223,7 +243,11 @@ class State {
     public function handleMeasurements(ts as Number, battery as Float, charging as Boolean) as Void {        
         // Точку на график добавляем всегда
         var point = new BatteryPoint(ts, battery).align();
-        pushPoint(point);
+        var delta = pushPoint(point);
+        if (delta != null) {
+            // Рассчитываем V-EMA
+            updateEMA(delta);
+        }
         
         // Если данные отсутствуют, просто добавляем одну точку.
         if (mCharged == null) {
@@ -266,6 +290,8 @@ class State {
         mActivityTS = point.getTS();
         mCharged = [point.getTS(), point.getValue()] as Array<Number or Float>?;
         mMark = null;
+        mDen = 0.0;
+        mNum = 0.0;
     }
 }
 

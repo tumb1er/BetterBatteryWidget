@@ -70,12 +70,14 @@ class Result {
     
     public function predictWindow() as Void {
         self.windowPredict = null;
-        var data = mStats.getWindowIterator();
-        if (data.size() < 2) {
+        var speed = mStats.getEMARate(self.currentPoint);
+        if (speed == null) {
             return;
         }
-        var first = data.first();
-        self.windowPredict = predict(first, self.currentPoint);
+        if (speed == 0.0) {
+            return;
+        }
+        self.windowPredict = new BatteryPoint((self.currentPoint.getValue() / speed).toNumber(), speed.toFloat());      
         // log.debug("windowPredict", self.windowPredict);
     }
     

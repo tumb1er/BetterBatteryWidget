@@ -34,11 +34,11 @@ class State {
     private var mMark as StatePoint?;
     private var mActivityRunning as Boolean;
     private var mActivityTS as Number?;
-    // private var log as Log;
+    private var log as Log;
     private var mGraphDuration as Number?;
     
     public function initialize(data as StateData?) {
-        // log = new Log("State");
+        log = new Log("State");
         var app = getApp();
         mGraphDuration = 3600 * app.getGraphDuration();
         // log.debug("initialize: passed", data);
@@ -176,22 +176,31 @@ class State {
     Добавляет точки для графика. 
     */
     private function pushPoint(ts as Number, value as Float) as Void {
+        self.log.debug("pushPoint", [ts, value]);
         // Если массив пуст, добавляем точку без условий
         if (mPoints.size() == 0) {
+            self.log.msg("zero size, add");
             mPoints.add(ts, value);
             return;
         }
         // Не добавляем точку, если интервал времени между ними слишком мал
         var prev = mPoints.last() as BatteryPoint;
         if (ts - prev.getTS() < 1) {
+            self.log.debug("ts delta too low", ts - prev.getTS());
             return;
         }
         // Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
         if (value == prev.getValue()) {
+            self.log.msg("same value");
             if (mPoints.size() > 1) {
+                self.log.debug("shifting ts", [prev.getTS(), ts]);
                 mPoints.set(mPoints.size() - 1, ts, value);
+            } else {
+                self.log.msg("nothing to shift");
             }
             return;
+        } else {
+            self.log.debug("value delta", (value - prev.getValue()));
         }
         
         mPoints.add(ts, value);

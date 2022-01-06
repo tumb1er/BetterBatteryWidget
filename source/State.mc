@@ -190,6 +190,8 @@ class State {
             self.log.debug("ts delta too low", ts - prev.getTS());
             return;
         }
+        value = (value * 10).toNumber() / 10.0f;
+        self.log.debug("point aligned", value);
         // Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
         if (value == prev.getValue()) {
             self.log.msg("same value");

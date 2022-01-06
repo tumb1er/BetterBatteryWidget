@@ -185,6 +185,7 @@ class State {
         }
         // Не добавляем точку, если интервал времени между ними слишком мал
         var prev = mPoints.last() as BatteryPoint;
+        self.log.debug("prev point", prev.toString());
         if (ts - prev.getTS() < 1) {
             self.log.debug("ts delta too low", ts - prev.getTS());
             return;

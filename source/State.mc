@@ -235,7 +235,7 @@ class State {
         self.log.debug("update ema with", [weight, speed, delta.getTS()]);
         mNum = mAlpha * mNum + (1 - mAlpha) * weight * speed;
         mDen = mAlpha * mDen + (1 - mAlpha) * weight;
-        self.log.debug("new ema is", mNum / mDen);
+        self.log.debug("new ema is (%/h)", mNum / mDen * 3600.0);
     }
     
     public function measure() as Void {

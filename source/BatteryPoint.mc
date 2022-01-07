@@ -6,11 +6,15 @@ import Toybox.Test;
 class BatteryPoint {
     /* 
     Serialization format: UINT32 LE
-    Bits format: <22bit timestamp offset> <10 bit value>
+    Bits format: <18bit timestamp offset> <14 bit value>
+    Encoded timestamp max: 2^18 * 15 seconds, or 45 days
+    Encoded value range: 0-10000 (0.01 percent accuracy)
     */
-    private static const MAX_TS = 1 << 22;
+    private static const RATIO = 100.0; // Value multiplier to make natural number.
+    private static const STEP = 15;  // Time resolution.
+    private static const MASK_LEN = 14;
+    private static const MAX_TS = STEP << (32 - MASK_LEN); // max TS in 15-seconds intervals
     private static const MAX_VALUE = 100.0;
-    private static const MASK_LEN = 10;
     private static const MASK = 1 << MASK_LEN - 1;
     private var ts as Number = 0;
     private var value as Float = 0.0;
@@ -45,16 +49,16 @@ class BatteryPoint {
     }
 
     public function save(b as PointsContainer, idx as Number) as Void {
-        var n = self.ts << BatteryPoint.MASK_LEN;
-        n += (self.value * 10).toNumber() & BatteryPoint.MASK;
+        var n = (self.ts/BatteryPoint.STEP) << BatteryPoint.MASK_LEN;
+        n += (self.value * BatteryPoint.RATIO).toNumber() & BatteryPoint.MASK;
         b.encode(n.toNumber(), idx);
     }
 
     public function load(b as PointsContainer, idx as Number) as Void {
         var n = b.decode(idx);
         var v = n & BatteryPoint.MASK;
-        value = v.toFloat() / 10.0;
-        ts = n >> BatteryPoint.MASK_LEN;
+        value = v.toFloat() / BatteryPoint.RATIO;
+        ts = (n >> BatteryPoint.MASK_LEN) * BatteryPoint.STEP;
     }
 
     public function getTS() as Number {

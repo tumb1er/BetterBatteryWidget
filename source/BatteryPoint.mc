@@ -39,9 +39,10 @@ class BatteryPoint {
         self.value = value.toFloat();
     }
 
-    public function align() as Void {
+    public function align() as BatteryPoint {
         self.ts = Math.round(ts / BatteryPoint.STEP) * BatteryPoint.STEP;
         self.value = Math.round(self.value * BatteryPoint.RATIO) / BatteryPoint.RATIO;
+        return self;
     }
 
     public function validate()  as Void {
@@ -113,8 +114,9 @@ function testBatteryPointAlign(logger as Logger) as Boolean {
     var step = 15;
     var ratio = 100.0;
     var p = BatteryPoint.FromArray([ts, value] as StatePoint);
-    p.align();
+    var result = p.align();
     assert_point_equal(p, [Math.round(ts / step) * step, Math.round(value * ratio) / ratio], "unaligned");
+    assert_point_equal(result, p, "return value mismatch");
     return true;
 }
 

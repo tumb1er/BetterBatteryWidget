@@ -175,14 +175,18 @@ class State {
     /**
     Добавляет точки для графика. 
     */
-    private function pushPoint(ts as Number, value as Float) as Void {
-        self.log.debug("pushPoint", [ts, value]);
+    private function pushPoint(point as BatteryPoint) as Void {
+        self.log.debug("pushPoint", point.toString());
+        point.align();
+        self.log.debug("point aligned", point.toString());
         // Если массив пуст, добавляем точку без условий
         if (mPoints.size() == 0) {
             self.log.msg("zero size, add");
-            mPoints.add(ts, value);
+            mPoints.add(point);
             return;
         }
+        var ts = point.getTS();
+        var value = point.getValue();
         // Не добавляем точку, если интервал времени между ними слишком мал
         var prev = mPoints.last() as BatteryPoint;
         self.log.debug("prev point", prev.toString());
@@ -190,14 +194,12 @@ class State {
             self.log.debug("ts delta too low", ts - prev.getTS());
             return;
         }
-        value = (value * 10).toNumber() / 10.0f;
-        self.log.debug("point aligned", value);
         // Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
         if (value == prev.getValue()) {
             self.log.msg("same value");
             if (mPoints.size() > 1) {
                 self.log.debug("shifting ts", [prev.getTS(), ts]);
-                mPoints.set(mPoints.size() - 1, ts, value);
+                mPoints.set(mPoints.size() - 1, point);
             } else {
                 self.log.msg("nothing to shift");
             }
@@ -206,7 +208,7 @@ class State {
             self.log.debug("value delta", (value - prev.getValue()));
         }
         
-        mPoints.add(ts, value);
+        mPoints.add(point);
     }
     
     public function measure() as Void {
@@ -220,7 +222,7 @@ class State {
     
     public function handleMeasurements(ts as Number, battery as Float, charging as Boolean) as Void {        
         // Точку на график добавляем всегда
-        pushPoint(ts, battery);
+        pushPoint(new BatteryPoint(ts, battery));
         
         // Если данные отсутствуют, просто добавляем одну точку.
         if (mCharged == null) {

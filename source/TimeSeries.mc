@@ -154,10 +154,12 @@ class TimeSeries {
         return point;
     }
 
-    public function add(ts as Number, value as Float) as Void {
+    public function add(p as BatteryPoint) as Void {
         // log.debug("adding", [ts, value, opts.toString()]);
+        var ts = p.getTS();
+        var value = p.getValue();
         if (opts.size == 0) {
-            opts.start = ts;
+            opts.start = p.getTS();
         }
         var point = new BatteryPoint(0, 0);
         var delta = ts - opts.start;
@@ -202,10 +204,12 @@ class TimeSeries {
         opts.start = ts;
     }
 
-    public function set(i as Number, ts as Number, value as Float) as Void {
+    public function set(i as Number, point as BatteryPoint) as Void {
         // log.debug("setting", [i, ts, value]);
+        var ts = point.getTS();
+        var value = point.getValue();
         var delta = ts - opts.start;
-        var point = new BatteryPoint(delta, value);
+        point = new BatteryPoint(delta, value);
         point.validate();
         var idx = opts.index(i);
         point.save(points, idx);
@@ -303,8 +307,14 @@ function assert_slice_equal(b as ByteArray, offset as Number, expected as Array,
 }
 
 (:debug)
-function assert_point_equal(p1 as BatteryPoint, expected as Array, msg as String) as Void {
-    assert_array_equal([p1.getTS(), p1.getValue()], expected, msg);
+function assert_point_equal(point as BatteryPoint or Array, expected as BatteryPoint or Array, msg as String) as Void {
+    if (point instanceof BatteryPoint) {
+        point = [point.getTS(), point.getValue()];
+    }
+    if (expected instanceof BatteryPoint) {
+        expected = [expected.getTS(), expected.getValue()];
+    }
+    assert_array_equal(point, expected, msg);
 }
 
 (:debug)
@@ -328,108 +338,128 @@ function testTimeSeriesInitializeZero(logger as Logger) as Boolean {
 
 (:test)
 function testTimeSeriesInitializeSingle(logger as Logger) as Boolean {
-    var pi = TimeSeries.FromPoints([[123, 55.5] as StatePoint] as StatePoints);
+    var bp = BatteryPoint.FromArray([1000, 55.55] as StatePoint);
+    bp.align();
+    var pi = TimeSeries.FromPoints([[bp.getTS(), bp.getValue()] as StatePoint] as StatePoints);
 
-    assert_equal(pi.size(), 1, "unexpected size");
-    assert_equal(pi.getStart(), 123, "unexpected start");
-    var points = pi.getPoints().serialize();
-    assert_equal(points.size(), 4 + 8, "unexpected packed length");
-    assert_slice_equal(points, 0, [0, 55.5], "unexpected packet point");
-    var p = pi.last() as BatteryPoint;
-    assert_point_equal(p, [123, 55.5], "unexpected last point");
-    var data = pi.serialize();
-    assert_equal(data.size(), 4 + 8, "unexpected serialized length");
-    assert_opts_equal(data, [123, 1, 0]);
+    var points = pi.serialize();
+    var ts = new TimeSeries(points);
+
+    assert_equal(ts.size(), 1, "unexpected size");
+    assert_point_equal(ts.get(0), bp, "point1 mismatch");
     return true;
 }
 
 (:test)
 function testTimeSeriesInitializeDouble(logger as Logger) as Boolean {
+    var bp1 = BatteryPoint.FromArray([1000, 55.55] as StatePoint).align();
+    var bp2 = BatteryPoint.FromArray([1030, 77.77] as StatePoint).align();
+    
     var pi = TimeSeries.FromPoints([
-        [123, 55.5] as StatePoint, 
-        [125, 77.7] as StatePoint,
+        [bp1.getTS(), bp1.getValue()] as StatePoint,
+        [bp2.getTS(), bp2.getValue()] as StatePoint,
     ] as StatePoints);
 
     assert_equal(pi.size(), 2, "unexpected size");
-    assert_equal(pi.getStart(), 123, "unexpected start");
-    var points = pi.getPoints().serialize();
-    assert_equal(points.size(), 4 * 2 + 8, "unexpected length");
-    assert_slice_equal(points, 0, [0, 55.5], "unexpected packed point 0");
-    assert_slice_equal(points, 4, [2, 77.7], "unexpected packed point 1");
-    var p = pi.first() as BatteryPoint;
-    assert_point_equal(p, [123, 55.5], "unexpected last point");
-    p = pi.last() as BatteryPoint;
-    assert_point_equal(p, [125, 77.7], "unexpected last point");
-    var data = pi.serialize();
-    assert_equal(data.size(), 2 * 4 + 8, "unexpected serialized length");
-    assert_opts_equal(data, [123, 2, 0]);
+    assert_equal(pi.getStart(), bp1.getTS(), "unexpected start");
+    var points = pi.serialize();
+    var ts = new TimeSeries(points);
+
+    assert_equal(ts.size(), 2, "unexpected size");
+    assert_point_equal(ts.get(0), bp1, "point1 mismatch");
+    assert_point_equal(ts.get(1), bp2, "point2 mismatch");
     return true;
 }
 
 (:test)
 function testTimeSeriesAdd(logger as Logger) as Boolean {
     var pi = TimeSeries.Empty(2);
+    var bp1 = BatteryPoint.FromArray([1000, 11.11] as StatePoint).align();
 
     // 0 - [x, x]
-    pi.add(123, 11.1);
-    // 123 - [123, x]
+    pi.add(bp1);
+    // 1000 - [1000, x]
 
-    assert_equal(pi.size(), 1, "unexpected size");
-    assert_equal(pi.getStart(), 123, "unexpected start $1$");
-    var points = pi.getPoints().serialize();
-    assert_equal(points.size(), 2 * 4 + 8, "unexpected packed length");
-    assert_slice_equal(points, 0, [0, 11.1], "unexpected packed point 0");
+    var points = pi.serialize();
+    var ts = new TimeSeries(points);
 
-    pi.add(125, 22.2);
-    // 123 - [123, 125]
+    assert_equal(ts.size(), 1, "unexpected size");
+    assert_point_equal(ts.get(0), bp1, "point1 mismatch");
+
+    var bp2 = BatteryPoint.FromArray([1030, 22.22] as StatePoint).align();
+
+    pi.add(bp2);
+    // 1000 - [1000, 1030]
 
     assert_equal(pi.size(), 2, "unexpected size");
-    points = pi.getPoints().serialize();
-    assert_equal(points.size(), 2 * 4 + 8, "unexpected length");
-    assert_slice_equal(points, 0, [0, 11.1], "unexpected packed point 0");
-    assert_slice_equal(points, 4, [2, 22.2], "unexpected packed point 1");
-    assert_opts_equal(points, [123, 2, 0]);
+    points = pi.serialize();
+    ts = new TimeSeries(points);
+    assert_equal(ts.size(), 2, "unexpected size");
+    assert_point_equal(ts.get(0), bp1, "point1 mismatch");
+    assert_point_equal(ts.get(1), bp2, "point2 mismatch");
     
     // array is full here - point rotation expected. Offset is not zero - skip align
-    pi.add(126, 33.3);
-    // 123 - [126, 125]
+    var bp3 = BatteryPoint.FromArray([1075, 33.33] as StatePoint).align();
 
-    assert_slice_equal(points, 0, [126 - 123, 33.3], "unexpected packed point 0");
-    assert_slice_equal(points, 4, [2, 22.2], "unexpected packed point 1");
+    pi.add(bp3);
+    // 1000 - [1000, 1030]
+    // 1000 - [1075, 1030]
+
+    points = pi.serialize();
+    ts = new TimeSeries(points);
+    assert_equal(ts.size(), 2, "unexpected size");
+    assert_point_equal(ts.get(0), bp2, "point2 mismatch");
+    assert_point_equal(ts.get(1), bp3, "point3 mismatch");
     assert_equal(pi.getOffset(), 1, "unexpected offset");
 
     // offset rotation - align expected
-    pi.add(130, 77.7);
-    // 126 - [126, 130]
+    var bp4 = BatteryPoint.FromArray([1135, 44.44] as StatePoint).align();
+
+    pi.add(bp4);
+    // 1075 - [1075, 1135]
     
-    points = pi.getPoints().serialize();
-    assert_slice_equal(points, 0, [0, 33.3], "unexpected packed point 0");
-    assert_slice_equal(points, 4, [130 - 126, 77.7], "unexpected packed point 1");
+    points = pi.serialize();
+    ts = new TimeSeries(points);
+    assert_equal(ts.size(), 2, "unexpected size");
+    assert_point_equal(ts.get(0), bp3, "point3 mismatch");
+    assert_point_equal(ts.get(1), bp4, "point4 mismatch");
     assert_equal(pi.getOffset(), 0, "unexpected offset");
     return true;
 }
 
 (:test)
 function testTimeSeriesSet(logger as Logger) as Boolean {
+    var bp1 = BatteryPoint.FromArray([1000, 55.55] as StatePoint).align();
+    var bp2 = BatteryPoint.FromArray([1030, 77.77] as StatePoint).align();
+    
     var pi = TimeSeries.FromPoints([
-        [123, 55.5] as StatePoint, 
-        [125, 77.7] as StatePoint,
+        [bp1.getTS(), bp1.getValue()] as StatePoint, 
+        [bp2.getTS(), bp2.getValue()] as StatePoint,
     ] as StatePoints);
+
+    var bp3 = BatteryPoint.FromArray([1015, 33.33] as StatePoint).align();
     
-    pi.set(0, 124, 33.3);
+    pi.set(0, bp3);
     
-    var points = pi.getPoints().serialize();
-    assert_equal(points.size(), 2 * 4 + 8, "unexpected length");
-    assert_slice_equal(points, 0, [0, 33.3], "unexpected packed point 0");
-    assert_slice_equal(points, 4, [125 - 124, 77.7], "unexpected packed point 1");
+    var points = pi.serialize();
+    var ts = new TimeSeries(points);
+    assert_equal(ts.size(), 2, "unexpected size");
+    assert_point_equal(ts.get(0), bp3, "point1 mismatch");
+    assert_point_equal(ts.get(1), bp2, "point2 mismatch");
+
+    var bp4 = BatteryPoint.FromArray([1060, 99.99] as StatePoint).align();
     // points rotation, offset = 1
-    pi.add(127, 99.9);
+    pi.add(bp4);
     
-    pi.set(0, 130, 88.8);
+    var bp5 = BatteryPoint.FromArray([1115, 88.88] as StatePoint).align();
+    pi.set(0, bp5);
 
-    assert_slice_equal(points, 0, [127 - 124, 99.9], "unexpected packed point 0");
-    assert_slice_equal(points, 4, [130 - 124, 88.8], "unexpected packed point 1");
+    points = pi.serialize();
+    ts = new TimeSeries(points);
 
+    assert_equal(ts.size(), 2, "unexpected size");
+    assert_point_equal(ts.get(0), bp5, "point1 mismatch");
+    assert_point_equal(ts.get(1), bp4, "point2 mismatch");
     return true;    
 }
 

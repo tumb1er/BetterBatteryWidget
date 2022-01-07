@@ -1,5 +1,6 @@
 import Toybox.Lang;
 import Toybox.Test;
+import Toybox.Math;
 
 
 (:background :glance)
@@ -38,6 +39,11 @@ class BatteryPoint {
         self.value = value.toFloat();
     }
 
+    public function align() as Void {
+        self.ts = Math.round(ts / BatteryPoint.STEP) * BatteryPoint.STEP;
+        self.value = Math.round(self.value * BatteryPoint.RATIO) / BatteryPoint.RATIO;
+    }
+
     public function validate()  as Void {
         if (ts > MAX_TS || ts < 0) {
             throw new Lang.InvalidValueException(Lang.format("timestamp out of range: $1$", [ts]));
@@ -49,8 +55,8 @@ class BatteryPoint {
     }
 
     public function save(b as PointsContainer, idx as Number) as Void {
-        var n = (self.ts/BatteryPoint.STEP) << BatteryPoint.MASK_LEN;
-        n += (self.value * BatteryPoint.RATIO).toNumber() & BatteryPoint.MASK;
+        var n = Math.round(self.ts / BatteryPoint.STEP).toNumber() << BatteryPoint.MASK_LEN;
+        n += Math.round(self.value * BatteryPoint.RATIO).toNumber() & BatteryPoint.MASK;
         b.encode(n.toNumber(), idx);
     }
 
@@ -90,37 +96,35 @@ function testBatteryPointFromArray(logger as Logger) as Boolean {
 
 (:test)
 function testBatteryPointFromBytes(logger as Logger) as Boolean {
-    var n = 123 << 10 + 222;
+    var expected = new BatteryPoint(120, 22.22);
     var b = new [8]b;
-    b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
     var pc = new PointsContainer(b);
+    expected.save(pc, 1);
     var p = BatteryPoint.FromBytes(pc, 1);
-    assert_equal(p.getTS(), 123, "unexpected ts");
-    assert_equal(p.getValue(), 22.2, "unexpected value");
+    assert_equal(p.getTS(), expected.getTS(), "unexpected ts");
+    assert_equal(p.getValue(), expected.getValue(), "unexpected value");
     return true;
 }
 
 (:test)
-function testBatteryPointLoad(logger as Logger) as Boolean {
-    var n = 123 << 10 + 222;
+function testBatteryPointAlign(logger as Logger) as Boolean {
+    var ts = 123;
+    var value = 12.346; 
+    var step = 15;
+    var ratio = 100.0;
+    var p = BatteryPoint.FromArray([ts, value] as StatePoint);
+    p.align();
+    assert_point_equal(p, [Math.round(ts / step) * step, Math.round(value * ratio) / ratio], "unaligned");
+    return true;
+}
+
+(:test)
+function testBatteryPointSaveLoad(logger as Logger) as Boolean {
+    var expected = new BatteryPoint(120, 22.34);
     var b = new [8]b;
-    b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
-    var p = new BatteryPoint(1, 1);
     var pc = new PointsContainer(b);
-    p.load(pc, 1);
-    assert_equal(p.getTS(), 123, "unexpected dst ts");
-    assert_equal(p.getValue(), 22.2, "unexpected dst value");
-    return true;
-}
-
-(:test)
-function testBatteryPointSave(logger as Logger) as Boolean {
-    var n = 123 << 10 + 222;
-    var b = new [8]b;
-    b.encodeNumber(n, Lang.NUMBER_FORMAT_UINT32, {:offset => 4, :endianness => Lang.ENDIAN_BIG});
-    var d = PointsContainer.New(2);
-    var p = new BatteryPoint(123, 22.2);
-    p.save(d, 1);
-    assert_equal(b, d.serialize(), "unexpected bytes");
+    expected.save(pc, 1);
+    var p = BatteryPoint.FromBytes(pc, 1);
+    assert_point_equal(p, [expected.getTS(), expected.getValue()], "invariant changed");
     return true;
 }

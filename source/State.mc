@@ -222,19 +222,20 @@ class State {
     
     public function handleMeasurements(ts as Number, battery as Float, charging as Boolean) as Void {        
         // Точку на график добавляем всегда
-        pushPoint(new BatteryPoint(ts, battery));
+        var point = new BatteryPoint(ts, battery).align();
+        pushPoint(point);
         
         // Если данные отсутствуют, просто добавляем одну точку.
         if (mCharged == null) {
             //log.debug("data is empty, initializing", battery);
-            reset(ts, battery);
+            reset(point);
             return;
         }
         
         // На зарядке сбрасываем состояние
         if (charging) {
             //log.debug("charging, reset at", battery);
-            reset(ts, battery);
+            reset(point);
             return;
         }
 
@@ -261,9 +262,9 @@ class State {
     /**
     Сбрасывает данные для измерений. 
     */
-    private function reset(ts as Number, value as Float) as Void {
-        mActivityTS = ts;
-        mCharged = [ts, value] as Array<Number or Float>?;
+    private function reset(point as BatteryPoint) as Void {
+        mActivityTS = point.getTS();
+        mCharged = [point.getTS(), point.getValue()] as Array<Number or Float>?;
         mMark = null;
     }
 }

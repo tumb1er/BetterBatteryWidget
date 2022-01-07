@@ -40,7 +40,7 @@ class BatteryPoint {
     }
 
     public function align() as BatteryPoint {
-        self.ts = Math.round(ts / BatteryPoint.STEP) * BatteryPoint.STEP;
+        self.ts = Math.floor(ts / BatteryPoint.STEP) * BatteryPoint.STEP;
         self.value = Math.round(self.value * BatteryPoint.RATIO) / BatteryPoint.RATIO;
         return self;
     }
@@ -56,7 +56,8 @@ class BatteryPoint {
     }
 
     public function save(b as PointsContainer, idx as Number) as Void {
-        var n = Math.round(self.ts / BatteryPoint.STEP).toNumber() << BatteryPoint.MASK_LEN;
+        // Math.floor тут для того, чтобы при сравнении с текущим временем никогда не получать значения из будущего
+        var n = Math.floor(self.ts / BatteryPoint.STEP).toNumber() << BatteryPoint.MASK_LEN;
         n += Math.round(self.value * BatteryPoint.RATIO).toNumber() & BatteryPoint.MASK;
         b.encode(n.toNumber(), idx);
     }
@@ -109,13 +110,13 @@ function testBatteryPointFromBytes(logger as Logger) as Boolean {
 
 (:test)
 function testBatteryPointAlign(logger as Logger) as Boolean {
-    var ts = 123;
-    var value = 12.346; 
+    var ts = 129;
+    var value = 12.349; 
     var step = 15;
     var ratio = 100.0;
     var p = BatteryPoint.FromArray([ts, value] as StatePoint);
     var result = p.align();
-    assert_point_equal(p, [Math.round(ts / step) * step, Math.round(value * ratio) / ratio], "unaligned");
+    assert_point_equal(p, [Math.floor(ts / step.toFloat()).toNumber() * step, Math.round(value * ratio) / ratio], "unaligned");
     assert_point_equal(result, p, "return value mismatch");
     return true;
 }

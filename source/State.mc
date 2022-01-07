@@ -230,10 +230,12 @@ class State {
 
     // Обновляет значения V-EMA для скорости разряда
     private function updateEMA(delta as BatteryPoint) as Void {
-        var weight = delta.getTS().toFloat() / 5 * 60; // Нормализуем вес точки по числу измерений
-        var value = delta.getValue();
-        mNum = mAlpha * mNum + (1 - mAlpha) * weight * value;
+        var weight = delta.getTS().toFloat() / (5 * 60); // Нормализуем вес точки по числу измерений
+        var speed = delta.getValue() / delta.getTS();
+        self.log.debug("update ema with", [weight, speed, delta.getTS()]);
+        mNum = mAlpha * mNum + (1 - mAlpha) * weight * speed;
         mDen = mAlpha * mDen + (1 - mAlpha) * weight;
+        self.log.debug("new ema is", mNum / mDen);
     }
     
     public function measure() as Void {

@@ -34,11 +34,11 @@ class State {
     private var mMark as StatePoint?;
     private var mActivityRunning as Boolean;
     private var mActivityTS as Number?;
-    private var log as Log;
+    // private var log as Log;
     private var mGraphDuration as Number?;
     
     public function initialize(data as StateData?) {
-        log = new Log("State");
+        // log = new Log("State");
         var app = getApp();
         mGraphDuration = 3600 * app.getGraphDuration();
         // log.debug("initialize: passed", data);
@@ -176,12 +176,12 @@ class State {
     Добавляет точки для графика. 
     */
     private function pushPoint(point as BatteryPoint) as Void {
-        self.log.debug("pushPoint", point.toString());
+        // self.log.debug("pushPoint", point.toString());
         point.align();
-        self.log.debug("point aligned", point.toString());
+        // self.log.debug("point aligned", point.toString());
         // Если массив пуст, добавляем точку без условий
         if (mPoints.size() == 0) {
-            self.log.msg("zero size, add");
+            // self.log.msg("zero size, add");
             mPoints.add(point);
             return;
         }
@@ -189,23 +189,23 @@ class State {
         var value = point.getValue();
         // Не добавляем точку, если интервал времени между ними слишком мал
         var prev = mPoints.last() as BatteryPoint;
-        self.log.debug("prev point", prev.toString());
+        // self.log.debug("prev point", prev.toString());
         if (ts - prev.getTS() < 1) {
-            self.log.debug("ts delta too low", ts - prev.getTS());
+            // self.log.debug("ts delta too low", ts - prev.getTS());
             return;
         }
         // Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
         if (value == prev.getValue()) {
-            self.log.msg("same value");
+            // self.log.msg("same value");
             if (mPoints.size() > 1) {
-                self.log.debug("shifting ts", [prev.getTS(), ts]);
+                // self.log.debug("shifting ts", [prev.getTS(), ts]);
                 mPoints.set(mPoints.size() - 1, point);
             } else {
-                self.log.msg("nothing to shift");
+                // self.log.msg("nothing to shift");
             }
             return;
         } else {
-            self.log.debug("value delta", (value - prev.getValue()));
+            // self.log.debug("value delta", (value - prev.getValue()));
         }
         
         mPoints.add(point);

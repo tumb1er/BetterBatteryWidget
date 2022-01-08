@@ -47,10 +47,10 @@ class State {
         var app = getApp();
         mGraphDuration = 3600 * app.getGraphDuration();
         mAlpha = 1.0 - 2.0 / (6 + 1);  // 6 measurements per 30 min window by default
-        log.debug("initialize: passed", data);
+        // log.debug("initialize: passed", data);
         if (data == null) {
             data = Application.Storage.getValue(STATE_PROPERTY) as StateData?;        
-        log.debug("initialize: got", data);
+        // log.debug("initialize: got", data);
         }
         if (data == null) {
             // log.debug("before empty", data);
@@ -87,7 +87,7 @@ class State {
             // Добавляем актуальное значение к последнему сохраненному
             var weight = current.getTS() - prev.getTS();
             var value = current.getValue() - prev.getValue();
-            num = mAlpha * num + (1 - mAlpha) * weight * value;
+            num = mAlpha * num + (1 - mAlpha) * value;
             den = mAlpha * den + (1 - mAlpha) * weight;
             log.debug("result is", [num, den]);
          }
@@ -230,10 +230,10 @@ class State {
 
     // Обновляет значения V-EMA для скорости разряда
     private function updateEMA(delta as BatteryPoint) as Void {
-        var weight = delta.getTS().toFloat() / (5 * 60); // Нормализуем вес точки по числу измерений
-        var speed = delta.getValue() / delta.getTS();
-        self.log.debug("update ema with", [weight, speed, delta.getTS()]);
-        mNum = mAlpha * mNum + (1 - mAlpha) * weight * speed;
+        var weight = delta.getTS().toFloat();
+        var value = delta.getValue();
+        self.log.debug("update ema with", [weight, value]);
+        mNum = mAlpha * mNum + (1 - mAlpha) * value;
         mDen = mAlpha * mDen + (1 - mAlpha) * weight;
         self.log.debug("new ema is (%/h)", mNum / mDen * 3600.0);
     }

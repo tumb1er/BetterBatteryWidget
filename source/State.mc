@@ -37,7 +37,7 @@ class State {
     private var mActivityRunning as Boolean;
     private var mActivityTS as Number?;
     private var mEMA as Float?;
-    private var log as Log;
+    // private var log as Log;
     private var mGraphDuration as Number?;
     
     public function initialize(data as StateData?) {

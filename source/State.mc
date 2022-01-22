@@ -13,7 +13,8 @@ typedef StateData as {
     "c1" as StatePoint?,
     "a1" as Boolean,
     "t1" as Number?,
-    "m1" as StatePoint?
+    "m1" as StatePoint?,
+    "e1" as Float?,
 };
 
 (:typecheck([disableBackgroundCheck, disableGlanceCheck]) :background :glance)
@@ -25,6 +26,7 @@ class State {
 	private static const KEY_ACTIVITY = "a1";
 	private static const KEY_ACTIVITY_TS = "t1";
 	private static const KEY_MARK = "m1";
+    private static const KEY_EMA = "e1";
 	
 	private static const MAX_POINTS = 5;
 	private static const CAPACITY = 50;  // limited by background exit max size
@@ -34,6 +36,7 @@ class State {
     private var mMark as StatePoint?;
     private var mActivityRunning as Boolean;
     private var mActivityTS as Number?;
+    private var mEMA as Float?;
     // private var log as Log;
     private var mGraphDuration as Number?;
     
@@ -53,12 +56,14 @@ class State {
             mMark = null;
             mActivityTS = null;
             mActivityRunning = false;
+            mEMA = 0.0;
         } else {
             mPoints = new TimeSeries(data[KEY_POINTS] as ByteArray);
             mCharged = data[KEY_CHARGED] as StatePoint?;
             mMark = data[KEY_MARK] as StatePoint?;
             mActivityTS = data[KEY_ACTIVITY_TS] as Number?;
             mActivityRunning = data[KEY_ACTIVITY] as Boolean;
+            mEMA = ((data[KEY_EMA] != null)?data[KEY_EMA]: 0.0) as Float?;
         }
         //log.debug("initialize: data", mData);
     }
@@ -67,24 +72,19 @@ class State {
         return new PointsIterator(mPoints, 0);
     }
 
-    public function getWindowIterator() as PointsIterator {
-        var position = 0;
-        if (mPoints.size() > MAX_POINTS) {
-            position = mPoints.size() - MAX_POINTS;
+    public function getEMARate(current as BatteryPoint) as Float? {
+        var ema = mEMA;
+        var prev = getPointsIterator().last();
+        // log.debug("emaIter last", prev.toString());
+        if (prev != null && (prev.getTS() < current.getTS())) {
+            // log.debug("adding prev to", mEMA);
+            // Добавляем актуальное значение к последнему сохраненному
+            ema = computeEMA(new BatteryPoint(
+                current.getTS() - prev.getTS(),
+                current.getValue() - prev.getValue()));
         }
-        var iterator = new PointsIterator(mPoints, position);
-        if (mActivityTS != null) {
-            var c = iterator.current();
-            while (c != null) {
-                if ((c as BatteryPoint).getTS() < mActivityTS as Number) {
-                    iterator.next();
-                    c = iterator.current();
-                } else {
-                    break;
-                }
-            }
-        }
-        return iterator;
+        // log.debug("actual ema is", ema * 3600);
+        return (ema>0)?ema:-ema;
     }
 
     public function getChargedPoint() as BatteryPoint? {
@@ -138,7 +138,8 @@ class State {
             KEY_CHARGED => mCharged,
             KEY_ACTIVITY => mActivityRunning,
             KEY_ACTIVITY_TS => mActivityTS,
-            KEY_MARK => mMark
+            KEY_MARK => mMark,
+            KEY_EMA => mEMA
         };
         stats = System.getSystemStats();
         // log.debug("constructed a dict", stats.freeMemory);
@@ -173,17 +174,19 @@ class State {
     }
     
     /**
-    Добавляет точки для графика. 
+    Добавляет точки для графика. Возвращает точку, содержащую разницу во времени
+    и в значении относительно предыдущей точки (если была добавлена новая).
     */
-    private function pushPoint(point as BatteryPoint) as Void {
+    private function pushPoint(point as BatteryPoint) as BatteryPoint? {
         // self.log.debug("pushPoint", point.toString());
         point.align();
         // self.log.debug("point aligned", point.toString());
         // Если массив пуст, добавляем точку без условий
         if (mPoints.size() == 0) {
             // self.log.msg("zero size, add");
+            // Всего одна точка, разницу не рассчитаешь.
             mPoints.add(point);
-            return;
+            return null;
         }
         var ts = point.getTS();
         var value = point.getValue();
@@ -192,23 +195,34 @@ class State {
         // self.log.debug("prev point", prev.toString());
         if (ts - prev.getTS() < 1) {
             // self.log.debug("ts delta too low", ts - prev.getTS());
-            return;
+            // Не добавляли новую точку
+            return null;
         }
         // Если значения одинаковые, сдвигаем имеющуюся точку вправо (кроме первой точки)
         if (value == prev.getValue()) {
-            // self.log.msg("same value");
-            if (mPoints.size() > 1) {
-                // self.log.debug("shifting ts", [prev.getTS(), ts]);
-                mPoints.set(mPoints.size() - 1, point);
-            } else {
-                // self.log.msg("nothing to shift");
-            }
-            return;
+            // Заряд не изменился, точку не добавляем
+            return null;
         } else {
             // self.log.debug("value delta", (value - prev.getValue()));
         }
         
         mPoints.add(point);
+        return new BatteryPoint(ts - prev.getTS(), value - prev.getValue());
+    }
+
+    // Обновляет значения V-EMA для скорости разряда
+    private function computeEMA(delta as BatteryPoint) as Float {
+        var dt = delta.getTS().toFloat();
+        var dv = delta.getValue();
+        var speed = dv / dt;
+        // self.log.debug("speed", [dv, dt, speed * 3600]);
+        var weight = dt / (30 * 60.0);
+        if (weight > 1) {
+            weight = 1;
+        }
+        // self.log.debug("weight", weight);
+
+        return (1 - weight) * mEMA + weight * speed;
     }
     
     public function measure() as Void {
@@ -223,7 +237,12 @@ class State {
     public function handleMeasurements(ts as Number, battery as Float, charging as Boolean) as Void {        
         // Точку на график добавляем всегда
         var point = new BatteryPoint(ts, battery).align();
-        pushPoint(point);
+        var delta = pushPoint(point);
+        if (delta != null) {
+            // Рассчитываем V-EMA
+            mEMA = computeEMA(delta);
+            // self.log.debug("new ema is", mEMA * 3600);
+        }
         
         // Если данные отсутствуют, просто добавляем одну точку.
         if (mCharged == null) {
@@ -266,6 +285,7 @@ class State {
         mActivityTS = point.getTS();
         mCharged = [point.getTS(), point.getValue()] as Array<Number or Float>?;
         mMark = null;
+        mEMA = 0.0;
     }
 }
 

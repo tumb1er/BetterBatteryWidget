@@ -23,7 +23,7 @@ function predict(first as BatteryPoint?, last as BatteryPoint?) as BatteryPoint?
 
 (:glance)
 class Result {
-    // var log;
+    // var log as Log;
     private var mStats as State;
     private var chargedPoint as BatteryPoint?;
     private var currentPoint as BatteryPoint?;
@@ -70,13 +70,17 @@ class Result {
     
     public function predictWindow() as Void {
         self.windowPredict = null;
-        var data = mStats.getWindowIterator();
-        if (data.size() < 2) {
+        // log.debug("predictWindow for", self.currentPoint);
+        var speed = mStats.getEMARate(self.currentPoint);
+        // log.debug("speed is", speed);
+        if (speed == null) {
             return;
         }
-        var first = data.first();
-        self.windowPredict = predict(first, self.currentPoint);
-        // log.debug("windowPredict", self.windowPredict);
+        if (speed == 0.0) {
+            return;
+        }
+        self.windowPredict = new BatteryPoint((self.currentPoint.getValue() / speed).toNumber(), speed.toFloat());      
+        // log.debug("windowPredict", self.windowPredict.toString());
     }
     
     public function predictCharged() as Void {

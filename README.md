@@ -44,7 +44,10 @@ Widget | Graph | Info | Mark
    * Vivoactive 4s
 * Forerunner 735xt - simulator crash (#31)
 * Venu 2S - 360x360 
-* Venu 2 - 416x416
+* 416x416 devices (#32)
+   * Epix gen 2
+   * Venu 2
+   * Venu 2 plus
 * Square devices
    * Venu Sq
    * Venu Sq music

@@ -11,9 +11,9 @@ Battery widget for Vivoactive series.
 * Discharge graph
 * Measure discharge speed for user-defined interval
 
-Widget | Graph | Info | Mark 
+Widget | Graph | Info | Mark | Glance
 -- | -- | -- | --
-![Widget](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/widget.png) | ![Graph](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/graph_page.png) | ![Info](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/info_page.png) | ![Mark](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/mark.png)
+![Widget](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/widget.png) | ![Graph](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/graph_page.png) | ![Info](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/info_page.png) | ![Mark](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/mark.png) | ![Glance](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/glance.png)  
 
 
 ### FAQ
@@ -42,7 +42,7 @@ Widget | Graph | Info | Mark
    * Forerunner 55
    * Rey
    * Vivoactive 4s
-* Forerunner 735xt - simulator crash (#31)
+* Forerunner 735xt - semi-round
 * Venu 2S - 360x360 
 * 416x416 devices (#32)
    * Epix gen 2

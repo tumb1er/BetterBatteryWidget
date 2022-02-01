@@ -12,7 +12,7 @@ Battery widget for Vivoactive series.
 * Measure discharge speed for user-defined interval
 
 Widget | Graph | Info | Mark | Glance
--- | -- | -- | --
+-- | -- | -- | -- | --
 ![Widget](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/widget.png) | ![Graph](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/graph_page.png) | ![Info](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/info_page.png) | ![Mark](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/mark.png) | ![Glance](https://github.com/tumb1er/BetterBatteryWidget/blob/master/store/glance.png)  
 
 

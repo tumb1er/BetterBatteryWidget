@@ -37,8 +37,8 @@ class GraphPage extends WatchUi.View {
         var RS = Rez.Strings;
         var RJ = Rez.JsonData;
         
-        var gw = loadNumberFromStringResource(RS.GraphWidth);
-        var gh = loadNumberFromStringResource(RS.GraphHeight);
+        var gw = Application.Properties.getValue("GW");
+        var gh = Application.Properties.getValue("GraphHeight");
         var th = loadNumberFromStringResource(RS.GraphStatusHeight);
         var ty = loadNumberFromStringResource(RS.GraphStatusY);
         offset = loadNumberFromStringResource(RS.GraphIntervalOffset);

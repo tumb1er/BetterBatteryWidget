@@ -1,6 +1,4 @@
 <strings>
-	<string id="GraphWidth">300</string>
-	<string id="GraphHeight">160</string>
 	<string id="GraphStatusY">35</string>
 	<string id="GraphStatusHeight">110</string>
 	<string id="GraphIntervalOffset">30</string>

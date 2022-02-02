@@ -1,5 +1,9 @@
 <properties>
+<!-- settings defaults -->
     <property id="MeasurePeriod" type="number">5</property>
     <property id="GraphDuration" type="number">4</property>
 	<property id="GraphMode" type="number">0</property>
+<!-- resources -->
+    <property id="GW" type="number">200</property>
+    <property id="GraphHeight" type="number">80</property>
 </properties>

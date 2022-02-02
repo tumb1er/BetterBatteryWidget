@@ -4,5 +4,5 @@
     <property id="MBY" type="number">190</property>
     <property id="SY" type="number">40</property>
 	<property id="SS" type="number">45</property>
-
+    <property id="GP" type="number">18</property>
 </properties>

@@ -100,10 +100,6 @@ function colorize(percent as Float) as Graphics.ColorType {
     }
 }
 
-function loadNumberFromStringResource(r as Symbol) as Number {
-    return (WatchUi.loadResource(r) as String).toNumber() as Number;
-}
-
 (:debug)
 function assertViewDraw(logger as Test.Logger, page as WatchUi.View) as Graphics.Dc {
     var s = System.getDeviceSettings();

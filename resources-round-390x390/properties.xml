@@ -11,4 +11,5 @@
 	<property id="MDO" type="number">50</property>
     <property id="SY" type="number">60</property>
 	<property id="SS" type="number">75</property>
+    <property id="GP" type="number">30</property>
 </properties>

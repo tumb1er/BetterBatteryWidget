@@ -6,5 +6,6 @@
 	<property id="MBH" type="number">75</property>
     <property id="SY" type="number">50</property>
 	<property id="SS" type="number">50</property>
+    <property id="GP" type="number">20</property>
 
 </properties>

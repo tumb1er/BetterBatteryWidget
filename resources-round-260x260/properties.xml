@@ -2,4 +2,7 @@
     <property id="GW" type="number">210</property>
     <property id="GH" type="number">100</property>
     <property id="MBY" type="number">190</property>
+    <property id="SY" type="number">40</property>
+	<property id="SS" type="number">45</property>
+
 </properties>

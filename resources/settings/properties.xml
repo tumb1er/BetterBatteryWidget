@@ -20,6 +20,10 @@
     <!-- Mark Button Height / Y -->
     <property id="MBH" type="number">80</property>
 	<property id="MBY" type="number">165</property>
+    <!-- Mark Date Offset -->
 	<property id="MDO" type="number">30</property>
+    <!-- Stats Y / Spacing -->
+    <property id="SY" type="number">30</property>
+	<property id="SS" type="number">40</property>
 
 </properties>

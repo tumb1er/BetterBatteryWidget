@@ -31,8 +31,8 @@ class InfoPage extends WatchUi.View {
         cx = (sw / 2).toNumber();
         mh = Application.Properties.getValue("MBH");
         my = Application.Properties.getValue("MBY");
-        var sy = loadNumberFromStringResource(RS.StatsY);
-        var ss = loadNumberFromStringResource(RS.StatsSpacing);
+        var sy = Application.Properties.getValue("SY");
+        var ss = Application.Properties.getValue("SS");
         markDateOffset = Application.Properties.getValue("MDO");
         var params = {
             :width => sw,

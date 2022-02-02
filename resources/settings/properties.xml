@@ -1,5 +1,31 @@
 <properties>
+<!-- settings defaults -->
     <property id="MeasurePeriod" type="number">5</property>
     <property id="GraphDuration" type="number">4</property>
 	<property id="GraphMode" type="number">0</property>
+<!-- resources -->
+    <!-- Graph Width/Height -->
+    <property id="GW" type="number">200</property>
+    <property id="GH" type="number">80</property>
+    <!-- Graph Pen -->
+    <property id="GP" type="number">16</property>
+    <!-- Graph Status Height / Y -->
+    <property id="GSH" type="number">80</property>
+	<property id="GSY" type="number">30</property>
+	<!-- Graph Interval Offset -->
+    <property id="GIO" type="number">20</property>
+    <!-- TriText Height, Num/Center/Desc Offset -->
+    <property id="TTH" type="number">30</property>
+	<property id="TTNO" type="number">6</property>
+	<property id="TTCO" type="number">10</property>
+	<property id="TTDO" type="number">15</property>
+    <!-- Mark Button Height / Y -->
+    <property id="MBH" type="number">80</property>
+	<property id="MBY" type="number">165</property>
+    <!-- Mark Date Offset -->
+	<property id="MDO" type="number">30</property>
+    <!-- Stats Y / Spacing -->
+    <property id="SY" type="number">30</property>
+	<property id="SS" type="number">40</property>
+
 </properties>

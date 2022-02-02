@@ -1,0 +1,5 @@
+<properties>
+	<property id="TTNO" type="number">17</property>
+	<property id="TTCO" type="number">20</property>
+    <property id="MDO" type="number">40</property>
+</properties>

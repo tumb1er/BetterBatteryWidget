@@ -33,7 +33,7 @@ Widget | Graph | Info | Mark | Glance
    
 ## Unsupported devices
 
-* Approach S60 - no charging state available
+* Approach S60 - no charging state available, no ByteArray support
 * D2 Charlie - no ByteArray support (see #29)
 * 218x218 devices (#30)
    * Captain Marvel

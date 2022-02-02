@@ -31,7 +31,7 @@ class WidgetPage extends WatchUi.View {
 
         mGaugeDrawable = new GaugeDrawable({
             :radius => w2,
-            :pen => loadNumberFromStringResource(Rez.Strings.GaugePen)
+            :pen => Application.Properties.getValue("GP")
         });
         
         mPercentText = new PercentText({

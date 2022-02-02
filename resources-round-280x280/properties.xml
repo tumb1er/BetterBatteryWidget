@@ -1,0 +1,11 @@
+<properties>
+    <property id="GW" type="number">230</property>
+    <property id="GH" type="number">100</property>
+    <property id="GSY" type="number">25</property>
+    <property id="MBY" type="number">205</property>
+	<property id="MBH" type="number">75</property>
+    <property id="SY" type="number">50</property>
+	<property id="SS" type="number">50</property>
+    <property id="GP" type="number">20</property>
+
+</properties>

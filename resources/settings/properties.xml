@@ -5,5 +5,5 @@
 	<property id="GraphMode" type="number">0</property>
 <!-- resources -->
     <property id="GW" type="number">200</property>
-    <property id="GraphHeight" type="number">80</property>
+    <property id="GH" type="number">80</property>
 </properties>

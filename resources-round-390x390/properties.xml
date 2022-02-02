@@ -1,4 +1,4 @@
 <properties>
     <property id="GW" type="number">300</property>
-    <property id="GraphHeight" type="number">160</property>
+    <property id="GH" type="number">160</property>
 </properties>

@@ -1,9 +1,6 @@
 <strings>
 	<string id="StatsY">60</string>
 	<string id="StatsSpacing">75</string>
-	<string id="MarkButtonY">285</string>
-	<string id="MarkButtonHeight">110</string>
-	<string id="MarkDateOffset">50</string>
 	
 	<string id="GaugePen">30</string>	
 </strings>

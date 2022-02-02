@@ -29,11 +29,11 @@ class InfoPage extends WatchUi.View {
         sw = dc.getWidth();
         sh = dc.getHeight();
         cx = (sw / 2).toNumber();
-        mh = loadNumberFromStringResource(RS.MarkButtonHeight);
-        my = loadNumberFromStringResource(RS.MarkButtonY);
+        mh = Application.Properties.getValue("MBH");
+        my = Application.Properties.getValue("MBY");
         var sy = loadNumberFromStringResource(RS.StatsY);
         var ss = loadNumberFromStringResource(RS.StatsSpacing);
-        markDateOffset = loadNumberFromStringResource(RS.MarkDateOffset);
+        markDateOffset = Application.Properties.getValue("MDO");
         var params = {
             :width => sw,
             :height => Application.Properties.getValue("TTH"),

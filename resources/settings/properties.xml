@@ -17,5 +17,9 @@
 	<property id="TTNO" type="number">6</property>
 	<property id="TTCO" type="number">10</property>
 	<property id="TTDO" type="number">15</property>
+    <!-- Mark Button Height / Y -->
+    <property id="MBH" type="number">80</property>
+	<property id="MBY" type="number">165</property>
+	<property id="MDO" type="number">30</property>
 
 </properties>

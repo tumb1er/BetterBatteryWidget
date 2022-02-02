@@ -5,9 +5,5 @@
 	<string id="MarkButtonHeight">110</string>
 	<string id="MarkDateOffset">50</string>
 	
-	<string id="GaugePen">30</string>
-	
-	<string id="TriTextNumOffset">14</string>
-	<string id="TriTextDescOffset">25</string>
-	
+	<string id="GaugePen">30</string>	
 </strings>

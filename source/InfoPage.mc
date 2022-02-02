@@ -36,7 +36,7 @@ class InfoPage extends WatchUi.View {
         markDateOffset = loadNumberFromStringResource(RS.MarkDateOffset);
         var params = {
             :width => sw,
-            :height => loadNumberFromStringResource(RS.TriTextHeight),
+            :height => Application.Properties.getValue("TTH"),
             :locX => 0,
             :locY => sy,
             :color => Graphics.COLOR_WHITE,

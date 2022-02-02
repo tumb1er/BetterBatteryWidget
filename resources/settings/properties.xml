@@ -12,5 +12,10 @@
 	<property id="GSY" type="number">30</property>
 	<!-- Graph Interval Offset -->
     <property id="GIO" type="number">20</property>
+    <!-- TriText Height, Num/Center/Desc Offset -->
+    <property id="TTH" type="number">30</property>
+	<property id="TTNO" type="number">6</property>
+	<property id="TTCO" type="number">10</property>
+	<property id="TTDO" type="number">15</property>
 
 </properties>

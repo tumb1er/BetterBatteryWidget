@@ -29,9 +29,9 @@ class TriText extends WatchUi.Text {
         text = params.get(:text) as String;
         suffix = params.get(:suffix) as Boolean;
         // log = new Log(Lang.format("TriText.$1$", [title]));
-        numberOffset = loadNumberFromStringResource(Rez.Strings.TriTextNumOffset);
-        centerOffset = loadNumberFromStringResource(Rez.Strings.TriTextCenterOffset);
-        descOffset = loadNumberFromStringResource(Rez.Strings.TriTextDescOffset);
+        numberOffset = Application.Properties.getValue("TTNO");
+        centerOffset = Application.Properties.getValue("TTCO");
+        descOffset = Application.Properties.getValue("TTDO");
     }
     
     public function draw(dc as Graphics.Dc) as Void {

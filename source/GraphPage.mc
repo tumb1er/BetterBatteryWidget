@@ -39,9 +39,9 @@ class GraphPage extends WatchUi.View {
         
         var gw = Application.Properties.getValue("GW");
         var gh = Application.Properties.getValue("GH");
-        var th = loadNumberFromStringResource(RS.GraphStatusHeight);
-        var ty = loadNumberFromStringResource(RS.GraphStatusY);
-        offset = loadNumberFromStringResource(RS.GraphIntervalOffset);
+        var th = Application.Properties.getValue("GSH");
+        var ty = Application.Properties.getValue("GSY");
+        offset = Application.Properties.getValue("GIO");
         mx = w / 2;
         my = h - 10;
         var graphMargin = (w - gw) / 2;

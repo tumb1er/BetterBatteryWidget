@@ -1,4 +1,8 @@
 <properties>
     <property id="GW" type="number">300</property>
     <property id="GH" type="number">160</property>
+    <property id="GSY" type="number">35</property>
+	<property id="GSH" type="number">110</property>
+	<property id="GIO" type="number">30</property>
+
 </properties>
